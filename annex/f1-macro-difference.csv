@@ -1,0 +1,8 @@
+Sample size,0 (8 datasets),100 (8 datasets),500 (8 datasets),1000 (8 datasets),2500 (8 datasets),5000 (4 datasets),10000 (3 datasets)
+BERT-base vs. SVM,0.0,0.12,0.14,0.13,0.13,0.17,0.19
+BERT-base vs. Log. Reg.,0.0,0.05,0.12,0.16,0.14,0.19,0.2
+BERT-base vs. classical-best,0.0,0.05,0.12,0.13,0.13,0.17,0.19
+BERT-base-nli vs. SVM,0.4,0.23,0.18,0.14,0.13,0.15,0.17
+BERT-base-nli vs. Log. Reg.,0.4,0.16,0.16,0.17,0.14,0.17,0.18
+BERT-base-nli vs. classical-best,0.4,0.16,0.16,0.14,0.13,0.15,0.17
+BERT-base-nli vs. BERT-base,0.4,0.11,0.04,0.01,-0.0,-0.02,-0.02

@@ -1,0 +1,6 @@
+algorithm,0 (8 datasets),100 (8 datasets),500 (8 datasets),1000 (8 datasets),2500 (8 datasets),5000 (4 datasets),10000 (3 datasets)
+SVM,0.0,0.255,0.412,0.476,0.521,0.452,0.461
+logistic regression,0.0,0.325,0.429,0.453,0.505,0.434,0.45
+classical-best,0.0,0.325,0.429,0.476,0.521,0.452,0.461
+BERT-base,0.0,0.377,0.55,0.61,0.648,0.622,0.647
+BERT-base-nli,0.403,0.486,0.591,0.62,0.647,0.601,0.63

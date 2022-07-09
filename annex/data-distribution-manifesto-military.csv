@@ -1,0 +1,4 @@
+labels,train,test,all
+Other,1985,8670,10655
+Military: Positive,1623,639,2262
+Military: Negative,362,228,590
