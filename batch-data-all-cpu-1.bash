@@ -16,6 +16,7 @@ cd ./NLI-experiments
 # install packages
 pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
+pip uninstall -y codecarbon
 python -m spacy download en_core_web_lg
 
 
