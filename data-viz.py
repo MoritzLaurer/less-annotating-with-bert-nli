@@ -10,13 +10,6 @@ SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
 
-####
-
-
-
-
-
-
 # ## Data loading
 
 #set wd
@@ -25,7 +18,7 @@ if "NLI-experiments" not in os.getcwd():
     os.chdir("./NLI-experiments")
 print(os.getcwd())
 
-metric = "f1_micro"
+metric = "f1_macro"  # for figure with performance per dataset
 
 ## save study  # https://optuna.readthedocs.io/en/stable/faq.html#how-can-i-save-and-resume-studies
 import joblib
@@ -384,7 +377,6 @@ fig.show(renderer="browser")
 
 # ### Aggregate performance difference
 
-
 ## extract metrics to create df comparing performance per dataset per algo
 # ! careful: not all datasets have 2500 data points, so if it says 2500, this includes 2116 for protectionism (and less full samples for higher intervals)
 
@@ -517,6 +509,30 @@ fig_compare = make_subplots(rows=1, cols=2, start_cell="top-left", horizontal_sp
 #fig_compare = go.Figure()
 
 for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
+    fig_compare.add_trace(go.Scatter(
+        name=f"majority baseline",
+        x=[0, 100, 500, 1000, 2500, "5000 (4 ds)", "10000 (3 ds)"],  #["0 (8 datasets)", "100 (8)", "500 (8)", "1000 (8)", "2500 (8)", "5000 (4)", "10000 (3)"],  #[0, 100, 500, 1000, 2500] + list(cols_metrics_dic.keys())[-2:],
+        y=metrics_majority_average,  #[metrics_majority_average[i]] * len(list(cols_metrics_dic.keys())),
+        mode='lines',
+        #line=dict(color="grey"),
+        line_dash="dashdot", line_color="grey", line=dict(width=3),
+        showlegend=True if i == 1 else False,
+        #font=dict(size=14),
+        ),
+        row=1, col=i+1
+    )
+    fig_compare.add_trace(go.Scatter(
+        name=f"random baseline",
+        x=[0, 100, 500, 1000, 2500, "5000 (4 ds)", "10000 (3 ds)"],
+        y=metrics_random_average,  #[metrics_random_average[i]] * len(list(cols_metrics_dic.keys())),
+        mode='lines',
+        #line=dict(color="grey"),
+        line_dash="dot", line_color="grey", line=dict(width=3),
+        showlegend=True if i == 1 else False,
+        #font=dict(size=14),
+        ),
+        row=1, col=i+1
+    )
     for algo, hex in zip(algo_names_comparison, colors_hex):
         fig_compare.add_trace(go.Scatter(
             name=algo,
@@ -557,31 +573,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
             ),
             row=1, col=i+1
         )
-    fig_compare.add_trace(go.Scatter(
-        name=f"random baseline",
-        x=[0, 100, 500, 1000, 2500, "5000 (4 ds)", "10000 (3 ds)"],
-        y=metrics_random_average,  #[metrics_random_average[i]] * len(list(cols_metrics_dic.keys())),
-        mode='lines',
-        #line=dict(color="grey"),
-        line_dash="dot", line_color="grey", line=dict(width=3),
-        showlegend=True if i == 1 else False,
-        #font=dict(size=14),
-        ),
-        row=1, col=i+1
-    )
-    fig_compare.add_trace(go.Scatter(
-        name=f"majority baseline",
-        x=[0, 100, 500, 1000, 2500, "5000 (4 ds)", "10000 (3 ds)"],  #["0 (8 datasets)", "100 (8)", "500 (8)", "1000 (8)", "2500 (8)", "5000 (4)", "10000 (3)"],  #[0, 100, 500, 1000, 2500] + list(cols_metrics_dic.keys())[-2:],
-        y=metrics_majority_average,  #[metrics_majority_average[i]] * len(list(cols_metrics_dic.keys())),
-        mode='lines',
-        #line=dict(color="grey"),
-        line_dash="dashdot", line_color="grey", line=dict(width=3),
-        showlegend=True if i == 1 else False,
-        #font=dict(size=14),
-        ),
-        row=1, col=i+1
-    )
-    fig_compare.add_vline(x=4, line_dash="dot", annotation_text="8 datasets", annotation_position="left", row=1, col=i+1)  # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
+    fig_compare.add_vline(x=4, line_dash="longdash", annotation_text="8 datasets (ds)", annotation_position="left", row=1, col=i+1)  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'] https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
     #fig_compare.add_vline(x=4, line_dash="dot", annotation_text="4 datasets", annotation_position="right", row=1, col=i+1)  # annotation=dict(font_size=20, font_family="Times New Roman")  # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
 
     # update layout for individual subplots  # https://stackoverflow.com/questions/63580313/update-specific-subplot-axes-in-plotly
@@ -589,11 +581,12 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
         # title_text=f'N random examples given {visual_data_dic[key_algo]["n_classes"]} classes',
         tickangle=-10,
         type='category',
-        #font=dict(size=14),
+        title_font_size=16,
     )
     fig_compare['layout'][f'yaxis{i+1}'].update(
         # range=[0.2, pd.Series(visual_data_dic[key_algo][f"{metric}_mean"]).iloc[-1] + pd.Series(visual_data_dic[key_algo][f"{metric}_std"]).iloc[-1] + 0.1]
         title_text=metric_i,
+        title_font_size=16,
         dtick=0.1,
         range=[0, 0.82],
         #font=dict(size=14)
@@ -606,7 +599,7 @@ fig_compare.update_layout(
     #plot_bgcolor='rgba(0,0,0,0)',
     template="none",  # ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]  # https://plotly.com/python/templates/
     margin={"l": 200},
-    font=dict(size=15)
+    font=dict(size=16)
     #height=800,
 )
 fig_compare.show(renderer="browser")
@@ -617,8 +610,8 @@ fig_compare.show(renderer="browser")
 
 
 
-### difference
-fig_difference = go.Figure()
+### visualise performance difference
+"""fig_difference = go.Figure()
 algo_names_difference = ["BERT-base vs. classical-best-tfidf", "BERT-base-nli vs. classical-best-tfidf", "BERT-base vs. classical-best-embeddings", "BERT-base-nli vs. classical-best-embeddings", "BERT-base-nli vs. BERT-base"]
 colors_hex_difference = ["#16bfb4", "#168fbf", "#bfa616", "#bf7716", "#bf16bb"]
 
@@ -654,7 +647,7 @@ fig_difference.update_layout(
 )
 fig_difference.show(renderer="browser")
 
-
+"""
 
 
 

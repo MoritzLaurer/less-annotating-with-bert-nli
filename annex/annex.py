@@ -104,6 +104,8 @@ df_train_test_distribution_coronanet.to_csv("./annex/data-distribution-coronanet
 
 
 
+
+
 ##### Annex 2. Hyperparameters and Pre-processing
 
 ### Best Hyperparameters for DeBERTa-base & DeBERTa-nli
@@ -111,7 +113,7 @@ df_train_test_distribution_coronanet.to_csv("./annex/data-distribution-coronanet
 path_files_lst = [os.path.join(path, name) for path, subdirs, files in os.walk("results/") for name in files if any(string not in name for string in [".DS_Store", "experiment"])]
 path_files_lst = [path_files for path_files in path_files_lst if ".DS_Store" not in path_files]
 path_files_lst = [path_files for path_files in path_files_lst if "experiment" not in path_files]
-# exclude/include specific algo?
+# exclude/include specific algo
 path_files_lst = [path_files for path_files in path_files_lst if "logistic" not in path_files]
 path_files_lst = [path_files for path_files in path_files_lst if "SVM" not in path_files]
 
@@ -220,7 +222,7 @@ path_files_lst = [os.path.join(path, name) for path, subdirs, files in os.walk("
 path_files_lst = [path_files for path_files in path_files_lst if ".DS_Store" not in path_files]
 path_files_lst = [path_files for path_files in path_files_lst if "experiment" not in path_files]
 # exclude/only specific algo?
-path_files_lst = [path_files for path_files in path_files_lst if "SVM" in path_files]
+path_files_lst = [path_files for path_files in path_files_lst if "SVM_tfidf" in path_files]
 
 # add path name as key again to distinguish between datasets
 hp_study_dic = {}
@@ -280,7 +282,11 @@ df_hp_svm = pd.DataFrame(data={"algorithm": col_algo, "dataset": col_dataset, "m
                            "f1_macro_std": col_f1_macro_std, "f1_micro_std": col_f1_micro_std,
                            })
 df_hp_svm = df_hp_svm.sort_values(["algorithm", "sample"], ascending=False)
-simple_algo_names_dic = {"SVM": "SVM", "microsoft/deberta-v3-base": "BERT-base", "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c": "BERT-base-nli", "logistic": "logistic regression"}
+#simple_algo_names_dic = {"SVM": "SVM", "microsoft/deberta-v3-base": "BERT-base", "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c": "BERT-base-nli", "logistic": "logistic regression"}
+simple_algo_names_dic = {"logistic_tfidf": "logistic_tfidf", "logistic_embeddings": "logistic_embeddings",
+                         "SVM_tfidf": "SVM_tfidf", "SVM_embeddings": "SVM_embeddings",
+                         "deberta-v3-base": "BERT-base", "DeBERTa-v3-base-mnli-fever-docnli-ling-2c": "BERT-base-nli",
+                         }
 df_hp_svm.algorithm = df_hp_svm.algorithm.map(simple_algo_names_dic)
 df_hp_svm = df_hp_svm.drop(columns=["method", "f1_macro_mean", "f1_micro_mean", "f1_macro_std", "f1_micro_std", "algorithm"])
 df_hp_svm = df_hp_svm.rename(columns={"hypothesis": "hypothesis/context"})
@@ -288,7 +294,7 @@ df_hp_svm.C = df_hp_svm.C.round(2)
 df_hp_svm.coef0 = df_hp_svm.coef0.round(2)
 df_hp_svm.context = ["yes" if string == "template_not_nli_context" else np.nan if pd.isna(string) else "no" for string in df_hp_svm.context]
 
-df_hp_svm.to_csv("./annex/hyperparams-svm.csv")
+df_hp_svm.to_csv("./annex/hyperparams-svm-tfidf.csv")
 
 
 
@@ -298,7 +304,7 @@ path_files_lst = [os.path.join(path, name) for path, subdirs, files in os.walk("
 path_files_lst = [path_files for path_files in path_files_lst if ".DS_Store" not in path_files]
 path_files_lst = [path_files for path_files in path_files_lst if "experiment" not in path_files]
 # exclude/only specific algo?
-path_files_lst = [path_files for path_files in path_files_lst if "logistic" in path_files]
+path_files_lst = [path_files for path_files in path_files_lst if "logistic_tfidf" in path_files]
 
 # add path name as key again to distinguish between datasets
 hp_study_dic = {}
@@ -354,13 +360,17 @@ df_hp_lr = pd.DataFrame(data={"algorithm": col_algo, "dataset": col_dataset, "me
                            "f1_macro_std": col_f1_macro_std, "f1_micro_std": col_f1_micro_std,
                            })
 df_hp_lr = df_hp_lr.sort_values(["algorithm", "sample"], ascending=False)
-simple_algo_names_dic = {"SVM": "SVM", "microsoft/deberta-v3-base": "BERT-base", "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c": "BERT-base-nli", "logistic": "logistic regression"}
+#simple_algo_names_dic = {"SVM": "SVM", "microsoft/deberta-v3-base": "BERT-base", "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c": "BERT-base-nli", "logistic": "logistic regression"}
+simple_algo_names_dic = {"logistic_tfidf": "logistic_tfidf", "logistic_embeddings": "logistic_embeddings",
+                         "SVM_tfidf": "SVM_tfidf", "SVM_embeddings": "SVM_embeddings",
+                         "deberta-v3-base": "BERT-base", "DeBERTa-v3-base-mnli-fever-docnli-ling-2c": "BERT-base-nli",
+                         }
 df_hp_lr.algorithm = df_hp_lr.algorithm.map(simple_algo_names_dic)
 df_hp_lr = df_hp_lr.drop(columns=["method", "f1_macro_mean", "f1_micro_mean", "f1_macro_std", "f1_micro_std", "algorithm"])
 df_hp_lr.context = ["yes" if string == "template_not_nli_context" else np.nan if pd.isna(string) else "no" for string in df_hp_lr.context]
 df_hp_lr.C = df_hp_lr.C.round(2)
 
-df_hp_lr.to_csv("./annex/hyperparams-logistic.csv")
+df_hp_lr.to_csv("./annex/hyperparams-logistic-tfidf.csv")
 
 
 
@@ -372,7 +382,7 @@ df_hp_lr.to_csv("./annex/hyperparams-logistic.csv")
 DATASET_NAME_LST = ["sentiment-news-econ", "coronanet", "cap-sotu", "cap-us-court", "manifesto-8",
                     "manifesto-military", "manifesto-protectionism", "manifesto-morality"]
 
-def load_latest_experiment_dic(method_name="SVM", dataset_name=None):
+def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
     # get latest experiment for each method for the respective dataset - experiments take a long time and many were conducted
     path_dataset = f"./results/{dataset_name}"
     file_names_lst = [f for f in listdir(path_dataset) if isfile(join(path_dataset, f))]
@@ -399,9 +409,9 @@ for dataset_name in DATASET_NAME_LST:
     # dataset_name = "cap-us-court"
 
     experiment_details_dic_all_methods = {dataset_name: {}}
-    for method_name in ["logistic", "SVM",  # "xtremedistil-l6-h256-uncased", "xtremedistil-l6-h256-mnli-fever-anli-ling-binary",
-                        "deberta-v3-base", "DeBERTa-v3-base-mnli-fever-docnli-ling-2c"  # , "xtremedistil-l6-h256-mnli-fever-anli-ling-politicsnli"
-                        ]:
+    for method_name in ["logistic_tfidf", "SVM_tfidf", "logistic_embeddings", "SVM_embeddings",
+                        "deberta-v3-base", "DeBERTa-v3-base-mnli-fever-docnli-ling-2c"
+                       ]:
         experiment_dic = load_latest_experiment_dic(method_name=method_name, dataset_name=dataset_name)
         if experiment_dic != None:  # to catch cases where not experiment data for method available yet
             experiment_details_dic_all_methods[dataset_name].update({method_name: experiment_dic})
@@ -460,6 +470,8 @@ for key_dataset_name, experiment_details_dic_all_methods in experiment_details_d
     visual_data_dic_datasets.update({key_dataset_name: visual_data_dic})
 
 
+
+
 ### Disaggregated metrics per dataset
 import copy
 visual_data_dic_datasets_cl = copy.deepcopy(visual_data_dic_datasets)
@@ -482,7 +494,7 @@ for key_dataset, value_dataset in visual_data_dic_datasets_cl.items():
     df_metrics_all_dataset = df_metrics_all_dataset.drop("n_sample")
     df_metrics_all_dataset = df_metrics_all_dataset.explode(list(df_metrics_all_dataset.columns))
     df_metrics_all_dataset["n_sample"] = 4 * n_sample
-    df_metrics_all_dataset = df_metrics_all_dataset[['n_sample', 'logistic', 'SVM', 'deberta-v3-base', 'DeBERTa-v3-base-mnli-fever-docnli-ling-2c']]
+    df_metrics_all_dataset = df_metrics_all_dataset[['n_sample', 'logistic_tfidf', 'SVM_tfidf', 'logistic_embeddings', 'SVM_embeddings', 'deberta-v3-base', 'DeBERTa-v3-base-mnli-fever-docnli-ling-2c']]
     df_metrics_all_dataset = df_metrics_all_dataset.rename(columns={'DeBERTa-v3-base-mnli-fever-docnli-ling-2c': 'deberta-v3-nli'})
     metrics_all_dic.update({key_dataset: df_metrics_all_dataset})
 
@@ -492,21 +504,25 @@ for dataset in metrics_all_dic:
 
 
 
+
 ### Aggregate performance difference
-simple_algo_names_dic = {"SVM": "SVM", "deberta-v3-base": "BERT-base",
-                         "DeBERTa-v3-base-mnli-fever-docnli-ling-2c": "BERT-base-nli",
-                         "logistic": "logistic regression"
-}
+simple_algo_names_dic = {"logistic_tfidf": "logistic_tfidf", "logistic_embeddings": "logistic_embeddings",
+                         "SVM_tfidf": "SVM_tfidf", "SVM_embeddings": "SVM_embeddings",
+                         "deberta-v3-base": "BERT-base", "DeBERTa-v3-base-mnli-fever-docnli-ling-2c": "BERT-base-nli",
+                         }
 
 ## extract metrics to create df comparing performance per dataset per algo
 # ! careful: not all datasets have 2500 data points, so if it says 2500, this includes 2116 for protectionism (and less full samples for higher intervals)
 
 df_metrics_lst = []
+df_std_lst = []
 for metric in ["f1_macro", "f1_micro"]:
     col_dataset = []
     col_algo = []
     col_f1_macro = []
     cols_metrics_dic = {"0 (8 datasets)": [], "100 (8 datasets)": [], "500 (8 datasets)": [], "1000 (8 datasets)": [], "2500 (8 datasets)": [], "5000 (4 datasets)": [],
+                        "10000 (3 datasets)": []}
+    cols_std_dic = {"0 (8 datasets)": [], "100 (8 datasets)": [], "500 (8 datasets)": [], "1000 (8 datasets)": [], "2500 (8 datasets)": [], "5000 (4 datasets)": [],
                         "10000 (3 datasets)": []}
     for key_dataset in visual_data_dic_datasets:
         #if key_dataset in datasets_selection:
@@ -516,11 +532,18 @@ for metric in ["f1_macro", "f1_micro"]:
             for i, k in enumerate(cols_metrics_dic.keys()):
                 if len(visual_data_dic_datasets[key_dataset][key_algo][f"{metric}_mean"]) > i:
                     cols_metrics_dic[k].append(visual_data_dic_datasets[key_dataset][key_algo][f"{metric}_mean"][i])
+                    cols_std_dic[k].append(visual_data_dic_datasets[key_dataset][key_algo][f"{metric}_std"][i])
                 else:
                     cols_metrics_dic[k].append(np.nan)
+                    cols_std_dic[k].append(np.nan)
+
     ## create aggregate metric dfs
     df_metrics = pd.DataFrame(data={"dataset": col_dataset, "algorithm": col_algo, **cols_metrics_dic})
+    df_std = pd.DataFrame(data={"dataset": col_dataset, "algorithm": col_algo, **cols_std_dic})
     df_metrics_lst.append(df_metrics)
+    df_std_lst.append(df_std)
+
+
 
 ## subset average metrics by dataset size
 datasets_all = ["sentiment-news-econ", "cap-us-court", "manifesto-military", "manifesto-protectionism", "manifesto-morality", "coronanet", "cap-sotu", "manifesto-8"]
@@ -535,11 +558,12 @@ for i, metric in enumerate(["f1_macro", "f1_micro"]):
     #df_metrics_mean_all = df_metrics.groupby(by="algorithm", as_index=True).apply(np.mean).round(4)
     df_metrics_mean = pd.concat([df_metrics_mean_all, df_metrics_mean_medium, df_metrics_mean_large], axis=1)
     # add row with best classical algo value
-    df_metrics_mean.loc["classical-best"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM"], df_metrics_mean.loc["logistic regression"])]
+    df_metrics_mean.loc["classical-best-tfidf"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_tfidf"], df_metrics_mean.loc["logistic_tfidf"])]
+    df_metrics_mean.loc["classical-best-embeddings"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_embeddings"], df_metrics_mean.loc["logistic_embeddings"])]
     # order rows
-    order_algos = ["SVM", "logistic regression", "classical-best", "BERT-base", "BERT-base-nli"]
+    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embeddings", "BERT-base", "BERT-base-nli"]
     df_metrics_mean = df_metrics_mean.reindex(order_algos)
-    df_metrics_mean.index.name = "algorithm"
+    df_metrics_mean.index.name = "Sample size / Algorithm"
     df_metrics_mean_dic.update({metric: df_metrics_mean.round(3)})
 
 
@@ -547,12 +571,14 @@ for i, metric in enumerate(["f1_macro", "f1_micro"]):
 df_metrics_difference_dic = {}
 for i, metric in enumerate(["f1_macro", "f1_micro"]):
     df_metrics_difference = pd.DataFrame(data={
-        "BERT-base vs. SVM": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["SVM"],
-        "BERT-base vs. Log. Reg.": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["logistic regression"],
-        "BERT-base vs. classical-best": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["classical-best"],
-        "BERT-base-nli vs. SVM": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["SVM"],
-        "BERT-base-nli vs. Log. Reg.": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["logistic regression"],
-        "BERT-base-nli vs. classical-best": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["classical-best"],
+        #"BERT-base vs. SVM": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["SVM"],
+        #"BERT-base vs. Log. Reg.": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["logistic regression"],
+        "BERT-base vs. classical-best-tfidf": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["classical-best-tfidf"],
+        "BERT-base vs. classical-best-embeddings": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["classical-best-embeddings"],
+        #"BERT-base-nli vs. SVM": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["SVM"],
+        #"BERT-base-nli vs. Log. Reg.": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["logistic regression"],
+        "BERT-base-nli vs. classical-best-tfidf": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["classical-best-tfidf"],
+        "BERT-base-nli vs. classical-best-embeddings": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["classical-best-embeddings"],
         "BERT-base-nli vs. BERT-base": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["BERT-base"],
        #"Transformer-Mini-NLI vs. SVM": df_metrics_mean_all.loc["Transformer-Mini-NLI"] - df_metrics_mean_all.loc["SVM"],
        #"Transformer-Mini-NLI vs. Transformer-Mini": df_metrics_mean_all.loc["Transformer-Mini-NLI"] - df_metrics_mean_all.loc["Transformer-Mini"]
@@ -586,7 +612,7 @@ for key_name_dataset, value_dataset in experiment_details_dic_all_methods_datase
                 col_train_time.append(round(experiment_details_dic_all_methods_dataset[key_name_dataset][key_name_algo][key_name_sample_run]["train_eval_time_per_model"] / 60, 0))
                 #col_eval_per_sec.append(experiment_details_dic_all_methods_dataset[key_name_dataset][key_name_algo][key_name_sample_run]["eval_samples_per_second"])
 
-col_hardware = ["CPU (AMD Rome 7H12)" if any(algo in algo_name for algo in ["SVM", "logistic"]) else "GPU (A100)" for algo_name in col_time_algo_name]
+col_hardware = ["CPU (AMD Rome 7H12)" if any(algo in algo_name for algo in ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings"]) else "GPU (A100)" for algo_name in col_time_algo_name]
 
 df_speed = pd.DataFrame(data={"dataset": col_time_dataset_name, "algorithm": col_time_algo_name,
                               "sample size": col_time_sample_size, "minutes training": col_train_time,
@@ -595,10 +621,10 @@ df_speed = pd.DataFrame(data={"dataset": col_time_dataset_name, "algorithm": col
 df_speed.algorithm = df_speed.algorithm.map(simple_algo_names_dic)  # simplify algorithm names
 
 df_speed_mean = df_speed.groupby(by=["algorithm", "sample size"], as_index=False).apply(np.mean).round(2)
-df_speed_mean["hardware"] = ["CPU (AMD Rome 7H12)" if algo in ["SVM", "logistic regression"] else "GPU (A100)" for algo in df_speed_mean.algorithm]
+df_speed_mean["hardware"] = ["CPU (AMD Rome 7H12)" if algo in ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings"] else "GPU (A100)" for algo in df_speed_mean.algorithm]
 
 # sort values via categorical
-df_speed_mean.algorithm = pd.Categorical(df_speed_mean.algorithm, categories=["SVM", "logistic regression", "BERT-base-nli", "BERT-base"])
+df_speed_mean.algorithm = pd.Categorical(df_speed_mean.algorithm, categories=["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "BERT-base-nli", "BERT-base"])
 df_speed_mean = df_speed_mean.sort_values(["algorithm", "sample size"])
 
 df_speed_mean.to_csv("./annex/training-time.csv")
