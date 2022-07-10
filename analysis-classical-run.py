@@ -491,12 +491,12 @@ for n_max_sample, hyperparams, hypothesis_template in tqdm.tqdm(zip(N_SAMPLE_TES
 
   if EXECUTION_TERMINAL == True:
       if VECTORIZER == "tfidf":
-        joblib.dump(experiment_details_dic_step, f"./{TRAINING_DIRECTORY}/experiment_results_{MODEL_NAME.split('/')[-1]}_{n_max_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
+        joblib.dump(experiment_details_dic_step, f"./{TRAINING_DIRECTORY}/experiment_results_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_max_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
       elif VECTORIZER == "embeddings":
         joblib.dump(experiment_details_dic_step, f"./{TRAINING_DIRECTORY}/experiment_results_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_max_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
   elif EXECUTION_TERMINAL == False:
       if VECTORIZER == "tfidf":
-        joblib.dump(experiment_details_dic_step, f"./{TRAINING_DIRECTORY}/experiment_results_{MODEL_NAME.split('/')[-1]}_{n_max_sample}samp_{HYPERPARAM_STUDY_DATE}_local_test.pkl")
+        joblib.dump(experiment_details_dic_step, f"./{TRAINING_DIRECTORY}/experiment_results_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_max_sample}samp_{HYPERPARAM_STUDY_DATE}_local_test.pkl")
       elif VECTORIZER == "embeddings":
         joblib.dump(experiment_details_dic_step, f"./{TRAINING_DIRECTORY}/experiment_results_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_max_sample}samp_{HYPERPARAM_STUDY_DATE}_local_test.pkl")
 

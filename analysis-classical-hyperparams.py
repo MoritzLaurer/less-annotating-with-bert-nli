@@ -500,12 +500,12 @@ for n_sample in tqdm.tqdm(N_SAMPLE_DEV):
   #joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{n_sample}samp_{str(date_today).replace('-', '')}.pkl")
   if EXECUTION_TERMINAL == True:
       if VECTORIZER == "tfidf":
-        joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
+        joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
       elif VECTORIZER == "embeddings":
         joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
   elif EXECUTION_TERMINAL == False:
       if VECTORIZER == "tfidf":
-        joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}_local_test.pkl")
+        joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}_local_test.pkl")
       elif VECTORIZER == "embeddings":
         joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}_local_test.pkl")
 

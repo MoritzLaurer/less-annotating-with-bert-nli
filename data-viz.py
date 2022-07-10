@@ -10,14 +10,22 @@ SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
 
+####
+
+
+
+
+
+
 # ## Data loading
 
 #set wd
 print(os.getcwd())
-#os.chdir("./NLI-experiments")
+if "NLI-experiments" not in os.getcwd():
+    os.chdir("./NLI-experiments")
 print(os.getcwd())
 
-metric = "f1_macro"
+metric = "f1_micro"
 
 ## save study  # https://optuna.readthedocs.io/en/stable/faq.html#how-can-i-save-and-resume-studies
 import joblib
@@ -27,18 +35,13 @@ os.getcwd()
 
 DATASET_NAME_LST = ["sentiment-news-econ", "coronanet", "cap-sotu", "cap-us-court", "manifesto-8",
                     "manifesto-military", "manifesto-protectionism", "manifesto-morality"]
-#DATASET_NAME_LST = ["sentiment-news-econ", "manifesto-morality"]
 
 
-def load_latest_experiment_dic(method_name="SVM", dataset_name=None):
+def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
   # get latest experiment for each method for the respective dataset - experiments take a long time and many were conducted
   path_dataset = f"./results/{dataset_name}"
   file_names_lst = [f for f in listdir(path_dataset) if isfile(join(path_dataset, f))]
-  #print(dataset_name)
-  #print(method_name)
-  #print(file_names_lst)
-  ## ! need to manually make sure that experiments for same dataset and method have same latest date
-  #experiment_dates = [int(file_name.split("_")[-1].replace(".pkl", "")) for file_name in file_names_lst if method_name in file_name]
+
   experiment_dates = [int(file_name.split("_")[-1].replace(".pkl", "")) for file_name in file_names_lst if (method_name in file_name) and ("experiment" in file_name)]
   if len(experiment_dates) > 0:  # in case no experiment for method available yet
     latest_experiment_date = np.max(experiment_dates)
@@ -58,7 +61,7 @@ for dataset_name in DATASET_NAME_LST:
   #dataset_name = "cap-us-court"
 
   experiment_details_dic_all_methods = {dataset_name: {}}
-  for method_name in ["logistic", "SVM",  #"xtremedistil-l6-h256-uncased", "xtremedistil-l6-h256-mnli-fever-anli-ling-binary",
+  for method_name in ["logistic_tfidf", "SVM_tfidf", "logistic_embeddings", "SVM_embeddings",  #"xtremedistil-l6-h256-uncased", "xtremedistil-l6-h256-mnli-fever-anli-ling-binary",
                       "deberta-v3-base", "DeBERTa-v3-base-mnli-fever-docnli-ling-2c"  #, "xtremedistil-l6-h256-mnli-fever-anli-ling-politicsnli"
                       ]:
     experiment_dic = load_latest_experiment_dic(method_name=method_name, dataset_name=dataset_name)
@@ -194,12 +197,6 @@ for key_dataset_name, value_df_test in df_test_dic.items():
       metrics_random = compute_metrics(labels_random, labels_gold, label_text_alphabetical=np.sort(value_df_test.label_domain_text.unique()))
       f1_macro_random_mean_lst.append(metrics_random["f1_macro"])
       f1_micro_random_mean_lst.append(metrics_random["f1_micro"])
-    elif "manifesto-44" in key_dataset_name:
-      labels_random = np.random.choice(value_df_test.label_subcat_text_simple, len(value_df_test))
-      labels_gold = value_df_test.label_subcat_text_simple
-      metrics_random = compute_metrics(labels_random, labels_gold, label_text_alphabetical=np.sort(value_df_test.label_subcat_text_simple.unique()))
-      f1_macro_random_mean_lst.append(metrics_random["f1_macro"])
-      f1_micro_random_mean_lst.append(metrics_random["f1_micro"])
     else:
       labels_random = np.random.choice(value_df_test.label_text, len(value_df_test))
       labels_gold = value_df_test.label_text
@@ -217,12 +214,6 @@ for key_dataset_name, value_df_test in df_test_dic.items():
     labels_majority = [value_df_test.label_domain_text.value_counts().idxmax()] * len(value_df_test)
     labels_gold = value_df_test.label_domain_text
     metrics_majority = compute_metrics(labels_majority, labels_gold, label_text_alphabetical=np.sort(value_df_test.label_domain_text.unique()))
-    f1_macro_majority = metrics_majority["f1_macro"]
-    f1_micro_majority = metrics_majority["f1_micro"]
-  elif "manifesto-44" in key_dataset_name:
-    labels_majority = [value_df_test.label_subcat_text_simple.value_counts().idxmax()] * len(value_df_test)
-    labels_gold = value_df_test.label_subcat_text_simple
-    metrics_majority = compute_metrics(labels_majority, labels_gold, label_text_alphabetical=np.sort(value_df_test.label_subcat_text_simple.unique()))
     f1_macro_majority = metrics_majority["f1_macro"]
     f1_micro_majority = metrics_majority["f1_micro"]
   else:
@@ -247,11 +238,10 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots  # https://plotly.com/python/subplots/
 
 #metric = "f1_macro" #"f1_macro"  #"f1_micro", 
-#colors_hex = ["#4472C4", "#7EAB55", "#FFC000", "#7EAB55", "#FFC000", "#FF9200"]  # order: SVM, minilm, minilm-nli, deberta, deberta-nli, logistic
-colors_hex = ["#45a7d9", "#4451c4", "#7EAB55", "#FFC000", ]  # order: logistic, SVM, deberta, deberta-nli   # must have same order as visual_data_dic
-simple_algo_names_dic = {"SVM": "SVM",  #"xtremedistil-l6-h256-uncased": "Transformer-Mini", "xtremedistil-l6-h256-mnli-fever-anli-ling-binary": "Transformer-Mini-NLI",
-                         "deberta-v3-base": "BERT-base", "DeBERTa-v3-base-mnli-fever-docnli-ling-2c": "BERT-base-nli", "logistic": "logistic regression"
-                         #"xtremedistil-l6-h256-mnli-fever-anli-ling-politicsnli": "Transformer-Mini-NLI-Politics"
+colors_hex = ["#45a7d9", "#4451c4", "#45a7d9", "#4451c4", "#7EAB55", "#FFC000"]  # order: logistic_tfidf, SVM_tfidf, logistic_embeddings, SVM_embeddings, deberta, deberta-nli   # must have same order as visual_data_dic
+simple_algo_names_dic = {"logistic_tfidf": "logistic_tfidf", "logistic_embeddings": "logistic_embeddings",
+                         "SVM_tfidf": "SVM_tfidf", "SVM_embeddings": "SVM_embeddings",
+                         "deberta-v3-base": "BERT-base", "DeBERTa-v3-base-mnli-fever-docnli-ling-2c": "BERT-base-nli",
                          }
 
 ### iterate over all datasets
@@ -329,7 +319,7 @@ for key_dataset_name, visual_data_dic in visual_data_dic_datasets.items():
           y=visual_data_dic[key_algo][f"{metric}_mean"] if "nli" in key_algo else visual_data_dic[key_algo][f"{metric}_mean"][1:],
           mode='lines',
           line=dict(color=hex),
-          line_dash="dash" if key_algo in ["xtremedistil-l6-h256-uncased", "xtremedistil-l6-h256-mnli-fever-anli-ling-binary"] else "solid",  #['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
+          line_dash="dash" if key_algo in ["SVM_tfidf", "logistic_tfidf"] else "solid",  #['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
           showlegend=False if i != 5 else True
           ), 
           row=i_row, col=i_col
@@ -381,9 +371,12 @@ fig.update_layout(
     #plot_bgcolor='rgba(0,0,0,0)',
     template="none",  # ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]  # https://plotly.com/python/templates/
     height=800,
+    font={"family": "verdana"}  # https://plotly.com/python/reference/layout/#layout-font
 ) 
 
-fig.show()  
+fig.show(renderer="browser")
+#fig.write_image("figures/fig1.png")
+
 
 
 
@@ -396,11 +389,14 @@ fig.show()
 # ! careful: not all datasets have 2500 data points, so if it says 2500, this includes 2116 for protectionism (and less full samples for higher intervals)
 
 df_metrics_lst = []
+df_std_lst = []
 for metric in ["f1_macro", "f1_micro"]:
     col_dataset = []
     col_algo = []
     col_f1_macro = []
     cols_metrics_dic = {"0\n(8 datasets)": [], "100\n(8 datasets)": [], "500\n(8 datasets)": [], "1000\n(8 datasets)": [], "2500\n(8 datasets)": [], "5000\n(4 datasets)": [],
+                        "10000\n(3 datasets)": []}
+    cols_std_dic = {"0\n(8 datasets)": [], "100\n(8 datasets)": [], "500\n(8 datasets)": [], "1000\n(8 datasets)": [], "2500\n(8 datasets)": [], "5000\n(4 datasets)": [],
                         "10000\n(3 datasets)": []}
     for key_dataset in visual_data_dic_datasets:
         #if key_dataset in datasets_selection:
@@ -410,11 +406,17 @@ for metric in ["f1_macro", "f1_micro"]:
             for i, k in enumerate(cols_metrics_dic.keys()):
                 if len(visual_data_dic_datasets[key_dataset][key_algo][f"{metric}_mean"]) > i:
                     cols_metrics_dic[k].append(visual_data_dic_datasets[key_dataset][key_algo][f"{metric}_mean"][i])
+                    cols_std_dic[k].append(visual_data_dic_datasets[key_dataset][key_algo][f"{metric}_std"][i])
                 else:
                     cols_metrics_dic[k].append(np.nan)
+                    cols_std_dic[k].append(np.nan)
+
     ## create aggregate metric dfs
     df_metrics = pd.DataFrame(data={"dataset": col_dataset, "algorithm": col_algo, **cols_metrics_dic})
+    df_std = pd.DataFrame(data={"dataset": col_dataset, "algorithm": col_algo, **cols_std_dic})
     df_metrics_lst.append(df_metrics)
+    df_std_lst.append(df_std)
+
 
 ## subset average metrics by dataset size
 datasets_all = ["sentiment-news-econ", "cap-us-court", "manifesto-military", "manifesto-protectionism", "manifesto-morality", "coronanet", "cap-sotu", "manifesto-8"]
@@ -429,24 +431,44 @@ for i in range(len(["f1_macro", "f1_micro"])):
     #df_metrics_mean_all = df_metrics.groupby(by="algorithm", as_index=True).apply(np.mean).round(4)
     df_metrics_mean = pd.concat([df_metrics_mean_all, df_metrics_mean_medium, df_metrics_mean_large], axis=1)
     # add row with best classical algo value
-    df_metrics_mean.loc["classical-best"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM"], df_metrics_mean.loc["logistic regression"])]
+    df_metrics_mean.loc["classical-best-tfidf"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_tfidf"], df_metrics_mean.loc["logistic_tfidf"])]
+    df_metrics_mean.loc["classical-best-embeddings"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_embeddings"], df_metrics_mean.loc["logistic_embeddings"])]
     # order rows
-    order_algos = ["SVM", "logistic regression", "classical-best", "BERT-base", "BERT-base-nli"]
+    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embeddings", "BERT-base", "BERT-base-nli"]
     df_metrics_mean = df_metrics_mean.reindex(order_algos)
     df_metrics_mean.index.name = "Sample size /\nAlgorithm"
     df_metrics_mean_lst.append(df_metrics_mean)
+
+# average standard deviation
+df_std_mean_lst = []
+for i in range(len(["f1_macro", "f1_micro"])):
+    df_std_mean_all = df_std_lst[i][df_std_lst[i].dataset.isin(datasets_all)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["0\n(8 datasets)", "100\n(8 datasets)", "500\n(8 datasets)", "1000\n(8 datasets)", "2500\n(8 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
+    df_std_mean_medium = df_std_lst[i][df_std_lst[i].dataset.isin(datasets_5000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["5000\n(4 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
+    df_std_mean_large = df_std_lst[i][df_std_lst[i].dataset.isin(datasets_10000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["10000\n(3 datasets)"]]
+    #df_std_mean_all = df_std.groupby(by="algorithm", as_index=True).apply(np.mean).round(4)
+    df_std_mean = pd.concat([df_std_mean_all, df_std_mean_medium, df_std_mean_large], axis=1)
+    # add std for best classical algo. need to go into df_metrics_mean
+    df_std_mean.loc["classical-best-tfidf"] = [svm_std if max(svm_metric, lr_metric) == svm_metric else lr_std for svm_metric, lr_metric, svm_std, lr_std in zip(df_metrics_mean_lst[i].loc["SVM_tfidf"], df_metrics_mean_lst[i].loc["logistic_tfidf"], df_std_mean.loc["SVM_tfidf"], df_std_mean.loc["logistic_tfidf"])]
+    df_std_mean.loc["classical-best-embeddings"] = [svm_std if max(svm_metric, lr_metric) == svm_metric else lr_std for svm_metric, lr_metric, svm_std, lr_std in zip(df_metrics_mean_lst[i].loc["SVM_embeddings"], df_metrics_mean_lst[i].loc["logistic_embeddings"], df_std_mean.loc["SVM_embeddings"], df_std_mean.loc["logistic_embeddings"])]
+    # order rows
+    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embeddings", "BERT-base", "BERT-base-nli"]
+    df_std_mean = df_std_mean.reindex(order_algos)
+    df_std_mean.index.name = "Sample size /\nAlgorithm"
+    df_std_mean_lst.append(df_std_mean)
 
 
 ## difference in performance
 df_metrics_difference_lst = []
 for i in range(len(["f1_macro", "f1_micro"])):
     df_metrics_difference = pd.DataFrame(data={
-        "BERT-base vs. SVM": df_metrics_mean_lst[i].loc["BERT-base"] - df_metrics_mean_lst[i].loc["SVM"],
-        "BERT-base vs. Log. Reg.": df_metrics_mean_lst[i].loc["BERT-base"] - df_metrics_mean_lst[i].loc["logistic regression"],
-        "BERT-base vs. classical-best": df_metrics_mean_lst[i].loc["BERT-base"] - df_metrics_mean_lst[i].loc["classical-best"],
-        "BERT-base-nli vs. SVM": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["SVM"],
-        "BERT-base-nli vs. Log. Reg.": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["logistic regression"],
-        "BERT-base-nli vs. classical-best": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["classical-best"],
+        #"BERT-base vs. SVM": df_metrics_mean_lst[i].loc["BERT-base"] - df_metrics_mean_lst[i].loc["SVM"],
+        #"BERT-base vs. Log. Reg.": df_metrics_mean_lst[i].loc["BERT-base"] - df_metrics_mean_lst[i].loc["logistic regression"],
+        "BERT-base vs. classical-best-tfidf": df_metrics_mean_lst[i].loc["BERT-base"] - df_metrics_mean_lst[i].loc["classical-best-tfidf"],
+        "BERT-base vs. classical-best-embeddings": df_metrics_mean_lst[i].loc["BERT-base"] - df_metrics_mean_lst[i].loc["classical-best-embeddings"],
+        #"BERT-base-nli vs. SVM": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["SVM"],
+        #"BERT-base-nli vs. Log. Reg.": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["logistic regression"],
+        "BERT-base-nli vs. classical-best-tfidf": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["classical-best-tfidf"],
+        "BERT-base-nli vs. classical-best-embeddings": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["classical-best-embeddings"],
         "BERT-base-nli vs. BERT-base": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["BERT-base"],
        #"Transformer-Mini-NLI vs. SVM": df_metrics_mean_all.loc["Transformer-Mini-NLI"] - df_metrics_mean_all.loc["SVM"],
        #"Transformer-Mini-NLI vs. Transformer-Mini": df_metrics_mean_all.loc["Transformer-Mini-NLI"] - df_metrics_mean_all.loc["Transformer-Mini"]
@@ -463,15 +485,31 @@ print(os.getcwd())
 
 
 
+
 ### Visualisation of overall average performance
-colors_hex = ["#45a7d9", "#7EAB55", "#FFC000"]  # order: logistic, SVM, deberta, deberta-nli   # must have same order as visual_data_dic
-algo_names_comparison = ["classical-best", "BERT-base", "BERT-base-nli"]
-f1_macro_majority_average = np.mean([value["f1_macro_majority"] for key, value in metrics_baseline_dic.items()])
-f1_micro_majority_average = np.mean([value["f1_micro_majority"] for key, value in metrics_baseline_dic.items()])
-metrics_majority_average = [f1_macro_majority_average, f1_micro_majority_average]
-f1_macro_random_average = np.mean([value["f1_macro_random"] for key, value in metrics_baseline_dic.items()])
-f1_micro_random_average = np.mean([value["f1_micro_random"] for key, value in metrics_baseline_dic.items()])
-metrics_random_average = [f1_macro_random_average, f1_micro_random_average]
+colors_hex = ["#45a7d9", "#4451c4", "#7EAB55", "#FFC000"]  # order: logistic_tfidf, SVM_tfidf, logistic_embeddings, SVM_embeddings, deberta, deberta-nli   # must have same order as visual_data_dic
+algo_names_comparison = ["classical-best-tfidf", "classical-best-embeddings", "BERT-base", "BERT-base-nli"]
+
+## average random baseline, changes depending on sample size, because less datasets included in higher sample size
+# majority
+f1_macro_majority_average_all = np.mean([value["f1_macro_majority"] for key, value in metrics_baseline_dic.items()])
+f1_micro_majority_average_all = np.mean([value["f1_micro_majority"] for key, value in metrics_baseline_dic.items()])
+f1_macro_majority_average_5000 = np.mean([value["f1_macro_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
+f1_micro_majority_average_5000 = np.mean([value["f1_micro_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
+f1_macro_majority_average_10000 = np.mean([value["f1_macro_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
+f1_micro_majority_average_10000 = np.mean([value["f1_micro_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
+metrics_majority_average = [f1_macro_majority_average_all] * 5 + [f1_macro_majority_average_5000, f1_macro_majority_average_10000]
+# random
+f1_macro_random_average_all = np.mean([value["f1_macro_random"] for key, value in metrics_baseline_dic.items()])
+f1_micro_random_average_all = np.mean([value["f1_micro_random"] for key, value in metrics_baseline_dic.items()])
+f1_macro_random_average_5000 = np.mean([value["f1_macro_random"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
+f1_micro_random_average_5000 = np.mean([value["f1_micro_random"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
+f1_macro_random_average_10000 = np.mean([value["f1_macro_random"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
+f1_micro_random_average_10000 = np.mean([value["f1_micro_random"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
+metrics_random_average = [f1_macro_random_average_all] * 5 + [f1_macro_random_average_5000, f1_macro_random_average_10000]
+#metrics_random_average = [f1_macro_random_average, f1_micro_random_average]
+
+
 
 subplot_titles_compare = ["f1_macro", "f1_micro"]
 fig_compare = make_subplots(rows=1, cols=2, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
@@ -492,10 +530,37 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
             ),
             row=1, col=i+1
         )
+        # add standard deviation
+        upper_bound_y = pd.Series(df_metrics_mean_lst[i].loc[algo]) + pd.Series(df_std_mean_lst[i].loc[algo])
+        fig_compare.add_trace(go.Scatter(
+            name=f'Upper Bound {key_algo}',
+            x=[0, 100, 500, 1000, 2500, "5000 (4 ds)", "10000 (3 ds)"],  #visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
+            y=upper_bound_y,  #upper_bound_y if "nli" in key_algo else upper_bound_y[1:],  # pd.Series(metric_mean_nli) + pd.Series(metric_std_nli),
+            mode='lines',
+            marker=dict(color="#444"),
+            line=dict(width=0),
+            showlegend=False
+            ),
+            row=1, col=i+1
+        )
+        lower_bound_y = pd.Series(df_metrics_mean_lst[i].loc[algo]) - pd.Series(df_std_mean_lst[i].loc[algo])
+        fig_compare.add_trace(go.Scatter(
+            name=f'Lower Bound {key_algo}',
+            x=[0, 100, 500, 1000, 2500, "5000 (4 ds)", "10000 (3 ds)"],  #visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
+            y=lower_bound_y,  #lower_bound_y if "nli" in key_algo else lower_bound_y[1:],  # pd.Series(metric_mean_nli) - pd.Series(metric_std_nli),
+            marker=dict(color="#444"),
+            line=dict(width=0),
+            mode='lines',
+            fillcolor='rgba(68, 68, 68, 0.1)',
+            fill='tonexty',
+            showlegend=False
+            ),
+            row=1, col=i+1
+        )
     fig_compare.add_trace(go.Scatter(
         name=f"random baseline",
         x=[0, 100, 500, 1000, 2500, "5000 (4 ds)", "10000 (3 ds)"],
-        y=[metrics_random_average[i]] * len(list(cols_metrics_dic.keys())),
+        y=metrics_random_average,  #[metrics_random_average[i]] * len(list(cols_metrics_dic.keys())),
         mode='lines',
         #line=dict(color="grey"),
         line_dash="dot", line_color="grey", line=dict(width=3),
@@ -507,7 +572,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
     fig_compare.add_trace(go.Scatter(
         name=f"majority baseline",
         x=[0, 100, 500, 1000, 2500, "5000 (4 ds)", "10000 (3 ds)"],  #["0 (8 datasets)", "100 (8)", "500 (8)", "1000 (8)", "2500 (8)", "5000 (4)", "10000 (3)"],  #[0, 100, 500, 1000, 2500] + list(cols_metrics_dic.keys())[-2:],
-        y=[metrics_majority_average[i]] * len(list(cols_metrics_dic.keys())),
+        y=metrics_majority_average,  #[metrics_majority_average[i]] * len(list(cols_metrics_dic.keys())),
         mode='lines',
         #line=dict(color="grey"),
         line_dash="dashdot", line_color="grey", line=dict(width=3),
@@ -517,7 +582,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
         row=1, col=i+1
     )
     fig_compare.add_vline(x=4, line_dash="dot", annotation_text="8 datasets", annotation_position="left", row=1, col=i+1)  # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
-    fig_compare.add_vline(x=4, line_dash="dot", annotation_text="4 datasets", annotation_position="right", row=1, col=i+1)  # annotation=dict(font_size=20, font_family="Times New Roman")  # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
+    #fig_compare.add_vline(x=4, line_dash="dot", annotation_text="4 datasets", annotation_position="right", row=1, col=i+1)  # annotation=dict(font_size=20, font_family="Times New Roman")  # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
 
     # update layout for individual subplots  # https://stackoverflow.com/questions/63580313/update-specific-subplot-axes-in-plotly
     fig_compare['layout'][f'xaxis{i+1}'].update(
@@ -544,7 +609,7 @@ fig_compare.update_layout(
     font=dict(size=15)
     #height=800,
 )
-fig_compare.show()
+fig_compare.show(renderer="browser")
 
 
 
@@ -554,8 +619,9 @@ fig_compare.show()
 
 ### difference
 fig_difference = go.Figure()
-algo_names_difference = ["BERT-base vs. classical-best", "BERT-base-nli vs. classical-best", "BERT-base-nli vs. BERT-base"]
-colors_hex_difference = ["#16bfb4", "#168fbf", "#6cbf16"]
+algo_names_difference = ["BERT-base vs. classical-best-tfidf", "BERT-base-nli vs. classical-best-tfidf", "BERT-base vs. classical-best-embeddings", "BERT-base-nli vs. classical-best-embeddings", "BERT-base-nli vs. BERT-base"]
+colors_hex_difference = ["#16bfb4", "#168fbf", "#bfa616", "#bf7716", "#bf16bb"]
+
 
 for algo, hex in zip(algo_names_difference, colors_hex_difference):
     fig_difference.add_trace(go.Scatter(
@@ -586,42 +652,23 @@ fig_difference.update_layout(
     template="none",  # ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]  # https://plotly.com/python/templates/
     #height=800,
 )
-fig_difference.show()
+fig_difference.show(renderer="browser")
 
 
 
 
-### comparison in run-tune speeds
 
-col_train_time = []
-col_time_sample_size = []
-col_time_algo_name = []
-col_time_dataset_name = []
-col_eval_per_sec = []
-for key_name_dataset, value_dataset in experiment_details_dic_all_methods_dataset.items():
-    for key_name_algo, value_algo in experiment_details_dic_all_methods_dataset[key_name_dataset].items():
-        for key_name_sample_run, value_sample_run in experiment_details_dic_all_methods_dataset[key_name_dataset][key_name_algo].items():
-            if experiment_details_dic_all_methods_dataset[key_name_dataset][key_name_algo][key_name_sample_run]["n_max_sample"] in [100, 500, 1000, 2500, 5000, 10000]:
-                col_time_dataset_name.append(key_name_dataset)
-                col_time_algo_name.append(key_name_algo)
-                col_time_sample_size.append(experiment_details_dic_all_methods_dataset[key_name_dataset][key_name_algo][key_name_sample_run]["n_max_sample"])
-                col_train_time.append(round(experiment_details_dic_all_methods_dataset[key_name_dataset][key_name_algo][key_name_sample_run]["train_eval_time_per_model"] / 60, 0))
-                #col_eval_per_sec.append(experiment_details_dic_all_methods_dataset[key_name_dataset][key_name_algo][key_name_sample_run]["eval_samples_per_second"])
+### deletable script for renaming file names (when "tfidf" to classical ml files)
+"""import os
+DATASET_NAME_LST = ["sentiment-news-econ", "coronanet", "cap-sotu", "cap-us-court", "manifesto-8",
+                    "manifesto-military", "manifesto-protectionism", "manifesto-morality"]
 
-col_hardware = ["CPU (AMD Rome 7H12)" if any(algo in algo_name for algo in ["SVM", "logistic"]) else "GPU (A100)" for algo_name in col_time_algo_name]
-
-df_speed = pd.DataFrame(data={"dataset": col_time_dataset_name, "algorithm": col_time_algo_name,
-                              "sample size": col_time_sample_size, "minutes training": col_train_time,
-                              "hardware": col_hardware})
-
-df_speed.algorithm = df_speed.algorithm.map(simple_algo_names_dic)  # simplify algorithm names
-
-df_speed_mean = df_speed.groupby(by=["algorithm", "sample size"], as_index=False).apply(np.mean).round(2)
-df_speed_mean["hardware"] = ["CPU (AMD Rome 7H12)" if algo in ["SVM", "logistic regression"] else "GPU (A100)" for algo in df_speed_mean.algorithm]
-
-# sort values via categorical
-df_speed_mean.algorithm = pd.Categorical(df_speed_mean.algorithm, categories=["SVM", "logistic regression", "BERT-base-nli", "BERT-base"])
-df_speed_mean = df_speed_mean.sort_values(["algorithm", "sample size"])
-
-#df_speed_mean.to_excel(f'/Users/moritzlaurer/Dropbox/PhD/Papers/nli/df_speed_mean.xlsx')
-#df_speed.to_excel(f'/Users/moritzlaurer/Dropbox/PhD/Papers/nli/df_speed.xlsx')
+for dataset_name in DATASET_NAME_LST:
+    path = f"./results/{dataset_name}"
+    files = os.listdir(path)
+    for file_name in files:
+        for method in ["SVM", "logistic"]:
+            if (method in file_name) and ("embedding" not in file_name):
+                file_name_new = file_name.replace(method, f"{method}_tfidf")
+                #os.rename(os.path.join(path, file_name), os.path.join(path, file_name_new))
+"""
