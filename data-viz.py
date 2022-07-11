@@ -337,7 +337,7 @@ for key_dataset_name, visual_data_dic in visual_data_dic_datasets.items():
           marker=dict(color="#444"),
           line=dict(width=0),
           mode='lines',
-          fillcolor='rgba(68, 68, 68, 0.1)',
+          fillcolor='rgba(68, 68, 68, 0.2)',
           fill='tonexty',
           showlegend=False
           ), 
@@ -511,7 +511,7 @@ fig_compare = make_subplots(rows=1, cols=2, start_cell="top-left", horizontal_sp
 for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
     fig_compare.add_trace(go.Scatter(
         name=f"majority baseline",
-        x=[0, 100, 500, 1000, 2500, "5000 (4 ds)", "10000 (3 ds)"],  #["0 (8 datasets)", "100 (8)", "500 (8)", "1000 (8)", "2500 (8)", "5000 (4)", "10000 (3)"],  #[0, 100, 500, 1000, 2500] + list(cols_metrics_dic.keys())[-2:],
+        x=[0, 100, 500, 1000, 2500, "5000", "10000"],  #["0 (8 datasets)", "100 (8)", "500 (8)", "1000 (8)", "2500 (8)", "5000 (4)", "10000 (3)"],  #[0, 100, 500, 1000, 2500] + list(cols_metrics_dic.keys())[-2:],
         y=metrics_majority_average,  #[metrics_majority_average[i]] * len(list(cols_metrics_dic.keys())),
         mode='lines',
         #line=dict(color="grey"),
@@ -523,7 +523,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
     )
     fig_compare.add_trace(go.Scatter(
         name=f"random baseline",
-        x=[0, 100, 500, 1000, 2500, "5000 (4 ds)", "10000 (3 ds)"],
+        x=[0, 100, 500, 1000, 2500, "5000", "10000"],
         y=metrics_random_average,  #[metrics_random_average[i]] * len(list(cols_metrics_dic.keys())),
         mode='lines',
         #line=dict(color="grey"),
@@ -536,7 +536,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
     for algo, hex in zip(algo_names_comparison, colors_hex):
         fig_compare.add_trace(go.Scatter(
             name=algo,
-            x=[0, 100, 500, 1000, 2500, "5000 (4 ds)", "10000 (3 ds)"],
+            x=[0, 100, 500, 1000, 2500, "5000", "10000"],
             y=df_metrics_mean_lst[i].loc[algo],  #df_metrics_mean_lst[i].loc[algo] if "nli" in algo else [np.nan] + df_metrics_mean_lst[i].loc[algo][1:].tolist(),
             mode='lines',
             line=dict(color=hex, width=3),
@@ -550,7 +550,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
         upper_bound_y = pd.Series(df_metrics_mean_lst[i].loc[algo]) + pd.Series(df_std_mean_lst[i].loc[algo])
         fig_compare.add_trace(go.Scatter(
             name=f'Upper Bound {key_algo}',
-            x=[0, 100, 500, 1000, 2500, "5000 (4 ds)", "10000 (3 ds)"],  #visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
+            x=[0, 100, 500, 1000, 2500, "5000", "10000"],  #visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
             y=upper_bound_y,  #upper_bound_y if "nli" in key_algo else upper_bound_y[1:],  # pd.Series(metric_mean_nli) + pd.Series(metric_std_nli),
             mode='lines',
             marker=dict(color="#444"),
@@ -562,18 +562,18 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
         lower_bound_y = pd.Series(df_metrics_mean_lst[i].loc[algo]) - pd.Series(df_std_mean_lst[i].loc[algo])
         fig_compare.add_trace(go.Scatter(
             name=f'Lower Bound {key_algo}',
-            x=[0, 100, 500, 1000, 2500, "5000 (4 ds)", "10000 (3 ds)"],  #visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
+            x=[0, 100, 500, 1000, 2500, "5000", "10000"],  #visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
             y=lower_bound_y,  #lower_bound_y if "nli" in key_algo else lower_bound_y[1:],  # pd.Series(metric_mean_nli) - pd.Series(metric_std_nli),
             marker=dict(color="#444"),
             line=dict(width=0),
             mode='lines',
-            fillcolor='rgba(68, 68, 68, 0.1)',
+            fillcolor='rgba(68, 68, 68, 0.2)',
             fill='tonexty',
             showlegend=False
             ),
             row=1, col=i+1
         )
-    fig_compare.add_vline(x=4, line_dash="longdash", annotation_text="8 datasets (ds)", annotation_position="left", row=1, col=i+1)  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'] https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
+    fig_compare.add_vline(x=4, line_dash="longdash", annotation_text="8 datasets", annotation_position="left", row=1, col=i+1)  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'] https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
     #fig_compare.add_vline(x=4, line_dash="dot", annotation_text="4 datasets", annotation_position="right", row=1, col=i+1)  # annotation=dict(font_size=20, font_family="Times New Roman")  # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
 
     # update layout for individual subplots  # https://stackoverflow.com/questions/63580313/update-specific-subplot-axes-in-plotly
