@@ -21,6 +21,8 @@ print(os.getcwd())
 if os.getcwd() != "/Users/moritzlaurer/Dropbox/PhD/Papers/nli/snellius/NLI-experiments":
     os.chdir("./NLI-experiments")
 
+## !! fix necessary: remove multiple results from different dates from results folder (final best option), or make this appendix script handle multiple dates
+
 
 ##### 1. appendix
 
@@ -222,7 +224,7 @@ path_files_lst = [os.path.join(path, name) for path, subdirs, files in os.walk("
 path_files_lst = [path_files for path_files in path_files_lst if ".DS_Store" not in path_files]
 path_files_lst = [path_files for path_files in path_files_lst if "experiment" not in path_files]
 # exclude/only specific algo?
-path_files_lst = [path_files for path_files in path_files_lst if "SVM_tfidf" in path_files]
+path_files_lst = [path_files for path_files in path_files_lst if ("SVM_tfidf" in path_files) and ("20220712" not in path_files)]
 
 # add path name as key again to distinguish between datasets
 hp_study_dic = {}
@@ -292,7 +294,7 @@ df_hp_svm = df_hp_svm.drop(columns=["method", "f1_macro_mean", "f1_micro_mean", 
 df_hp_svm = df_hp_svm.rename(columns={"hypothesis": "hypothesis/context"})
 df_hp_svm.C = df_hp_svm.C.round(2)
 df_hp_svm.coef0 = df_hp_svm.coef0.round(2)
-df_hp_svm.context = ["yes" if string == "template_not_nli_context" else np.nan if pd.isna(string) else "no" for string in df_hp_svm.context]
+df_hp_svm.context = ["yes" if "context" in str(string) else np.nan if pd.isna(string) else "no" for string in df_hp_svm.context]
 
 df_hp_svm.to_csv("./appendix/hyperparams-svm-tfidf.csv")
 
@@ -304,7 +306,7 @@ path_files_lst = [os.path.join(path, name) for path, subdirs, files in os.walk("
 path_files_lst = [path_files for path_files in path_files_lst if ".DS_Store" not in path_files]
 path_files_lst = [path_files for path_files in path_files_lst if "experiment" not in path_files]
 # exclude/only specific algo?
-path_files_lst = [path_files for path_files in path_files_lst if "logistic_tfidf" in path_files]
+path_files_lst = [path_files for path_files in path_files_lst if ("logistic_tfidf" in path_files) and ("20220712" not in path_files)]  # and ("20220712" in path_files)
 
 # add path name as key again to distinguish between datasets
 hp_study_dic = {}
@@ -367,7 +369,7 @@ simple_algo_names_dic = {"logistic_tfidf": "logistic_tfidf", "logistic_embedding
                          }
 df_hp_lr.algorithm = df_hp_lr.algorithm.map(simple_algo_names_dic)
 df_hp_lr = df_hp_lr.drop(columns=["method", "f1_macro_mean", "f1_micro_mean", "f1_macro_std", "f1_micro_std", "algorithm"])
-df_hp_lr.context = ["yes" if string == "template_not_nli_context" else np.nan if pd.isna(string) else "no" for string in df_hp_lr.context]
+df_hp_lr.context = ["yes" if "context" in str(string) else np.nan if pd.isna(string) else "no" for string in df_hp_lr.context]
 df_hp_lr.C = df_hp_lr.C.round(2)
 
 df_hp_lr.to_csv("./appendix/hyperparams-logistic-tfidf.csv")
@@ -392,6 +394,8 @@ def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
     ## ! need to manually make sure that experiments for same dataset and method have same latest date
     # experiment_dates = [int(file_name.split("_")[-1].replace(".pkl", "")) for file_name in file_names_lst if method_name in file_name]
     experiment_dates = [int(file_name.split("_")[-1].replace(".pkl", "")) for file_name in file_names_lst if (method_name in file_name) and ("experiment" in file_name)]
+    if method_name in ["SVM_tfidf", "logistic_tfidf"]:
+        experiment_dates = [date for date in experiment_dates if date != 20220712]  # there seems to be a bug for this run
     if len(experiment_dates) > 0:  # in case no experiment for method available yet
         latest_experiment_date = np.max(experiment_dates)
         # get only file names for latest experiment and respective method - ordered starting with smalles experiment
@@ -941,5 +945,8 @@ df_hypo_long_coronanet = pd.DataFrame(data={"label": hypo_long_dic.keys(), "hypo
 df_hypo_coronanet = pd.merge(df_hypo_short_coronanet, df_hypo_long_coronanet, on="label")
 
 df_hypo_coronanet.to_csv("./appendix/hypotheses-coronanet.csv")
+
+
+print("Script done.")
 
 

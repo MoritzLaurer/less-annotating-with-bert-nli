@@ -100,8 +100,8 @@ if EXECUTION_TERMINAL == True:
 elif EXECUTION_TERMINAL == False:
   # parse args if not in terminal, but in script
   args = parser.parse_args(["--n_trials", "60", "--n_trials_sampling", "30", "--n_trials_pruning", "40", "--n_cross_val_hyperparam", "2",
-                            "--context", "--dataset", "sentiment-news-econ", "--sample_interval", "100", "500", "1000", #"2500", "5000", #"10000",
-                            "--method", "classical_ml", "--model", "SVM", "--vectorizer", "tfidf",
+                            "--context", "--dataset", "cap-sotu", "--sample_interval", "100", "500", "1000", #"2500", "5000", #"10000",
+                            "--method", "classical_ml", "--model", "SVM", "--vectorizer", "embeddings",
                             "--n_cross_val_final", "3", "--hyperparam_study_date", "20220712"])
 
 
@@ -368,12 +368,14 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
   #if CONTEXT == True:
   #  text_template_classical_ml = [template for template in list(hypothesis_hyperparams_dic.keys()) if ("not_nli" in template) and ("context" in template)]
   #elif CONTEXT == False:
-  text_template_classical_ml = [template for template in list(hypothesis_hyperparams_dic.keys()) if "not_nli" in template]
+
+  ### !!!!! remove the last if condition at the end - is just for testing
+  text_template_classical_ml = [template for template in list(hypothesis_hyperparams_dic.keys()) if ("not_nli" in template) and ("context" in template)]
   #else:
   #  raise Exception(f"CONTEXT variable is {CONTEXT}. Can only be True/False")
 
   if len(text_template_classical_ml) >= 2:  # if there is only one reasonable text format for standard_dl
-      hypothesis_template = trial.suggest_categorical("hypothesis_template", text_template_classical_ml)
+    hypothesis_template = trial.suggest_categorical("hypothesis_template", text_template_classical_ml)
   else:
     hypothesis_template = text_template_classical_ml[0]
 

@@ -1,0 +1,9 @@
+Sample size / Algorithm,0 (8 datasets),100 (8 datasets),500 (8 datasets),1000 (8 datasets),2500 (8 datasets),5000 (4 datasets),10000 (3 datasets)
+SVM_tfidf,0.0,0.255,0.412,0.476,0.521,0.452,0.461
+logistic_tfidf,0.0,0.325,0.429,0.453,0.505,0.434,0.45
+SVM_embeddings,0.0,0.335,0.435,0.498,0.539,0.513,0.535
+logistic_embeddings,0.0,0.368,0.446,0.484,0.537,0.5,0.512
+classical-best-tfidf,0.0,0.325,0.429,0.476,0.521,0.452,0.461
+classical-best-embeddings,0.0,0.368,0.446,0.498,0.539,0.513,0.535
+BERT-base,0.0,0.377,0.55,0.61,0.648,0.622,0.647
+BERT-base-nli,0.403,0.486,0.591,0.62,0.647,0.601,0.63

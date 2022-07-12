@@ -3,22 +3,6 @@
 
 # ## Install and load packages
 
-# In[ ]:
-
-
-#!pip install pandas==1.3.5  # for df.explode on multiple columns
-
-
-# In[ ]:
-
-
-# info GPU or CPU
-get_ipython().system('nvidia-smi')
-
-
-# In[1]:
-
-
 import pandas as pd
 import numpy as np
 import random

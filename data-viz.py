@@ -34,6 +34,9 @@ def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
   file_names_lst = [f for f in listdir(path_dataset) if isfile(join(path_dataset, f))]
 
   experiment_dates = [int(file_name.split("_")[-1].replace(".pkl", "")) for file_name in file_names_lst if (method_name in file_name) and ("experiment" in file_name)]
+  # test
+  if method_name in ["SVM_tfidf", "logistic_tfidf"]:
+     experiment_dates = [date for date in experiment_dates if date != 20220712]  # there seems to be a bug for this run
   if len(experiment_dates) > 0:  # in case no experiment for method available yet
     latest_experiment_date = np.max(experiment_dates)
     # get only file names for latest experiment and respective method - ordered starting with smalles experiment
@@ -50,8 +53,8 @@ def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
 experiment_details_dic_all_methods_dataset = {}
 for dataset_name in DATASET_NAME_LST:
   experiment_details_dic_all_methods = {dataset_name: {}}
-  for method_name in ["logistic_tfidf", "SVM_tfidf", "logistic_embeddings", "SVM_embeddings",  #"xtremedistil-l6-h256-uncased", "xtremedistil-l6-h256-mnli-fever-anli-ling-binary",
-                      "deberta-v3-base", "DeBERTa-v3-base-mnli-fever-docnli-ling-2c"  #, "xtremedistil-l6-h256-mnli-fever-anli-ling-politicsnli"
+  for method_name in ["logistic_tfidf", "SVM_tfidf", "logistic_embeddings", "SVM_embeddings",
+                      "deberta-v3-base", "DeBERTa-v3-base-mnli-fever-docnli-ling-2c"
                       ]:
     experiment_dic = load_latest_experiment_dic(method_name=method_name, dataset_name=dataset_name)
     if experiment_dic != None:  # to catch cases where not experiment data for method available yet
@@ -293,7 +296,7 @@ for key_dataset_name, visual_data_dic in visual_data_dic_datasets.items():
           name=simple_algo_names_dic[key_algo],
           x=visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
           y=visual_data_dic[key_algo][f"{metric}_mean"] if "nli" in key_algo else visual_data_dic[key_algo][f"{metric}_mean"][1:],
-          mode='lines',
+          mode='lines+markers',
           line=dict(color=hex),
           line_dash="dash" if key_algo in ["SVM_tfidf", "logistic_tfidf"] else "solid",  #['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
           showlegend=False if i != 5 else True
@@ -481,6 +484,7 @@ metrics_random_average = [f1_macro_random_average_all] * 5 + [f1_macro_random_av
 subplot_titles_compare = ["f1_macro", "f1_micro"]
 fig_compare = make_subplots(rows=1, cols=2, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
                             subplot_titles=subplot_titles_compare, x_title="Number of random training examples")  #y_title="f1 score",
+marker_symbols = ["circle", "circle", "circle", "circle"]  # "triangle-down", "triangle-up", "star-triangle-up", "star-square"
 
 for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
     fig_compare.add_trace(go.Scatter(
@@ -507,12 +511,14 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
         ),
         row=1, col=i+1
     )
-    for algo, hex in zip(algo_names_comparison, colors_hex):
+    for algo, hex, marker in zip(algo_names_comparison, colors_hex, marker_symbols):
         fig_compare.add_trace(go.Scatter(
             name=algo,
             x=[0, 100, 500, 1000, 2500, "5000", "10000"],
             y=df_metrics_mean_lst[i].loc[algo],  #df_metrics_mean_lst[i].loc[algo] if "nli" in algo else [np.nan] + df_metrics_mean_lst[i].loc[algo][1:].tolist(),
-            mode='lines',
+            mode='lines+markers',
+            marker_symbol=marker,
+            #marker_size=10,
             line=dict(color=hex, width=3),
             line_dash="solid",  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
             showlegend=True if i == 1 else False,

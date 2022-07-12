@@ -102,8 +102,8 @@ if EXECUTION_TERMINAL == True:
 
 elif EXECUTION_TERMINAL == False:
   # parse args if not in terminal, but in script
-  args = parser.parse_args(["--dataset", "sentiment-news-econ", "--sample_interval", "100", "500", "1000", #"2500", "5000", #"10000",
-                            "--method", "classical_ml", "--model", "SVM", "--vectorizer", "tfidf",
+  args = parser.parse_args(["--dataset", "cap-sotu", "--sample_interval", "100", "500", "1000", #"2500", "5000", #"10000",
+                            "--method", "classical_ml", "--model", "SVM", "--vectorizer", "embeddings",
                             "--n_cross_val_final", "3", "--hyperparam_study_date", "20220712"])
 
 
@@ -349,7 +349,8 @@ elif ZEROSHOT == False:
   print(N_SAMPLE_TEST)
 
   HYPER_PARAMS_LST = [study_value['optuna_study'].best_trial.user_attrs["hyperparameters_all"] for study_key, study_value in hp_study_dic.items()]
-  HYPOTHESIS_TEMPLATE_LST = [hyperparams_dic["hypothesis_template"] for hyperparams_dic in HYPER_PARAMS_LST]
+  ### !!!! delete the if condition later. is only for testing potential context issue for TFIDF
+  HYPOTHESIS_TEMPLATE_LST = [hyperparams_dic["hypothesis_template"] for hyperparams_dic in HYPER_PARAMS_LST if ("context" in hyperparams_dic["hypothesis_template"])]
   print(HYPOTHESIS_TEMPLATE_LST)
 
   HYPER_PARAMS_LST = [{key: dic[key] for key in dic if key!="hypothesis_template"} for dic in HYPER_PARAMS_LST]  # return dic with all elements, except hypothesis template
@@ -477,3 +478,34 @@ for experiment_key in experiment_details_dic:
 
 
 print("Run done.")
+
+
+### deletable notes
+"""
+SVM, tfidf, cap-sotu, local run: 
+experiment_sample_00100_classical_ml_SVM: f1_macro: 0.03513267432929848 , f1_micro: 0.18469588643663867
+experiment_sample_00500_classical_ml_SVM: f1_macro: 0.15717866968205293 , f1_micro: 0.3019376230442441
+experiment_sample_01000_classical_ml_SVM: f1_macro: 0.17380751939396086 , f1_micro: 0.3332297171277588
+# for some reason slightly different to same run with Snellius
+# 100: 0.028, 500: 0.149, 1000: 0.178,
+# very different to previous run
+# 100: 0.11, 500: 0.28, 1000: 0.35
+
+SVM, embeddings, cap-sotu, local run: 
+experiment_sample_00100_classical_ml_SVM: f1_macro: 0.14450641944328976 , f1_micro: 0.32022588332815255
+experiment_sample_00500_classical_ml_SVM: f1_macro: 0.30027714799508287 , f1_micro: 0.4372085794218216
+experiment_sample_01000_classical_ml_SVM: f1_macro: 0.3615014325535526 , f1_micro: 0.4519738887161952
+# for some reason slightly different to same run with Snellius
+# 100: 0.136, 500: 0.293, 1000: 0.356,
+
+## BERT-nli, manifesto-protectionism, run via Snellius on 12.07.22
+experiment_sample_00100_nli_MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c: f1_macro: 0.563010735031385 , f1_micro: 0.8237639553429027
+experiment_sample_00500_nli_MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c: f1_macro: 0.6817838285176542 , f1_micro: 0.8906609959241538
+# previous run slightly different:
+# 100: 0.584
+# 500: 0.694
+
+
+
+"""
+
