@@ -5,30 +5,28 @@
 import pandas as pd
 import numpy as np
 import os
+from os import listdir
+from os.path import isfile, join
+import joblib
 
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
+metric = "f1_macro"  # for figure with performance per dataset
+
+
+
+
 
 # ## Data loading
-
 #set wd
 print(os.getcwd())
 if "NLI-experiments" not in os.getcwd():
     os.chdir("./NLI-experiments")
 print(os.getcwd())
 
-metric = "f1_macro"  # for figure with performance per dataset
-
-## save study  # https://optuna.readthedocs.io/en/stable/faq.html#how-can-i-save-and-resume-studies
-import joblib
-from os import listdir
-from os.path import isfile, join
-os.getcwd()
-
 DATASET_NAME_LST = ["sentiment-news-econ", "coronanet", "cap-sotu", "cap-us-court", "manifesto-8",
                     "manifesto-military", "manifesto-protectionism", "manifesto-morality"]
-
 
 def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
   # get latest experiment for each method for the respective dataset - experiments take a long time and many were conducted
@@ -51,8 +49,6 @@ def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
 ## load results
 experiment_details_dic_all_methods_dataset = {}
 for dataset_name in DATASET_NAME_LST:
-  #dataset_name = "cap-us-court"
-
   experiment_details_dic_all_methods = {dataset_name: {}}
   for method_name in ["logistic_tfidf", "SVM_tfidf", "logistic_embeddings", "SVM_embeddings",  #"xtremedistil-l6-h256-uncased", "xtremedistil-l6-h256-mnli-fever-anli-ling-binary",
                       "deberta-v3-base", "DeBERTa-v3-base-mnli-fever-docnli-ling-2c"  #, "xtremedistil-l6-h256-mnli-fever-anli-ling-politicsnli"
@@ -70,27 +66,19 @@ for key_dataset in experiment_details_dic_all_methods_dataset:
   for key_method in experiment_details_dic_all_methods_dataset[key_dataset]:
     print("  ", key_method)
   print("")
-
 #experiment_details_dic_all_methods_dataset["manifesto-military"]["xtremedistil-l6-h256-uncased"]
 
 
-# ## Data preparation
 
+# ## Data preparation
 dataset_n_class_dic = {"sentiment-news-econ": 2, "coronanet": 20, "cap-sotu": 22, "cap-us-court": 20, "manifesto-8": 8, "manifesto-44": 44,
                         "manifesto-military": 3, "manifesto-protectionism": 3, "manifesto-morality": 3}
 
 #### iterate over all dataset experiment dics to extract metrics for viz
 visual_data_dic_datasets = {}
 for key_dataset_name, experiment_details_dic_all_methods in experiment_details_dic_all_methods_dataset.items():
-  
   ### for one dataset iterate over each approach
   ## overall data for all approaches
-  
-  # get n-classes differently later (already changed in code) - otherwise too nested and depends on random seed
-  #try: 
-  #  n_classes = len(pd.unique(experiment_details_dic_all_methods["SVM"][list(experiment_details_dic_all_methods["SVM"].keys())[0]]["metrics_seed_102"]["eval_label_gold_raw"])) # get num classes out of experiment dict
-  #except: 
-  #  n_classes = len(pd.unique(experiment_details_dic_all_methods["SVM"][list(experiment_details_dic_all_methods["SVM"].keys())[0]]["metrics_seed_727"]["eval_label_gold_raw"])) # get num classes out of experiment dict
   n_classes = dataset_n_class_dic[key_dataset_name]
   
   n_max_sample = []
@@ -106,7 +94,6 @@ for key_dataset_name, experiment_details_dic_all_methods in experiment_details_d
   #if key_dataset_name == "cap-us-court":  # CAP-us-court reaches max dataset with 320 samples per class
   #  x_axis_values = ["0" if n_per_class == 0 else f"{str(n_total)} (all)" if n_per_class >= 320 else f"{str(n_total)}"  for n_per_class, n_total in zip(n_sample_per_class, n_total_samples)]
 
-
   ## specific data for indiv approaches
   visual_data_dic = {}
   for key_method in experiment_details_dic_all_methods:
@@ -115,7 +102,6 @@ for key_dataset_name, experiment_details_dic_all_methods in experiment_details_d
     f1_macro_std_lst = []
     f1_micro_std_lst = []
     for key_step in experiment_details_dic_all_methods[key_method]:
-      #experiment_details_dic_all_methods[key_method][key_step]["model"]  # method, model
       f1_macro_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_macro_mean"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
       f1_micro_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_micro_mean"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
       f1_macro_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_macro_std"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
@@ -179,7 +165,6 @@ metrics_baseline_dic = {}
 for key_dataset_name, value_df_test in df_test_dic.items():
   np.random.seed(SEED_GLOBAL)
   ## get random metrics averaged over several seeds
-  #metrics_random_mean_lst = []
   f1_macro_random_mean_lst = []
   f1_micro_random_mean_lst = []
   for seed in np.random.choice(range(1000), 10):
@@ -197,7 +182,6 @@ for key_dataset_name, value_df_test in df_test_dic.items():
       f1_macro_random_mean_lst.append(metrics_random["f1_macro"])
       f1_micro_random_mean_lst.append(metrics_random["f1_micro"])
 
-  #metrics_random_mean = np.mean(metrics_random_mean_lst)
   f1_macro_random_mean = np.mean(f1_macro_random_mean_lst)
   f1_micro_random_mean = np.mean(f1_micro_random_mean_lst)
 
@@ -220,7 +204,7 @@ for key_dataset_name, value_df_test in df_test_dic.items():
 
 metrics_baseline_dic
 
-# adding horizontal line in plotly https://plotly.com/python/horizontal-vertical-shapes/
+
 
 
 # ## Visualisation
@@ -262,7 +246,6 @@ for key_dataset_name, visual_data_dic in visual_data_dic_datasets.items():
   elif i in [3, 6, 9]:
     i_col = 3
 
-  
   ## add random and majority baseline data
   algo_string = list(visual_data_dic.keys())[0]  # get name string for one algo to add standard info (x axis value etc.) to plot
   fig.add_trace(go.Scatter(
@@ -337,13 +320,12 @@ for key_dataset_name, visual_data_dic in visual_data_dic_datasets.items():
           marker=dict(color="#444"),
           line=dict(width=0),
           mode='lines',
-          fillcolor='rgba(68, 68, 68, 0.2)',
+          fillcolor='rgba(68, 68, 68, 0.13)',
           fill='tonexty',
           showlegend=False
           ), 
           row=i_row, col=i_col
     )
-  
 
   # update layout for individual subplots  # https://stackoverflow.com/questions/63580313/update-specific-subplot-axes-in-plotly
   fig['layout'][f'xaxis{i}'].update(
@@ -355,7 +337,6 @@ for key_dataset_name, visual_data_dic in visual_data_dic_datasets.items():
       #range=[0.2, pd.Series(visual_data_dic[key_algo][f"{metric}_mean"]).iloc[-1] + pd.Series(visual_data_dic[key_algo][f"{metric}_std"]).iloc[-1] + 0.1]
       dtick=0.1
   )
-
 
 # update layout for overall plot
 fig.update_layout(
@@ -462,18 +443,12 @@ for i in range(len(["f1_macro", "f1_micro"])):
         "BERT-base-nli vs. classical-best-tfidf": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["classical-best-tfidf"],
         "BERT-base-nli vs. classical-best-embeddings": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["classical-best-embeddings"],
         "BERT-base-nli vs. BERT-base": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["BERT-base"],
-       #"Transformer-Mini-NLI vs. SVM": df_metrics_mean_all.loc["Transformer-Mini-NLI"] - df_metrics_mean_all.loc["SVM"],
-       #"Transformer-Mini-NLI vs. Transformer-Mini": df_metrics_mean_all.loc["Transformer-Mini-NLI"] - df_metrics_mean_all.loc["Transformer-Mini"]
        }).transpose()
     #df_metrics_difference = df_metrics_difference.applymap(lambda x: f"+{round(x, 2)}" if x > 0 else round(x, 2))
     #df_metrics_difference = df_metrics_difference.applymap(lambda x: round(x, 2))
     df_metrics_difference.index.name = "Sample size /\nComparison"
     df_metrics_difference_lst.append(df_metrics_difference)
 
-## write to disk
-print(os.getcwd())
-#df_metrics_mean.to_excel(f'/Users/moritzlaurer/Dropbox/PhD/Papers/nli/df_{metric}_mean_all.xlsx')
-#df_metrics_difference.to_excel(f'/Users/moritzlaurer/Dropbox/PhD/Papers/nli/df_{metric}_difference.xlsx')
 
 
 
@@ -502,11 +477,10 @@ metrics_random_average = [f1_macro_random_average_all] * 5 + [f1_macro_random_av
 #metrics_random_average = [f1_macro_random_average, f1_micro_random_average]
 
 
-
+### create plot
 subplot_titles_compare = ["f1_macro", "f1_micro"]
 fig_compare = make_subplots(rows=1, cols=2, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
                             subplot_titles=subplot_titles_compare, x_title="Number of random training examples")  #y_title="f1 score",
-#fig_compare = go.Figure()
 
 for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
     fig_compare.add_trace(go.Scatter(
@@ -567,7 +541,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
             marker=dict(color="#444"),
             line=dict(width=0),
             mode='lines',
-            fillcolor='rgba(68, 68, 68, 0.2)',
+            fillcolor='rgba(68, 68, 68, 0.13)',
             fill='tonexty',
             showlegend=False
             ),

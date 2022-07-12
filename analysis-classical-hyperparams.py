@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# ## Load packages
-
 EXECUTION_TERMINAL = True
 
+# ## Load packages
 import transformers
 import datasets
 import torch
@@ -14,11 +13,13 @@ import pandas as pd
 import numpy as np
 import re
 import math
-from datetime import datetime
 import random
 import os
 import tqdm
 from collections import OrderedDict
+import joblib
+from datetime import date
+from datetime import datetime
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, TfidfTransformer
 from sklearn import svm, naive_bayes, metrics, linear_model
@@ -59,7 +60,7 @@ parser.add_argument('-tp', '--n_trials_pruning', type=int,
 parser.add_argument('-cvh', '--n_cross_val_hyperparam', type=int, default=2,
                     help='How many times should optuna cross validate in a single trial?')
 parser.add_argument('-context', '--context', action='store_true',
-                    help='Take surrounding context sentences into account. Only use flag if context available.')
+                    help='Take surrounding context sentences into account.')
 
 # arguments for both hyperparam and test script
 parser.add_argument('-ds', '--dataset', type=str,
@@ -75,7 +76,7 @@ parser.add_argument('-vectorizer', '--vectorizer', type=str,
 parser.add_argument('-tqdm', '--disable_tqdm', action='store_true',
                     help='Adding the flag enables tqdm for progress tracking')
 parser.add_argument('-carbon', '--carbon_tracking', action='store_true',
-                    help='Adding the flag enables carbon tracking via CodeCarbon')
+                    help='Adding the flag enables carbon tracking via CodeCarbon')  # not used, as CodeCarbon caused bugs https://github.com/mlco2/codecarbon/issues/305
 
 # arguments only for test script
 parser.add_argument('-cvf', '--n_cross_val_final', type=int, default=3,
@@ -83,10 +84,9 @@ parser.add_argument('-cvf', '--n_cross_val_final', type=int, default=3,
 parser.add_argument('-hp_date', '--hyperparam_study_date', type=str,
                     help='Date string to specifiy which hyperparameter run should be selected. e.g. "20220304"')
 
-#python analysis-transf-hyperparams.py -lr 5e-6 5e-4 -epochs 3 16 -b 8 16 -t 12 -ts 5 -tp 4 -cvh 3 -context -ds "sentiment-news-econ" -samp 100 500 1000 2500 5000 10000 -m "nli" -model "MoritzLaurer/xtremedistil-l6-h256-mnli-fever-anli-ling-binary" --carbon_tracking
 
 
-### chose arguments depending on execution in terminal or in script for testing
+### choose arguments depending on execution in terminal or in script for testing
 if EXECUTION_TERMINAL == True:
   print("Arguments passed via the terminal:")
   # Execute the parse_args() method
@@ -105,13 +105,12 @@ elif EXECUTION_TERMINAL == False:
                             "--n_cross_val_final", "3", "--hyperparam_study_date", "20220712"])
 
 
-
 ### args only for hyperparameter tuning
 N_TRIALS = args.n_trials
 N_STARTUP_TRIALS_SAMPLING = args.n_trials_sampling
 N_STARTUP_TRIALS_PRUNING = args.n_trials_pruning
 CROSS_VALIDATION_REPETITIONS_HYPERPARAM = args.n_cross_val_hyperparam
-CONTEXT = args.context   # not in use. would need to adapt code below. Currently always includes context & not-context in hyperparameter search
+CONTEXT = args.context   # not in use. would need to adapt code below. Currently always includes context & not-context in hyperparameter search. seems like best option.
 
 ### args for both hyperparameter tuning and test runs
 # choose dataset
@@ -130,9 +129,8 @@ CARBON_TRACKING = args.carbon_tracking
 HYPERPARAM_STUDY_DATE = args.hyperparam_study_date  #"20220304"
 CROSS_VALIDATION_REPETITIONS_FINAL = args.n_cross_val_final
 
-# 10k had 1-10% performance drop for high n sample (possibly overfitting to majority class)
+# 10k max_iter had 1-10% performance drop for high n sample (possibly overfitting to majority class)
 MAX_ITER_LOW, MAX_ITER_HIGH = 1_000, 7_000  # tried 10k, but led to worse performance on larger, imbalanced dataset (?)
-
 
 
 
@@ -188,13 +186,10 @@ if DATASET_NAME == "manifesto-8":
 
 
 ## reduce max sample size interval list to fit to max df_train length
-#N_SAMPLE_DEV = [100, 500, 1000]
-#df_train = [1] * 2300
 n_sample_dev_filt = [sample for sample in N_SAMPLE_DEV if sample < len(df_train)]
 if len(df_train) < N_SAMPLE_DEV[-1]:
   n_sample_dev_filt = n_sample_dev_filt + [len(df_train)]
 N_SAMPLE_DEV = n_sample_dev_filt
-
 print("Final sample size intervals: ", N_SAMPLE_DEV)
 
 
@@ -224,16 +219,14 @@ importlib.reload(helpers)
 
 from helpers import data_preparation, compute_metrics_classical_ml, clean_memory
 
-np.random.seed(SEED_GLOBAL)
-
 ### load suitable hypotheses_hyperparameters and text formatting function
 from hypothesis_hyperparams import hypothesis_hyperparams
 
 
-### load the hypothesis hyperparameters for the respective dataset
+### load the hypothesis hyperparameters for the respective dataset. For classical_ml this only determines the input text format - sentence with surrounding sentences, or not
 hypothesis_hyperparams_dic, format_text = hypothesis_hyperparams(dataset_name=DATASET_NAME, df_cl=df_cl)
 
-# check which template fits to standard_dl/ml or NLI
+# check which template fits to standard_dl/classical_ml or NLI
 print("")
 print([template for template in list(hypothesis_hyperparams_dic.keys()) if "not_nli" in template])
 print([template for template in list(hypothesis_hyperparams_dic.keys()) if "not_nli" not in template])
@@ -248,7 +241,6 @@ if "context" not in classical_templates:
 
 ##### prepare texts for classical ML
 nlp = spacy.load("en_core_web_lg")
-
 
 ## lemmatize text
 def lemmatize(text_lst, embeddings=False):
@@ -274,7 +266,7 @@ def lemmatize(text_lst, embeddings=False):
   else: 
     raise Exception(f"pos_selection not properly specified: {embeddings}")
 
-#df_cl_lemma = df_cl.copy(deep=True)
+
 df_train_lemma = df_train.copy(deep=True)
 df_test_lemma = df_test.copy(deep=True)
 
@@ -314,10 +306,6 @@ if "text_following" in df_cl.columns:
                                       zip(df_test_lemma["text_following"], df_test_lemma["text_original"])]
 
 
-# ! not 100% sure if lemmatization had worked during experiments. disable pipeline seems to have disabled lemmatization. now fixed.
-# think it had worked originally and I had checked and bug was only introduced with later changes though
-
-
 ##### hyperparameter tuning
 
 # carbon tracker  https://github.com/mlco2/codecarbon/tree/master
@@ -328,24 +316,20 @@ if "text_following" in df_cl.columns:
 #  tracker.start()
 
 
-def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_train=None, df=None):  #df_train=None,
+def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_train=None, df=None):
   clean_memory()
-  np.random.seed(SEED_GLOBAL)  # don't understand why this needs to be run here at each iteration. it should stay constant once set globally?!
+  np.random.seed(SEED_GLOBAL)  # setting seed again for safety. not sure why this needs to be run here at each iteration. it should stay constant once set globally?!
   
   if VECTORIZER == "tfidf":
       # https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html
       hyperparams_vectorizer = {
           'ngram_range': trial.suggest_categorical("ngram_range", [(1,2), (1,3)]),
-          #'ngram_range': (1,2),
           'max_df': trial.suggest_categorical("max_df", [0.9, 0.8, 0.7]),
-          #'max_df': 0.9,
           'min_df': trial.suggest_categorical("min_df", [0.01, 0.03, 0.06])
-          #'min_df': 0.02,
       }
       vectorizer = TfidfVectorizer(lowercase=True, stop_words='english', norm="l2", use_idf=True, smooth_idf=True, analyzer="word", **hyperparams_vectorizer)  # ngram_range=(1,2), max_df=0.9, min_df=0.02
   if VECTORIZER == "embeddings":
       hyperparams_vectorizer = {}
-
 
   # SVM  # https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html
   if MODEL_NAME == "SVM":
@@ -380,7 +364,7 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
       raise Exception("Method not available: ", MODEL_NAME)
   
   # not choosing a hypothesis template here, but the way of formatting the input text (e.g. with preceding sentence or not). need to keep same object names
-  # if statements determine, whether surrounding sentences are added, or not
+  # if statements determine, whether surrounding sentences are added, or not. Disactivated, because best to always try and test context
   #if CONTEXT == True:
   #  text_template_classical_ml = [template for template in list(hypothesis_hyperparams_dic.keys()) if ("not_nli" in template) and ("context" in template)]
   #elif CONTEXT == False:
@@ -425,24 +409,22 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
         clf = svm.SVC(**hyperparams_clf)
     elif MODEL_NAME == "logistic":
         clf = linear_model.LogisticRegression(**hyperparams_clf)
-    #clf = linear_model.LogisticRegression(**hyperparams_clf)
     clf.fit(X_train, y_train)
 
     # prediction on test set
     label_gold = y_test
     label_pred = clf.predict(X_test)
     
-    # metics
+    # metrics
     metric_step = compute_metrics_classical_ml(label_pred, label_gold, label_text_alphabetical=np.sort(df.label_text.unique()))
-    #metric_step = {key: metric_step[key] for key in metric_step if key not in ["label_gold_raw", "label_predicted_raw"]}
-    
+
     run_info_dic = {"method": METHOD, "n_sample": n_sample, "model": MODEL_NAME, "results": metric_step, "hyper_params": hyperparams_optuna}
     run_info_dic_lst.append(run_info_dic)
     
     # Report intermediate objective value.
     intermediate_value = (metric_step["eval_f1_macro"] + metric_step["eval_f1_micro"]) / 2
     trial.report(intermediate_value, step_i)
-    # Handle pruning based on the intermediate value.
+    # Handle trial pruning based on the intermediate value.
     if trial.should_prune() and (CROSS_VALIDATION_REPETITIONS_HYPERPARAM > 1):
       raise optuna.TrialPruned()
     if n_sample == 999_999:  # no cross-validation necessary for full dataset
@@ -474,8 +456,6 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
 #warnings.filterwarnings(action='ignore')
 #from requests import HTTPError  # for catching HTTPError, if model download does not work for one trial for some reason
 # catch catch following error. unclear if good to catch this. [W 2022-01-12 14:18:30,377] Trial 9 failed because of the following error: HTTPError('504 Server Error: Gateway Time-out for url: https://huggingface.co/api/models/MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli')
-import joblib
-from datetime import date
 
 def run_study(n_sample=None):
   optuna_pruner = optuna.pruners.MedianPruner(n_startup_trials=N_STARTUP_TRIALS_PRUNING, n_warmup_steps=0, interval_steps=1, n_min_trials=1)  # https://optuna.readthedocs.io/en/stable/reference/pruners.html
@@ -488,7 +468,6 @@ def run_study(n_sample=None):
   return study
 
 
-#date_today = date.today()
 hp_study_dic = {}
 for n_sample in tqdm.tqdm(N_SAMPLE_DEV):
   study = run_study(n_sample=n_sample)
@@ -497,7 +476,6 @@ for n_sample in tqdm.tqdm(N_SAMPLE_DEV):
   # save study_dic after each new study added
   while len(str(n_sample)) <= 4:
     n_sample = "0" + str(n_sample)
-  #joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{n_sample}samp_{str(date_today).replace('-', '')}.pkl")
   if EXECUTION_TERMINAL == True:
       if VECTORIZER == "tfidf":
         joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
@@ -512,8 +490,6 @@ for n_sample in tqdm.tqdm(N_SAMPLE_DEV):
 ## stop carbon tracker
 #if CARBON_TRACKING:
 #  tracker.stop()  # writes csv file to directory specified during initialisation. Does not overwrite csv, but append new runs
-
-#testtest
 
 print("Run done.")
 

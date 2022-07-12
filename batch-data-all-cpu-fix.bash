@@ -19,6 +19,8 @@ pip install -r requirements.txt
 pip uninstall -y codecarbon
 
 
+#### script run to fix some issues during previous runs - script should be deletable
+
 ## sentiment-news-econ
 #python analysis-classical-hyperparams.py --n_trials 70 --n_trials_sampling 40 --n_trials_pruning 50 --n_cross_val_hyperparam 2 --context --dataset "sentiment-news-econ" --sample_interval 10000 --method "classical_ml" --model "SVM" --carbon_tracking
 #python analysis-classical-run.py --dataset "sentiment-news-econ" --sample_interval 10000 --method "classical_ml" --model "SVM" --n_cross_val_final 3 --hyperparam_study_date 20220429 --carbon_tracking

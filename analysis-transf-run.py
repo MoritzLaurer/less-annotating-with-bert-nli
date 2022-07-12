@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# ## Load packages
-
 EXECUTION_TERMINAL = True
 
-## load packages
+# ## Load packages
 import transformers
 import datasets
 import torch
@@ -29,7 +27,8 @@ SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
 print(os.getcwd())
-#os.chdir("./NLI-experiments")
+if (EXECUTION_TERMINAL==False) and ("NLI-experiments" not in os.getcwd()):
+    os.chdir("./NLI-experiments")
 print(os.getcwd())
 
 
@@ -74,7 +73,7 @@ parser.add_argument('-model', '--model', type=str,
 parser.add_argument('-tqdm', '--disable_tqdm', action='store_true',
                     help='Adding the flag enables tqdm for progress tracking')
 parser.add_argument('-carbon', '--carbon_tracking', action='store_true',
-                    help='Adding the flag enables carbon tracking via CodeCarbon')
+                    help='Adding the flag enables carbon tracking via CodeCarbon')  # not used, as CodeCarbon caused bugs https://github.com/mlco2/codecarbon/issues/305
 
 # arguments only for test script
 parser.add_argument('-cvf', '--n_cross_val_final', type=int, default=3,
@@ -85,11 +84,8 @@ parser.add_argument('-zeroshot', '--zeroshot', action='store_true',
                     help='Start training run with a zero-shot run')
 
 
-#python analysis-transf-run.py -ds "sentiment-news-econ" -samp 100 -m "nli" -model "MoritzLaurer/xtremedistil-l6-h256-mnli-fever-anli-ling-binary" --n_cross_val_final 2 --hyperparam_study_date 20220422
 
-
-### chose arguments dependon on execution in terminal or in script for testing
-
+### choose arguments depending on execution in terminal or in script for testing
 if EXECUTION_TERMINAL == True:
   print("Arguments passed via the terminal:")
   # Execute the parse_args() method
@@ -101,27 +97,13 @@ if EXECUTION_TERMINAL == True:
           print(value, "  ", key)
 
 elif EXECUTION_TERMINAL == False:
-  # parse args if not in terminal, but in script
+  # parse args if not in terminal, but in script. adapt manually
   args = parser.parse_args(["--learning_rate", "1.2", "1.5", "--epochs", "3", "16", "--batch_size", "8", "16", "--n_trials", "12", "--n_trials_sampling", "5", "--n_trials_pruning", "4", "--n_cross_val_hyperparam", "3", 
                             "--context", "--dataset", "cap-sotu", "--sample_interval", "1000", "2500", #"100", "500", "1000", "2500", "5000", "10000", 
                             "--method", "nli", "--model", "MoritzLaurer/xtremedistil-l6-h256-mnli-fever-anli-ling-binary", #"microsoft/xtremedistil-l6-h256-uncased", #"MoritzLaurer/xtremedistil-l6-h256-mnli-fever-anli-ling-binary", 
                             "--n_cross_val_final", "2", "--hyperparam_study_date", "20220418", "--carbon_tracking"
                             ])
 
-
-### args only for hyperparameter tuning
-"""
-LR_LOW, LR_HIGH = args.learning_rate  # 5e-6, 5e-4
-EPOCHS_LOW, EPOCHS_HIGH = args.epochs  #3, 16
-
-TRAIN_BATCH_SIZE = args.batch_size
-
-N_TRIALS = args.n_trials
-N_STARTUP_TRIALS_SAMPLING = args.n_trials_sampling
-N_STARTUP_TRIALS_PRUNING = args.n_trials_pruning
-CROSS_VALIDATION_REPETITIONS_HYPERPARAM = args.n_cross_val_hyperparam
-CONTEXT = args.context
-"""
 
 ### args for both hyperparameter tuning and test runs
 # choose dataset
@@ -131,8 +113,6 @@ N_SAMPLE_DEV = args.sample_interval   # [100, 500, 1000, 2500, 5000, 10_000]  99
 # decide on model to run
 METHOD = args.method  # "standard_dl", "nli", "nsp"
 MODEL_NAME = args.model
-# nli: "MoritzLaurer/xtremedistil-l6-h256-mnli-fever-anli-ling-binary" MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c
-# standard_dl: "microsoft/xtremedistil-l6-h256-uncased" #"microsoft/deberta-v3-base"  
 
 DISABLE_TQDM = args.disable_tqdm
 CARBON_TRACKING = args.carbon_tracking
@@ -141,6 +121,8 @@ CARBON_TRACKING = args.carbon_tracking
 HYPERPARAM_STUDY_DATE = args.hyperparam_study_date  #"20220304"
 CROSS_VALIDATION_REPETITIONS_FINAL = args.n_cross_val_final
 ZEROSHOT = args.zeroshot
+
+
 
 # ## Load data
 if DATASET_NAME == "cap-us-court":
@@ -159,10 +141,6 @@ elif "manifesto-8" in DATASET_NAME:
   df_cl = pd.read_csv("./data_clean/df_manifesto_all.csv", index_col="idx")
   df_train = pd.read_csv("./data_clean/df_manifesto_train.csv", index_col="idx")
   df_test = pd.read_csv("./data_clean/df_manifesto_test.csv", index_col="idx")
-#elif DATASET_NAME == "manifesto-complex":
-#  df_cl = pd.read_csv("./data_clean/df_manifesto_complex_all.csv", index_col="idx")
-#  df_train = pd.read_csv("./data_clean/df_manifesto_complex_train.csv", index_col="idx")
-#  df_test = pd.read_csv("./data_clean/df_manifesto_complex_test.csv", index_col="idx")
 elif DATASET_NAME == "coronanet":
   df_cl = pd.read_csv("./data_clean/df_coronanet_20220124_all.csv", index_col="idx")
   df_train = pd.read_csv("./data_clean/df_coronanet_20220124_train.csv", index_col="idx")
@@ -195,20 +173,15 @@ print(DATASET_NAME)
 
 
 ## reduce max sample size interval list to fit to max df_train length
-#N_SAMPLE_DEV = [100, 500, 1000]
-#df_train = [1] * 2300
 n_sample_dev_filt = [sample for sample in N_SAMPLE_DEV if sample <= len(df_train)]
 if len(df_train) < N_SAMPLE_DEV[-1]:
   n_sample_dev_filt = n_sample_dev_filt + [len(df_train)]
 N_SAMPLE_DEV = n_sample_dev_filt
-
 print("Final sample size intervals: ", N_SAMPLE_DEV)
 
 
 LABEL_TEXT_ALPHABETICAL = np.sort(df_cl.label_text.unique())
 TRAINING_DIRECTORY = f"results/{DATASET_NAME}"
-
-
 
 ## data checks
 print(DATASET_NAME, "\n")
@@ -221,6 +194,7 @@ assert all(labels_num_via_numeric == labels_num_via_text)
 assert df_cl.columns.tolist() == df_train.columns.tolist() == df_test.columns.tolist()
 
 
+
 # ## Load helper functions
 
 import helpers
@@ -230,8 +204,6 @@ importlib.reload(helpers)
 from helpers import format_nli_testset, format_nli_trainset, data_preparation  # custom_train_test_split, custom_train_test_split_sent_overlapp
 from helpers import load_model_tokenizer, tokenize_datasets, set_train_args, create_trainer
 from helpers import compute_metrics_standard, compute_metrics_nli_binary, compute_metrics_classical_ml, clean_memory
-
-np.random.seed(SEED_GLOBAL)
 
 ### load suitable hypotheses_hyperparameters and text formatting function
 from hypothesis_hyperparams import hypothesis_hyperparams
@@ -272,8 +244,6 @@ for n_sample in N_SAMPLE_DEV:
   #hp_study_dic_step = joblib.load(f"./{TRAINING_DIRECTORY}/optuna_study_{'MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli'.split('/')[-1]}_{n_sample}samp_20220220.pkl")
   hp_study_dic.update(hp_study_dic_step)
 
-#N_SAMPLE_DEV = [3000]
-#hp_study_dic_step = joblib.load(f"./results/sentiment-news-econ/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_03000samp_20220429.pkl")
 
 # add hyperparameters (particularly hypo list for NLI) for 0-shot run, because 0-shot has no hyperparameters otherwise
 if ZEROSHOT == True:
@@ -327,11 +297,9 @@ if N_SAMPLE_DEV == [0]:
 # FP16 if cuda and if not mDeBERTa
 fp16_bool = True if torch.cuda.is_available() else False
 if "mDeBERTa" in MODEL_NAME: fp16_bool = False  # mDeBERTa does not support FP16 yet
-#if "microsoft/xtremedistil-l6-h256-uncased" in MODEL_NAME: fp16_bool = False  # mDeBERTa does not support FP16 yet
 
 ### run random cross-validation for hyperparameter search without a dev set
 np.random.seed(SEED_GLOBAL)
-#date_today = date.today()
 
 ### K example intervals loop
 experiment_details_dic = {}
@@ -345,7 +313,7 @@ for n_max_sample, hyperparams, hypothesis_template in tqdm.tqdm(zip(N_SAMPLE_TES
   f1_micro_lst = []
   # randomness stability loop. Objective: calculate F1 across N samples to test for influence of different (random) samples
   for random_seed_sample in tqdm.tqdm(np.random.choice(range(1000), size=CROSS_VALIDATION_REPETITIONS_FINAL), desc="Iterations for std", leave=True):
-    # unrealistic oracle sample
+    # unrealistic oracle sample. not used
     #df_train_samp = df_train.groupby(by="label_text", group_keys=False, as_index=False, sort=False).apply(lambda x: x.sample(n=min(len(x), n_max_sample), random_state=random_seed_sample))
     # fully random sample
     #df_train_samp = random_sample_fill(df_train=df_train, n_sample_per_class=n_max_sample, seed=random_seed_sample)
@@ -386,8 +354,6 @@ for n_max_sample, hyperparams, hypothesis_template in tqdm.tqdm(zip(N_SAMPLE_TES
       trainer.train()
     results = trainer.evaluate()  # eval_dataset=encoded_dataset_test
 
-    #transformers.logging.set_verbosity_warning()  # https://huggingface.co/transformers/main_classes/logging.html
-
     k_samples_experiment_dic.update({"n_train_total": len(df_train_samp), f"metrics_seed_{random_seed_sample}": results})
 
     ## calculate aggregate metrics across random runs
@@ -420,7 +386,6 @@ for n_max_sample, hyperparams, hypothesis_template in tqdm.tqdm(zip(N_SAMPLE_TES
   experiment_details_dic.update(experiment_details_dic_step)
 
   ## save experiment dic after each new study
-  #joblib.dump(experiment_details_dic_step, f"./{TRAINING_DIRECTORY}/experiment_results_{MODEL_NAME.split('/')[-1]}_{n_max_sample}samp_{str(date_today).replace('-', '')}.pkl")
   joblib.dump(experiment_details_dic_step, f"./{TRAINING_DIRECTORY}/experiment_results_{MODEL_NAME.split('/')[-1]}_{n_max_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
 
 
@@ -430,10 +395,10 @@ for n_max_sample, hyperparams, hypothesis_template in tqdm.tqdm(zip(N_SAMPLE_TES
 
 
 
-# ## Results
-## print final experiment results
+# ## Print Results
 for experiment_key in experiment_details_dic:
   print(f"{experiment_key}: f1_macro: {experiment_details_dic[experiment_key]['metrics_mean']['f1_macro_mean']} , f1_micro: {experiment_details_dic[experiment_key]['metrics_mean']['f1_micro_mean']}")
 
+print("Script done.")
 
 

@@ -1,31 +1,35 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# ## Load packages
-
 EXECUTION_TERMINAL = True
 
+# ## Load packages
 import transformers
 import datasets
 import torch
+import optuna
 
 import pandas as pd
 import numpy as np
 import re
 import math
 from datetime import datetime
+from datetime import date
 import random
 import os
 import tqdm
 from collections import OrderedDict
 from sklearn.model_selection import train_test_split
+import time
+import joblib
 
 ## set global seed for reproducibility and against seed hacking
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
 print(os.getcwd())
-#os.chdir("./NLI-experiments")
+if (EXECUTION_TERMINAL==False) and ("NLI-experiments" not in os.getcwd()):
+    os.chdir("./NLI-experiments")
 print(os.getcwd())
 
 
@@ -71,7 +75,7 @@ parser.add_argument('-model', '--model', type=str,
 parser.add_argument('-tqdm', '--disable_tqdm', action='store_true',
                     help='Adding the flag enables tqdm for progress tracking')
 parser.add_argument('-carbon', '--carbon_tracking', action='store_true',
-                    help='Adding the flag enables carbon tracking via CodeCarbon')
+                    help='Adding the flag enables carbon tracking via CodeCarbon')  # not used, as CodeCarbon caused bugs https://github.com/mlco2/codecarbon/issues/305
 
 # arguments only for test script
 parser.add_argument('-cvf', '--n_cross_val_final', type=int, default=3,
@@ -80,11 +84,8 @@ parser.add_argument('-hp_date', '--hyperparam_study_date', type=str,
                     help='Date string to specifiy which hyperparameter run should be selected. e.g. "20220304"')
 
 
-#python analysis-transf-hyperparams.py -lr 5e-6 5e-4 -epochs 3 16 -b 8 16 -t 12 -ts 5 -tp 4 -cvh 3 -context -ds "sentiment-news-econ" -samp 100 500 1000 2500 5000 10000 -m "nli" -model "MoritzLaurer/xtremedistil-l6-h256-mnli-fever-anli-ling-binary" --carbon_tracking
 
-
-
-### chose arguments depending on execution in terminal or in script for testing
+### choose arguments depending on execution in terminal or in script for testing
 if EXECUTION_TERMINAL == True:
   print("Arguments passed via the terminal:")
   # Execute the parse_args() method
@@ -96,16 +97,11 @@ if EXECUTION_TERMINAL == True:
           print(value, "  ", key)
 
 elif EXECUTION_TERMINAL == False:
-  # parse args if not in terminal, but in script
+  # parse args if not in terminal, but in script. adapt manually
   args = parser.parse_args(["--learning_rate", "1.2", "1.5", "--epochs", "3", "16", "--batch_size", "8", "16", "--n_trials", "12", "--n_trials_sampling", "5", "--n_trials_pruning", "4", "--n_cross_val_hyperparam", "3", 
                             "--context", "--dataset", "manifesto-military", "--sample_interval", "1000", "2500", #"100", "500", "1000", "2500", "5000", "10000", 
                             "--method", "nli", "--model", "MoritzLaurer/xtremedistil-l6-h256-mnli-fever-anli-ling-binary", #"microsoft/xtremedistil-l6-h256-uncased", #"MoritzLaurer/xtremedistil-l6-h256-mnli-fever-anli-ling-binary", 
                             "--n_cross_val_final", "3", "--hyperparam_study_date", "20220418", "--carbon_tracking"])
-
-
-
-
-# In[7]:
 
 
 ### args only for hyperparameter tuning
@@ -118,7 +114,7 @@ N_TRIALS = args.n_trials
 N_STARTUP_TRIALS_SAMPLING = args.n_trials_sampling
 N_STARTUP_TRIALS_PRUNING = args.n_trials_pruning
 CROSS_VALIDATION_REPETITIONS_HYPERPARAM = args.n_cross_val_hyperparam
-CONTEXT = args.context   # not in use. would need to adapt code below. Currently always includes context & not-context in hyperparameter search
+CONTEXT = args.context   # not in use. would need to adapt code below. Currently always includes context & not-context in hyperparameter search. seems like best option
 
 ### args for both hyperparameter tuning and test runs
 # choose dataset
@@ -127,10 +123,7 @@ N_SAMPLE_DEV = args.sample_interval   # [100, 500, 1000, 2500, 5000, 10_000]  99
 
 # decide on model to run
 METHOD = args.method  # "standard_dl", "nli", "nsp"
-
-MODEL_NAME = args.model  
-# nli: "MoritzLaurer/xtremedistil-l6-h256-mnli-fever-anli-ling-binary" MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c
-# standard_dl: "microsoft/xtremedistil-l6-h256-uncased" #"microsoft/deberta-v3-base"  
+MODEL_NAME = args.model
 
 DISABLE_TQDM = args.disable_tqdm
 CARBON_TRACKING = args.carbon_tracking
@@ -139,41 +132,6 @@ CARBON_TRACKING = args.carbon_tracking
 HYPERPARAM_STUDY_DATE = args.hyperparam_study_date  #"20220304"
 CROSS_VALIDATION_REPETITIONS_FINAL = args.n_cross_val_final
 
-
-
-### Status of experiments
-
-##"sentiment-news-econ"
-# Done: SVM (all), minilm, minilm-nli, deberta-base, deberta-nli  # (minilm-nli didn't learn properly)
-##"cap-us-court"
-# Done: SVM (all), minilm (only hp-search), minilm-nli, deberta-nli (only hp search until 160)     - texts are very long, makes transformers very slow ; minilm-nli to be optimised: increase epochs and lr, remove complex hypo (improved for 80samp, lr could still be higher/better)
-
-##"cap-sotu"
-# Done: SVM (all), minilm, minilm-nli, deberta-base, deberta-nli
-
-##"coronanet"
-# Done: SVM (all), minilm, minilm-nli, deberta/nli (started hp search, but timeout after 24h, only first 3-4 iterations done)
-
-##"manifesto-8"
-# Done: SVM (all), minilm, minilm-nli, deberta-base, deberta-nli,   
-## notes:
-# SMV still improved until 50 iter, might not be optimal yet at 50 # 
-# deberta-nli is very bad at 0-shot, while minilm-nli is fine. no clue why.
-
-##"manifest-military"
-# Done: SVM, minilm, minilm-nli
-
-##"manifest-protectionism"
-# Done: SVM, minilm, minilm-nli, deberta-nli (with too low lr), 
-
-##"manifest-morality"
-# Done: SVM, minilm, minilm-nli
-## Notes: 
-# should try and reformulate hypos: 'In favour of modern morality' to have two positive hypos
-
-
-##"manifesto-44-simple"
-##"manifesto-complex"
 
 
 # ## Load data
@@ -227,19 +185,15 @@ if DATASET_NAME == "manifesto-8":
 
 
 ## reduce max sample size interval list to fit to max df_train length
-#N_SAMPLE_DEV = [100, 500, 1000]
-#df_train = [1] * 2300
 n_sample_dev_filt = [sample for sample in N_SAMPLE_DEV if sample < len(df_train)]
 if len(df_train) < N_SAMPLE_DEV[-1]:
   n_sample_dev_filt = n_sample_dev_filt + [len(df_train)]
 N_SAMPLE_DEV = n_sample_dev_filt
-
 print("Final sample size intervals: ", N_SAMPLE_DEV)
 
 
 LABEL_TEXT_ALPHABETICAL = np.sort(df_cl.label_text.unique())
 TRAINING_DIRECTORY = f"results/{DATASET_NAME}"
-
 
 ## data checks
 print(DATASET_NAME, "\n")
@@ -262,8 +216,6 @@ importlib.reload(helpers)
 from helpers import format_nli_testset, format_nli_trainset, data_preparation  # custom_train_test_split, custom_train_test_split_sent_overlapp
 from helpers import load_model_tokenizer, tokenize_datasets, set_train_args, create_trainer
 from helpers import compute_metrics_standard, compute_metrics_nli_binary, compute_metrics_classical_ml, clean_memory
-
-np.random.seed(SEED_GLOBAL)
 
 ### load suitable hypotheses_hyperparameters and text formatting function
 from hypothesis_hyperparams import hypothesis_hyperparams
@@ -296,21 +248,14 @@ if "context" not in nli_templates:
 #  tracker.start()
 
 
-
-
-# debugging in colab https://colab.research.google.com/github/jakevdp/PythonDataScienceHandbook/blob/master/notebooks/01.06-Errors-and-Debugging.ipynb#scrollTo=TF-MxTMBdGEH
-#import pdb; pdb.set_trace()
-
-import optuna
-
 # FP16 if cuda and if not mDeBERTa
 fp16_bool = True if torch.cuda.is_available() else False
 if "mDeBERTa" in MODEL_NAME: fp16_bool = False  # mDeBERTa does not support FP16 yet
-#if "microsoft/xtremedistil-l6-h256-uncased" in MODEL_NAME: fp16_bool = False  # mDeBERTa does not support FP16 yet
 
 
 def inference_run_transformer(df_train=None, df_dev=None, random_seed=None, hyperparams_dic=None, n_sample=None):
-  
+  # can add random_seed here, but not really necessary, because HF Transformers Trainer also uses 42 as default seed
+
   clean_memory()
   model, tokenizer = load_model_tokenizer(model_name=MODEL_NAME, method=METHOD, label_text_alphabetical=LABEL_TEXT_ALPHABETICAL)
   encoded_dataset = tokenize_datasets(df_train_samp=df_train, df_test=df_dev, tokenizer=tokenizer, method=METHOD, max_length=None)
@@ -365,6 +310,7 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
 
   if METHOD == "nli":
     # CONTEXT decides if hypothesis templates with or without context are chosen in format_text function
+    # disactivated here. Best to always test context in hyperparam search
     #if CONTEXT == True:
     #  hypothesis_template_nli = [template for template in list(hypothesis_hyperparams_dic.keys()) if ("not_nli" not in template) and ("context" in template)]
     #elif CONTEXT == False:
@@ -374,7 +320,7 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
     hypothesis_template = trial.suggest_categorical("hypothesis_template", hypothesis_template_nli)
     hyperparams_optuna = dict(**hyperparams, **{"hypothesis_template": hypothesis_template})
   elif METHOD == "standard_dl":
-    # not chosing a hypothesis template here, but the way of formatting the input text (e.g. with preceding sentence or not). need to keep same object names though
+    # not choosing a hypothesis template here, but the way of formatting the input text (e.g. with preceding sentence or not). need to keep same object names though
     #if CONTEXT == True:
     #  text_template_standard_dl = [template for template in list(hypothesis_hyperparams_dic.keys()) if ("not_nli" in template) and ("context" in template)]
     #elif CONTEXT == False:
@@ -439,8 +385,6 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
 #warnings.filterwarnings(action='ignore')
 #from requests import HTTPError  # for catching HTTPError, if model download does not work for one trial for some reason
 # catch catch following error. unclear if good to catch this. [W 2022-01-12 14:18:30,377] Trial 9 failed because of the following error: HTTPError('504 Server Error: Gateway Time-out for url: https://huggingface.co/api/models/MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli')
-import joblib
-from datetime import date
 
 def run_study(n_sample=None):
   optuna_pruner = optuna.pruners.MedianPruner(n_startup_trials=N_STARTUP_TRIALS_PRUNING, n_warmup_steps=0, interval_steps=1, n_min_trials=1)  # https://optuna.readthedocs.io/en/stable/reference/pruners.html
@@ -454,7 +398,6 @@ def run_study(n_sample=None):
   return study
 
 
-#date_today = date.today()
 hp_study_dic = {}
 for n_sample in tqdm.tqdm(N_SAMPLE_DEV):
   study = run_study(n_sample=n_sample)
@@ -463,16 +406,13 @@ for n_sample in tqdm.tqdm(N_SAMPLE_DEV):
   # save study_dic after each new study added
   while len(str(n_sample)) <= 4:
     n_sample = "0" + str(n_sample)
-  #joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{n_sample}samp_{str(date_today).replace('-', '')}.pkl")
   joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
-
-
 
 
 ## stop carbon tracker
 #if CARBON_TRACKING:
 #  tracker.stop()  # writes csv file to directory specified during initialisation. Does not overwrite csv, but append new runs
 
-
+print("Script done.")
 
 

@@ -1,9 +1,11 @@
 
-## seems like I need to import all libraries here too
+## seems like I need to import all libraries here too even though the entire script is never run
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
-
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig, AutoModelForNextSentencePrediction
+import torch
+import datasets
+import copy
 
 ### reformat training data for NLI binary classification
 def format_nli_trainset(df_train=None, hypo_label_dic=None, random_seed=42):
@@ -90,10 +92,6 @@ def data_preparation(random_seed=42, hypothesis_template=None, hypo_label_dic=No
 
 
 
-### load model and tokenizer
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig, AutoModelForNextSentencePrediction
-import torch
-
 def load_model_tokenizer(model_name=None, method=None, label_text_alphabetical=None):
     if method == "nli":
         tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True, model_max_length=512);
@@ -117,8 +115,7 @@ def load_model_tokenizer(model_name=None, method=None, label_text_alphabetical=N
     return model, tokenizer
 
 
-import datasets
-import copy
+
 
 ### create HF datasets and tokenize data
 def tokenize_datasets(df_train_samp=None, df_test=None, tokenizer=None, method=None, max_length=None, reverse=False):
@@ -189,7 +186,6 @@ def compute_metrics_standard(eval_pred, label_text_alphabetical=None):
 
 def compute_metrics_nli_binary(eval_pred, label_text_alphabetical=None):
     predictions, labels = eval_pred
-
     #print("Predictions: ", predictions)
     #print("True labels: ", labels)
     #import pdb; pdb.set_trace()
@@ -253,6 +249,7 @@ def compute_metrics_nli_binary(eval_pred, label_text_alphabetical=None):
     print("Detailed metrics: ", classification_report(label_position_gold, hypo_position_highest_prob, labels=np.sort(pd.factorize(label_text_alphabetical, sort=True)[0]), target_names=label_text_alphabetical, sample_weight=None, digits=2, output_dict=True,
                                 zero_division='warn'), "\n")
     return metrics
+
 
 
 def compute_metrics_classical_ml(label_pred, label_gold, label_text_alphabetical=None):
@@ -352,7 +349,7 @@ def clean_memory():
     torch.cuda.ipc_collect()
   gc.collect()
 
-  ## this could fully clear memory without restart ??
+  ## this could fully clear memory without restart ?
   #from numba import cuda
   #cuda.select_device(0)
   #cuda.close()
@@ -363,7 +360,7 @@ def clean_memory():
 
 
 
-## test with data augmentation via back translation
+## test with data augmentation via back translation. Not used in the end, did not add value.
 #from easynmt import EasyNMT
 #import random
 # ! current version does not keep balance between entail vs not-entail. need to work with .label somewhere

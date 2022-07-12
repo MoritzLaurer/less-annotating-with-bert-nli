@@ -1,2 +1,5 @@
 # less-annotating-bert-nli
-Project repository of the paper "Less Annotating, More Classifying – Addressing the Data Scarcity Issue of Supervised Machine Learning with Deep Transfer Learning and BERT-NLI"
+Project repository for the paper "Less Annotating, More Classifying – Addressing the Data Scarcity Issue of Supervised Machine Learning with Deep Transfer Learning and BERT-NLI"
+
+This repository contains the code for reproducing the paper
+The raw and cleaned data files have not been added yet due to their size. 

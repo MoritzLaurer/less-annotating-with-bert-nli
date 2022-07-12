@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# ## Load packages
-
 EXECUTION_TERMINAL = True
 
+# ## Load packages
 import transformers
 import datasets
 import torch
@@ -35,10 +34,10 @@ import spacy
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
-#print(os.getcwd())
+print(os.getcwd())
 if (EXECUTION_TERMINAL==False) and ("NLI-experiments" not in os.getcwd()):
     os.chdir("./NLI-experiments")
-#print(os.getcwd())
+print(os.getcwd())
 
 
 # ## Main parameters
@@ -78,7 +77,7 @@ parser.add_argument('-vectorizer', '--vectorizer', type=str,
 parser.add_argument('-tqdm', '--disable_tqdm', action='store_true',
                     help='Adding the flag enables tqdm for progress tracking')
 parser.add_argument('-carbon', '--carbon_tracking', action='store_true',
-                    help='Adding the flag enables carbon tracking via CodeCarbon')
+                    help='Adding the flag enables carbon tracking via CodeCarbon')  # not used, as CodeCarbon caused bugs https://github.com/mlco2/codecarbon/issues/305
 
 # arguments only for test script
 parser.add_argument('-cvf', '--n_cross_val_final', type=int, default=3,
@@ -88,10 +87,9 @@ parser.add_argument('-hp_date', '--hyperparam_study_date', type=str,
 parser.add_argument('-zeroshot', '--zeroshot', action='store_true',
                     help='Start training run with a zero-shot run')
 
-#python analysis-transf-hyperparams.py -lr 5e-6 5e-4 -epochs 3 16 -b 8 16 -t 12 -ts 5 -tp 4 -cvh 3 -context -ds "sentiment-news-econ" -samp 100 500 1000 2500 5000 10000 -m "nli" -model "MoritzLaurer/xtremedistil-l6-h256-mnli-fever-anli-ling-binary" --carbon_tracking
 
 
-### chose arguments depending on execution in terminal or in script for testing
+### choose arguments depending on execution in terminal or in script for testing
 if EXECUTION_TERMINAL == True:
   print("Arguments passed via the terminal:")
   # Execute the parse_args() method
@@ -107,17 +105,7 @@ elif EXECUTION_TERMINAL == False:
   args = parser.parse_args(["--dataset", "sentiment-news-econ", "--sample_interval", "100", "500", "1000", #"2500", "5000", #"10000",
                             "--method", "classical_ml", "--model", "SVM", "--vectorizer", "tfidf",
                             "--n_cross_val_final", "3", "--hyperparam_study_date", "20220712"])
-#python analysis-classical-run.py --dataset "sentiment-news-econ" --sample_interval 100 500 1000 --method "classical_ml" --model "logistic" --n_cross_val_final 3 --hyperparam_study_date 20220512 --zeroshot
 
-
-### args only for hyperparameter tuning
-"""
-N_TRIALS = args.n_trials
-N_STARTUP_TRIALS_SAMPLING = args.n_trials_sampling
-N_STARTUP_TRIALS_PRUNING = args.n_trials_pruning
-CROSS_VALIDATION_REPETITIONS_HYPERPARAM = args.n_cross_val_hyperparam
-CONTEXT = args.context
-"""
 
 ### args for both hyperparameter tuning and test runs
 # choose dataset
@@ -136,9 +124,6 @@ HYPERPARAM_STUDY_DATE = args.hyperparam_study_date  #"20220304"
 CROSS_VALIDATION_REPETITIONS_FINAL = args.n_cross_val_final
 ZEROSHOT = args.zeroshot
 VECTORIZER = args.vectorizer
-
-# 10k had 1-10% performance drop for high n sample (possibly overfitting to majority class)
-#MAX_ITER_LOW, MAX_ITER_HIGH = 1_000, 7_000  # tried 10k, but led to worse performance on larger, imbalanced dataset (?)
 
 
 
@@ -195,13 +180,10 @@ print(DATASET_NAME)
 
 
 ## reduce max sample size interval list to fit to max df_train length
-#N_SAMPLE_DEV = [100, 500, 1000]
-#df_train = [1] * 2300
 n_sample_dev_filt = [sample for sample in N_SAMPLE_DEV if sample < len(df_train)]
 if len(df_train) < N_SAMPLE_DEV[-1]:
   n_sample_dev_filt = n_sample_dev_filt + [len(df_train)]
 N_SAMPLE_DEV = n_sample_dev_filt
-
 print("Final sample size intervals: ", N_SAMPLE_DEV)
 
 
@@ -231,8 +213,6 @@ importlib.reload(helpers)
 
 from helpers import data_preparation, compute_metrics_classical_ml, clean_memory
 
-np.random.seed(SEED_GLOBAL)
-
 ### load suitable hypotheses_hyperparameters and text formatting function
 from hypothesis_hyperparams import hypothesis_hyperparams
 
@@ -255,7 +235,6 @@ if "context" not in classical_templates:
 
 ##### prepare texts for classical ML
 nlp = spacy.load("en_core_web_lg")
-
 
 ## lemmatize text
 def lemmatize(text_lst, embeddings=False):
@@ -282,7 +261,6 @@ def lemmatize(text_lst, embeddings=False):
     raise Exception(f"embeddings not properly specified: {embeddings}")
 
 
-#df_cl_lemma = df_cl.copy(deep=True)
 df_train_lemma = df_train.copy(deep=True)
 df_test_lemma = df_test.copy(deep=True)
 
@@ -320,6 +298,7 @@ if "text_following" in df_cl.columns:
                                       zip(df_train_lemma["text_following"], df_train_lemma["text_original"])]
   df_test_lemma["text_following"] = [text_surrounding if text_surrounding is np.nan else text_original for text_surrounding, text_original in
                                       zip(df_test_lemma["text_following"], df_test_lemma["text_original"])]
+
 
 
 # ## Final test with best hyperparameters
@@ -378,24 +357,8 @@ elif ZEROSHOT == False:
   print(HYPER_PARAMS_LST_TEST)
 
 
-"""N_SAMPLE_TEST = [0] + N_SAMPLE_DEV  # [0] for zero-shot
-#N_RANDOM_REPETITIONS = 3
-print(N_SAMPLE_TEST)
-
-HYPER_PARAMS_LST = [study_value['optuna_study'].best_trial.user_attrs["hyperparameters_all"] for study_key, study_value in hp_study_dic.items()]
-
-HYPOTHESIS_TEMPLATE_LST = [hyperparams_dic["hypothesis_template"] for hyperparams_dic in HYPER_PARAMS_LST]
-HYPOTHESIS_TEMPLATE_LST = [HYPOTHESIS_TEMPLATE_LST[0]] + HYPOTHESIS_TEMPLATE_LST  # zero-shot gets same hypo template as first study run (study with smaller n_samples is closest to zero-shot) - could not tune on 0-shot because 0-shot assumed no dev set
-print(HYPOTHESIS_TEMPLATE_LST)
-
-HYPER_PARAMS_LST = [{key: dic[key] for key in dic if key!="hypothesis_template"} for dic in HYPER_PARAMS_LST]  # return dic with all elements, except hypothesis template
-HYPER_PARAMS_LST_TEST = [HYPER_PARAMS_LST[0]] + HYPER_PARAMS_LST  # add random hyperparams for 0-shot run (will not be used anyways)
-print(HYPER_PARAMS_LST_TEST)"""
-
-
 
 ### run random cross-validation for hyperparameter search without a dev set
-#date_today = date.today()
 np.random.seed(SEED_GLOBAL)
 
 ### K example intervals loop
@@ -410,12 +373,11 @@ for n_max_sample, hyperparams, hypothesis_template in tqdm.tqdm(zip(N_SAMPLE_TES
   f1_micro_lst = []
   # randomness stability loop. Objective: calculate F1 across N samples to test for influence of different (random) samples
   for random_seed_sample in tqdm.tqdm(np.random.choice(range(1000), size=CROSS_VALIDATION_REPETITIONS_FINAL), desc="iterations for std", leave=True):
-    # unrealistic oracle sample
+    # unrealistic oracle sample. not used
     #df_train_samp = df_train.groupby(by="label_text", group_keys=False, as_index=False, sort=False).apply(lambda x: x.sample(n=min(len(x), n_max_sample), random_state=random_seed_sample))
     if n_max_sample == 999_999:
       df_train_samp = df_train_lemma.copy(deep=True)
     else:
-      #df_train_samp = random_sample_fill(df_train=df_train_lemma, n_sample=n_max_sample, random_seed=random_seed_sample, df=df_cl).copy(deep=True)
       df_train_samp = df_train_lemma.sample(n=min(n_max_sample, len(df_train_lemma)), random_state=random_seed_sample).copy(deep=True)
 
     if n_max_sample == 0:  # only one inference necessary on same test set in case of zero-shot
@@ -459,9 +421,8 @@ for n_max_sample, hyperparams, hypothesis_template in tqdm.tqdm(zip(N_SAMPLE_TES
     label_gold = y_test
     label_pred = clf.predict(X_test)
     
-    # metics
+    # metrics
     metric_step = compute_metrics_classical_ml(label_pred, label_gold, label_text_alphabetical=np.sort(df_cl.label_text.unique()))
-    #metric_step = {key: metric_step[key] for key in metric_step if key not in ["label_gold_raw", "label_predicted_raw"]}
 
     k_samples_experiment_dic.update({"n_train_total": len(df_train_samp), f"metrics_seed_{random_seed_sample}": metric_step})
     f1_macro_lst.append(metric_step["eval_f1_macro"])
@@ -493,8 +454,6 @@ for n_max_sample, hyperparams, hypothesis_template in tqdm.tqdm(zip(N_SAMPLE_TES
   experiment_details_dic.update(experiment_details_dic_step)
 
   ## save experiment dic after each new study
-  #joblib.dump(experiment_details_dic_step, f"./{TRAINING_DIRECTORY}/experiment_results_{MODEL_NAME.split('/')[-1]}_{n_max_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
-
   if EXECUTION_TERMINAL == True:
       if VECTORIZER == "tfidf":
         joblib.dump(experiment_details_dic_step, f"./{TRAINING_DIRECTORY}/experiment_results_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_max_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
@@ -512,52 +471,9 @@ for n_max_sample, hyperparams, hypothesis_template in tqdm.tqdm(zip(N_SAMPLE_TES
 #  tracker.stop()  # writes csv file to directory specified during initialisation. Does not overwrite csv, but append new runs
 
 
-
-
-# ## Results
-## print final experiment results
+# ## Print Results
 for experiment_key in experiment_details_dic:
   print(f"{experiment_key}: f1_macro: {experiment_details_dic[experiment_key]['metrics_mean']['f1_macro_mean']} , f1_micro: {experiment_details_dic[experiment_key]['metrics_mean']['f1_micro_mean']}")
 
 
 print("Run done.")
-
-
-
-#### notes
-"""
-
-### sentiment-econ
-## spacy md, logistic
-experiment_sample_00100_classical_ml_logistic: f1_macro: 0.5521754363143908 , f1_micro: 0.5881326352530541
-experiment_sample_00500_classical_ml_logistic: f1_macro: 0.5822608879516391 , f1_micro: 0.669284467713787
-experiment_sample_01000_classical_ml_logistic: f1_macro: 0.5833055348805086 , f1_micro: 0.6666666666666666
-experiment_sample_02500_classical_ml_logistic: f1_macro: 0.6126238699007062 , f1_micro: 0.6876090750436301
-experiment_sample_03000_classical_ml_logistic: f1_macro: 0.606278723979454 , f1_micro: 0.680628272251309
-## spacy lg, logistic (with spacy md hyperparams)
-experiment_sample_00100_classical_ml_logistic: f1_macro: 0.5618075209177749 , f1_micro: 0.6003490401396161
-experiment_sample_00500_classical_ml_logistic: f1_macro: 0.5890741484427668 , f1_micro: 0.6710296684118674
-experiment_sample_01000_classical_ml_logistic: f1_macro: 0.5869592913316624 , f1_micro: 0.668411867364747
-experiment_sample_02500_classical_ml_logistic: f1_macro: 0.6059597597409049 , f1_micro: 0.6849912739965096
-experiment_sample_03000_classical_ml_logistic: f1_macro: 0.6059824651882414 , f1_micro: 0.6858638743455497
-## spacy lg, SVM (with a bit more hyperparam search)
-experiment_sample_00100_classical_ml_SVM: f1_macro: 0.524019253270035 , f1_micro: 0.6099476439790575
-experiment_sample_00500_classical_ml_SVM: f1_macro: 0.5810283129740333 , f1_micro: 0.6116928446771378
-experiment_sample_01000_classical_ml_SVM: f1_macro: 0.5860621079708285 , f1_micro: 0.6221640488656196
-experiment_sample_02500_classical_ml_SVM: f1_macro: 0.6005608309343938 , f1_micro: 0.6762652705061082
-experiment_sample_03000_classical_ml_SVM: f1_macro: 0.5781301029906463 , f1_micro: 0.6588132635253054
-
-### manifesto-military
-# logistic, md
-experiment_sample_00100_classical_ml_logistic: f1_macro: 0.44383356452906614 , f1_micro: 0.7433854112054803
-experiment_sample_00500_classical_ml_logistic: f1_macro: 0.5369477196673208 , f1_micro: 0.8376498549508931
-
-### tfidf, SVM, sentiment-econ
-experiment_sample_00100_classical_ml_SVM: f1_macro: 0.5170186488934713 , f1_micro: 0.5837696335078534
-experiment_sample_00500_classical_ml_SVM: f1_macro: 0.593112761552758 , f1_micro: 0.6727748691099477
-experiment_sample_01000_classical_ml_SVM: f1_macro: 0.6059709398689659 , f1_micro: 0.6815008726003491
-
-
-"""
-
-

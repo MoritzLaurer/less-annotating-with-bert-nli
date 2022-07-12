@@ -1,6 +1,16 @@
+
+### This script has the following purposes:
+## 1. It contains the hypotheses for NLI
+## 2. It contains the format_text function for each dataset.
+# for each dataset, texts need to be formatted differently depending on the hypotheses, whether context sentences are available
+# and other properties of datasets like column names
+
+
+## imports
 from collections import OrderedDict
 import pandas as pd
 import numpy as np
+
 
 def hypothesis_hyperparams(dataset_name=None, df_cl=None, embeddings=False):
     # hypotheses and text templates
