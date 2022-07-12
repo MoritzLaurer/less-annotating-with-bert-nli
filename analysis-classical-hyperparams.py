@@ -99,10 +99,10 @@ if EXECUTION_TERMINAL == True:
 
 elif EXECUTION_TERMINAL == False:
   # parse args if not in terminal, but in script
-  args = parser.parse_args(["--n_trials", "10", "--n_trials_sampling", "7", "--n_trials_pruning", "7", "--n_cross_val_hyperparam", "3",
-                            "--context", "--dataset", "cap-sotu", "--sample_interval", "100", "500", #"1000", "2500", "5000", #"10000",
-                            "--method", "classical_ml", "--model", "logistic", "--vectorizer", "embeddings",
-                            "--n_cross_val_final", "3", "--hyperparam_study_date", "20220708"])
+  args = parser.parse_args(["--n_trials", "60", "--n_trials_sampling", "30", "--n_trials_pruning", "40", "--n_cross_val_hyperparam", "2",
+                            "--context", "--dataset", "sentiment-news-econ", "--sample_interval", "100", "500", "1000", #"2500", "5000", #"10000",
+                            "--method", "classical_ml", "--model", "SVM", "--vectorizer", "tfidf",
+                            "--n_cross_val_final", "3", "--hyperparam_study_date", "20220712"])
 
 
 
@@ -248,7 +248,7 @@ if "context" not in classical_templates:
 
 ##### prepare texts for classical ML
 nlp = spacy.load("en_core_web_lg")
-#nlp = spacy.load("en_core_web_md")  # for word vectors, Spacy uses GloVe with 300 dimensions https://spacy.io/models/en#en_core_web_md
+
 
 ## lemmatize text
 def lemmatize(text_lst, embeddings=False):

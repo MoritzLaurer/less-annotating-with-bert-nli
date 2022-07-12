@@ -484,9 +484,9 @@ for key_dataset, value_dataset in visual_data_dic_datasets_cl.items():
     for key_method, value_method in visual_data_dic_datasets_cl[key_dataset].items():
         for key_metric, value_metric in visual_data_dic_datasets_cl[key_dataset][key_method].items():
             if key_metric != "x_axis_values":
-                visual_data_dic_datasets_cl[key_dataset][key_method][key_metric] = [round(value, 2) for value in value_metric]
+                visual_data_dic_datasets_cl[key_dataset][key_method][key_metric] = [round(value, 3) for value in value_metric]
     # build df
-    df_metrics_all_dataset = pd.DataFrame(data=visual_data_dic_datasets_cl[key_dataset]).round(2)
+    df_metrics_all_dataset = pd.DataFrame(data=visual_data_dic_datasets_cl[key_dataset]).round(3)
     df_metrics_all_dataset = df_metrics_all_dataset.rename(index={'x_axis_values': 'n_sample'})
     df_metrics_all_dataset = df_metrics_all_dataset.reindex(["n_sample", "f1_macro_mean", "f1_micro_mean", "f1_macro_std", "f1_micro_std"])
 
@@ -586,7 +586,7 @@ for i, metric in enumerate(["f1_macro", "f1_micro"]):
     #df_metrics_difference = df_metrics_difference.applymap(lambda x: f"+{round(x, 2)}" if x > 0 else round(x, 2))
     #df_metrics_difference = df_metrics_difference.applymap(lambda x: round(x, 2))
     df_metrics_difference.index.name = "Sample size"
-    df_metrics_difference_dic.update({metric: df_metrics_difference.round(2)})
+    df_metrics_difference_dic.update({metric: df_metrics_difference.round(3)})
 
 df_metrics_mean_dic["f1_macro"].to_excel("./appendix/f1-macro-mean.xlsx")
 df_metrics_mean_dic["f1_micro"].to_excel("./appendix/f1-micro-mean.xlsx")

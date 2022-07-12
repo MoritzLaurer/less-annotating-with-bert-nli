@@ -104,9 +104,9 @@ if EXECUTION_TERMINAL == True:
 
 elif EXECUTION_TERMINAL == False:
   # parse args if not in terminal, but in script
-  args = parser.parse_args(["--dataset", "cap-sotu", "--sample_interval", "100", "500", #"1000", "2500", "5000", #"10000",
-                            "--method", "classical_ml", "--model", "logistic", "--vectorizer", "embeddings",
-                            "--n_cross_val_final", "3", "--hyperparam_study_date", "20220708"])
+  args = parser.parse_args(["--dataset", "sentiment-news-econ", "--sample_interval", "100", "500", "1000", #"2500", "5000", #"10000",
+                            "--method", "classical_ml", "--model", "SVM", "--vectorizer", "tfidf",
+                            "--n_cross_val_final", "3", "--hyperparam_study_date", "20220712"])
 #python analysis-classical-run.py --dataset "sentiment-news-econ" --sample_interval 100 500 1000 --method "classical_ml" --model "logistic" --n_cross_val_final 3 --hyperparam_study_date 20220512 --zeroshot
 
 
@@ -255,7 +255,7 @@ if "context" not in classical_templates:
 
 ##### prepare texts for classical ML
 nlp = spacy.load("en_core_web_lg")
-#python -m spacy download en_core_web_md
+
 
 ## lemmatize text
 def lemmatize(text_lst, embeddings=False):
@@ -279,7 +279,7 @@ def lemmatize(text_lst, embeddings=False):
       texts_vector.append(doc_vector)
     return texts_vector
   else:
-    raise Exception(f"pos_selection not properly specified: {embeddings}")
+    raise Exception(f"embeddings not properly specified: {embeddings}")
 
 
 #df_cl_lemma = df_cl.copy(deep=True)
@@ -337,10 +337,16 @@ hp_study_dic = {}
 for n_sample in N_SAMPLE_DEV:
   while len(str(n_sample)) <= 4:
     n_sample = "0" + str(n_sample)
-  if VECTORIZER == "tfidf":
-    hp_study_dic_step = joblib.load(f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
-  elif VECTORIZER == "embeddings":
-    hp_study_dic_step = joblib.load(f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
+  if EXECUTION_TERMINAL == True:
+      if VECTORIZER == "tfidf":
+        hp_study_dic_step = joblib.load(f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
+      elif VECTORIZER == "embeddings":
+        hp_study_dic_step = joblib.load(f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
+  elif EXECUTION_TERMINAL == False:
+      if VECTORIZER == "tfidf":
+        hp_study_dic_step = joblib.load(f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}_local_test.pkl")
+      elif VECTORIZER == "embeddings":
+        hp_study_dic_step = joblib.load(f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{VECTORIZER}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}_local_test.pkl")
   hp_study_dic.update(hp_study_dic_step)
 
 
@@ -545,6 +551,13 @@ experiment_sample_03000_classical_ml_SVM: f1_macro: 0.5781301029906463 , f1_micr
 # logistic, md
 experiment_sample_00100_classical_ml_logistic: f1_macro: 0.44383356452906614 , f1_micro: 0.7433854112054803
 experiment_sample_00500_classical_ml_logistic: f1_macro: 0.5369477196673208 , f1_micro: 0.8376498549508931
+
+### tfidf, SVM, sentiment-econ
+experiment_sample_00100_classical_ml_SVM: f1_macro: 0.5170186488934713 , f1_micro: 0.5837696335078534
+experiment_sample_00500_classical_ml_SVM: f1_macro: 0.593112761552758 , f1_micro: 0.6727748691099477
+experiment_sample_01000_classical_ml_SVM: f1_macro: 0.6059709398689659 , f1_micro: 0.6815008726003491
+
+
 """
 
 
