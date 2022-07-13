@@ -3,31 +3,11 @@
 
 # ## Install and load packages
 
-# In[12]:
-
-
-#!pip install pandas==1.3.5  # for df.explode on multiple columns
-
-
-# In[13]:
-
-
-# info GPU or CPU
-get_ipython().system('nvidia-smi')
-
-
-# In[14]:
-
-
-## load libraries
 import pandas as pd
 import numpy as np
 import random
 import os
 
-from google.colab.data_table import DataTable
-from google.colab import data_table
-data_table.enable_dataframe_formatter() # https://colab.research.google.com/notebooks/data_table.ipynb#scrollTo=JgBtx0xFFv_i
 
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
@@ -35,36 +15,20 @@ np.random.seed(SEED_GLOBAL)
 
 # ## Load & prepare data
 
-# In[15]:
-
-
-## connect to google drive
-from google.colab import drive
-drive.mount('/content/drive', force_remount=False)
-#drive.flush_and_unmount()
-
 #set wd
 print(os.getcwd())
-os.chdir("/content/drive/My Drive/Colab Notebooks")
+os.chdir("./NLI-experiments")
 print(os.getcwd())
-
-
-# In[16]:
 
 
 ## raw load data
 # codebook: https://comparativeagendas.s3.amazonaws.com/codebookfiles/Supreme_Court_Codebook.pdf
-
-df = pd.read_csv("https://comparativeagendas.s3.amazonaws.com/datasetfiles/US-Judicial-supreme_court_cases_20.1.csv", sep=",", encoding='utf-8') #encoding='utf-8',  # low_memory=False  #lineterminator='\t', 
-
+df = pd.read_csv("https://comparativeagendas.s3.amazonaws.com/datasetfiles/US-Judicial-supreme_court_cases_20.1.csv", sep=",", encoding='utf-8') #encoding='utf-8',  # low_memory=False  #lineterminator='\t',
 print(df.columns)
 print(len(df))
 
 
 # ### Data Cleaning
-
-# In[17]:
-
 
 ### data cleaning
 
@@ -105,9 +69,6 @@ df_cl = df_cl[~df_cl.summary.duplicated(keep='first')]
 print(len(df_cl), "after deduplicating summaries")
 df_cl = df_cl[~df_cl.ruling.duplicated(keep='first')]
 print(len(df_cl), "after deduplicating rulings")
-
-
-# In[18]:
 
 
 ### adding label_text to label ids
@@ -152,8 +113,6 @@ assert len(df_cl[df_cl.label_cap2_text.isna()]) == 0  # each label_cap2 could be
 print(np.sort(df_cl["label_cap2_text"].value_counts().tolist()) == np.sort(df_cl["label_cap2"].value_counts().tolist()))
 
 
-# In[19]:
-
 
 ## chose main text for analysis
 # can also try concatenating summary and ruling - makes it longer and more complicated
@@ -169,14 +128,6 @@ df_cl.index = df_cl.index.rename("idx")  # name index. provides proper column na
 df_cl.label_text.value_counts()
 
 
-# In[20]:
-
-
-DataTable(df_cl, num_rows_per_page=3, max_rows=500)
-
-
-# In[21]:
-
 
 ### length of texts
 # ! some texts are quite long. processing with transformers max_len=512 will probably lead to truncation for a few texts
@@ -186,9 +137,6 @@ pd.Series(text_length).value_counts(bins=10).plot.bar()
 
 
 # ### Train-Test-Split
-
-# In[22]:
-
 
 ### simplified dataset
 from sklearn.model_selection import train_test_split
@@ -208,23 +156,13 @@ df_train_test_distribution
 
 # ## Save data
 
-# In[11]:
-
-
 # dataset statistics
 text_length = [len(text) for text in df_cl.text]
 print("Average number of characters in text: ", int(np.mean(text_length)), "\n")
 
-
-# In[23]:
-
-
 print(os.getcwd())
 
-# ! use non-sampled test set for final run
-
-df_cl.to_csv("./NLI-experiments/data/df_cap_us_court_all.csv")
-df_train.to_csv("./NLI-experiments/data/df_cap_us_court_train.csv")
-df_test.to_csv("./NLI-experiments/data/df_cap_us_court_test.csv")
-#df_test_samp.to_csv("./NLI-experiments/data/df_cap_us_court_test.csv")
+df_cl.to_csv("./data_clean/df_cap_us_court_all.csv")
+df_train.to_csv("./data_clean/df_cap_us_court_train.csv")
+df_test.to_csv("./data_clean/df_cap_us_court_test.csv")
 

@@ -3,16 +3,10 @@
 
 # ## Install and load packages
 
-#!pip install pandas==1.3.5  # for df.explode on multiple columns
-
 import pandas as pd
 import numpy as np
 import random
 import os
-
-#from google.colab.data_table import DataTable
-#from google.colab import data_table
-#data_table.enable_dataframe_formatter() # https://colab.research.google.com/notebooks/data_table.ipynb#scrollTo=JgBtx0xFFv_i
 
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
@@ -20,23 +14,19 @@ np.random.seed(SEED_GLOBAL)
 
 # ## Load & prepare data
 
-## load datasets
-#from google.colab import drive
-#drive.mount('/content/drive', force_remount=False)
-#drive.flush_and_unmount()
-
 print(os.getcwd())
 os.chdir("./NLI-experiments")
-#os.chdir("/content/drive/My Drive/Colab Notebooks/")
 print(os.getcwd())
+
 
 ## load dfs
 # correct v5 codebook: https://manifesto-project.wzb.eu/down/papers/handbook_2021_version_5.pdf - the PDF on the following website is wrong, but html is correct: https://manifesto-project.wzb.eu/coding_schemes/mp_v5
 # we are working with v4 for backwards compatibility https://manifesto-project.wzb.eu/down/papers/handbook_2011_version_4.pdf
 # overview of changes from v4 to v5: https://manifesto-project.wzb.eu/down/papers/Evolution_of_the_Manifesto_Coding_Instructions_and_the_Category_Scheme.pdf
 # switch was 2016/2017
+# working with version provided by Manifesto team
 
-df = pd.read_csv("./data_raw/manifesto/all_annotated_manifestos.csv", index_col="Unnamed: 0") # index_col="unnamed: 0"
+df = pd.read_csv("./data_raw/manifesto/all_annotated_manifestos.csv", index_col="Unnamed: 0")
 
 print(df.columns)
 print(len(df))
@@ -129,8 +119,6 @@ df_cl.index = df_cl.index.rename("idx")  # name index. provides proper column na
 print(df_cl.label_text.value_counts(), "\n")
 print(df_cl.country_name.value_counts())
 
-#DataTable(df_label_map, num_rows_per_page=5, max_rows=10_000)
-
 
 
 ### augmenting text column
@@ -169,7 +157,7 @@ df_cl["doc_id"] = n_unique_doc_lst  # column with unique doc identifier
 
 df_cl = df_cl[["label", "label_text", "text_original", "label_domain_text", "label_subcat_text", "text_preceding", "text_following", "manifesto_id", "doc_id", "country_name", "date", "party", "cmp_code_hb4", "cmp_code"]]
 
-#DataTable(df_cl, num_rows_per_page=5, max_rows=10_000)
+
 
 
 ## test how many sentences have same type as preceding / following sentence
@@ -270,9 +258,6 @@ print("Infrequent types: ", infreq_types)
 #df_cl = df_cl[~df_cl.label_subcat_text_simple.isin(infreq_types)]
 #print(f"Number of sub-types after removing low frequency {thresh_removal}, unimportant types: ", len(df_cl.label_subcat_text_simple.unique()))
 
-#DataTable(df_cl, num_rows_per_page=5, max_rows=10_000)
-
-
 
 
 ### df_complex with only complex labels
@@ -304,6 +289,7 @@ print(len(df_complex.label_text.value_counts()))
 df_complex.label_text.value_counts()
 
 #DataTable(df_complex, num_rows_per_page=5, max_rows=10_000)"""
+
 
 
 # ### Train-Test-Split
@@ -358,6 +344,7 @@ print(f"Overall test size: {len(df_test_complex)} - sampled test size: {len(df_t
 df_train_test_distribution_complex = pd.DataFrame([df_train_complex.label_subcat_text.value_counts().rename("train"), df_test_complex.label_subcat_text.value_counts().rename("test"), 
                                            df_test_complex_samp.label_subcat_text.value_counts().rename("test_sample"), df_complex.label_subcat_text.value_counts().rename("all")]).transpose()
 df_train_test_distribution_complex"""
+
 
 
 # ### Small complex tasks
@@ -501,9 +488,6 @@ df_train_test_distribution_nationalway = pd.DataFrame([df_train_nationalway.labe
                                                    df_cl_nationalway.label_text.value_counts().rename("all")]).transpose()
 df_train_test_distribution_nationalway
 
-#DataTable(df_cl_military, num_rows_per_page=5)
-#DataTable(df_cl, num_rows_per_page=5)
-
 
 
 # ## Save data
@@ -516,35 +500,34 @@ print("Average number of characters in text with context: ", int(np.mean(text_co
 
 print(os.getcwd())
 
+
+## datasets used in paper
+df_cl.to_csv("./data_clean/df_manifesto_all.csv")
+df_train.to_csv("./data_clean/df_manifesto_train.csv")
+df_test.to_csv("./data_clean/df_manifesto_test.csv")
+
+df_cl_military.to_csv("./data_clean/df_manifesto_military_cl.csv")
+df_train_military.to_csv("./data_clean/df_manifesto_military_train.csv")
+df_test_military.to_csv("./data_clean/df_manifesto_military_test.csv")
+
+df_cl_protectionism.to_csv("./data_clean/df_manifesto_protectionism_cl.csv")
+df_train_protectionism.to_csv("./data_clean/df_manifesto_protectionism_train.csv")
+df_test_protectionism.to_csv("./data_clean/df_manifesto_protectionism_test.csv")
+
+df_cl_morality.to_csv("./data_clean/df_manifesto_morality_cl.csv")
+df_train_morality.to_csv("./data_clean/df_manifesto_morality_train.csv")
+df_test_morality.to_csv("./data_clean/df_manifesto_morality_test.csv")
+
+
+## datasets not used in paper
 """
-df_cl.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_all.csv")
-df_train.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_train.csv")
-df_test.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_test.csv")
-#df_test_samp.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_test.csv")
+#df_complex.to_csv("./data_clean/df_manifesto_complex_all.csv")
+#df_train_complex.to_csv("./data_clean/df_manifesto_complex_train.csv")
+#df_test_complex.to_csv("./data_clean/df_manifesto_complex_test.csv")
+#df_test_complex_samp.to_csv("./data_clean/df_manifesto_complex_test.csv")
 
-df_complex.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_complex_all.csv")
-df_train_complex.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_complex_train.csv")
-df_test_complex.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_complex_test.csv")
-#df_test_complex_samp.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_complex_test.csv")
-"""
-
-
-## small complex tasks
-"""
-df_cl_military.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_military_cl.csv")
-df_train_military.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_military_train.csv")
-df_test_military.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_military_test.csv")
-
-df_cl_protectionism.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_protectionism_cl.csv")
-df_train_protectionism.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_protectionism_train.csv")
-df_test_protectionism.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_protectionism_test.csv")
-
-df_cl_morality.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_morality_cl.csv")
-df_train_morality.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_morality_train.csv")
-df_test_morality.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_morality_test.csv")
-
-df_cl_nationalway.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_nationalway_cl.csv")
-df_train_nationalway.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_nationalway_train.csv")
-df_test_nationalway.to_csv("./Colab Notebooks/NLI-experiments/data/df_manifesto_nationalway_test.csv")
+#df_cl_nationalway.to_csv("./data_clean/df_manifesto_nationalway_cl.csv")
+#df_train_nationalway.to_csv("./data_clean/df_manifesto_nationalway_train.csv")
+#df_test_nationalway.to_csv("./data_clean/df_manifesto_nationalway_test.csv")
 """
 

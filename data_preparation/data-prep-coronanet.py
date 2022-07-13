@@ -2,31 +2,11 @@
 # coding: utf-8
 
 # ## Install and load packages
-
-# In[ ]:
-
-
-#!pip install pandas==1.3.5  # for df.explode on multiple columns
-
-
-# In[ ]:
-
-
-# info GPU or CPU
-get_ipython().system('nvidia-smi')
-
-
-# In[1]:
-
-
 import pandas as pd
 import numpy as np
 import random
 import os
 
-from google.colab.data_table import DataTable
-from google.colab import data_table
-data_table.enable_dataframe_formatter() # https://colab.research.google.com/notebooks/data_table.ipynb#scrollTo=JgBtx0xFFv_i
 
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
@@ -34,21 +14,10 @@ np.random.seed(SEED_GLOBAL)
 
 # ## Load & prepare data
 
-# In[2]:
-
-
-## connect to google drive
-from google.colab import drive
-drive.mount('/content/drive', force_remount=False)
-#drive.flush_and_unmount()
-
 #set wd
 print(os.getcwd())
-os.chdir("/content/drive/My Drive/Colab Notebooks")
+os.chdir("./NLI-experiments")
 print(os.getcwd())
-
-
-# In[3]:
 
 
 ## load data
@@ -56,16 +25,12 @@ print(os.getcwd())
 # using event data format
 # ! dataset is updated regularly. Working with github version commit 24.01.22
 # https://github.com/CoronaNetDataScience/corona_tscs/blob/64b0ef942aea98057e41fed16794284847e34cd6/data/CoronaNet/data_bulk/coronanet_release.csv.gz
-
 df = pd.read_csv("https://github.com/CoronaNetDataScience/corona_tscs/raw/64b0ef942aea98057e41fed16794284847e34cd6/data/CoronaNet/data_bulk/coronanet_release.csv.gz")
 print(df.columns)
 print(len(df))
 
 
 # ### Data Cleaning
-
-# In[4]:
-
 
 ## Select relevant columns
 df_cl = df[['record_id', 'policy_id', 'entry_type', 'update_type', #'update_level', 'update_level_var',
@@ -86,9 +51,6 @@ df_cl = df[['record_id', 'policy_id', 'entry_type', 'update_type', #'update_leve
        #'dist_index_med_est', 'dist_index_low_est', 'dist_index_country_rank',
        'pdf_link', 'link', #'date_updated', 'recorded_date'
        ]].copy(deep=True)
-
-
-# In[5]:
 
 
 ## data cleaning
@@ -125,7 +87,7 @@ print(len(df_cl))
 
 # could remove badly performing labels with negative transfer risk
 # "Other Policy Not Listed Above"  # seems  to contain: economic, social measures; other (like "day of  prayer against covid")
-# ! should maybe maintain this for realism
+# ! should maintain this for realism
 #df_cl = df_cl[~df_cl.type.str.contains("Other Policy Not Listed Above")]  #"Anti-Disinformation Measures|Public Awareness Measures|Other Policy Not Listed Above"
 #print(len(df_cl))
 
@@ -142,30 +104,16 @@ print("\n")
 df_cl.label_text.value_counts()
 
 
-# In[6]:
-
-
-DataTable(df_cl, num_rows_per_page=5, max_rows=10_000)
-
-
 # ### Train-Test-Split
-
-# In[7]:
-
-
 print(df_cl.columns)
 df_cl = df_cl[["label", "label_text", "text", "type_sub_cat", "record_id", "policy_id", "ISO_A3", "pdf_link", "link"]]
-
-
-# In[8]:
-
 
 ### simplified dataset
 from sklearn.model_selection import train_test_split
 
 df_train, df_test = train_test_split(df_cl, test_size=0.3, random_state=SEED_GLOBAL, stratify=df_cl["label_text"])
 
-# sample for faster testing - full data at the very end
+# sample for faster testing before final runs
 samp_per_class_max = 100
 df_test_samp = df_test.groupby(by="label_text", group_keys=False, as_index=False, sort=False).apply(lambda x: x.sample(n=min(len(x), samp_per_class_max), random_state=SEED_GLOBAL))
 
@@ -178,23 +126,13 @@ df_train_test_distribution
 
 # ## Save data
 
-# In[10]:
-
-
 # dataset statistics
 text_length = [len(text) for text in df_cl.text]
 print("Average number of characters in text: ", int(np.mean(text_length)), "\n")
 
-
-# In[11]:
-
-
 print(os.getcwd())
 
-# ! use non-sampled test set for final run
-
-df_cl.to_csv("./NLI-experiments/data/df_coronanet_20220124_all.csv")
-df_train.to_csv("./NLI-experiments/data/df_coronanet_20220124_train.csv")
-df_test.to_csv("./NLI-experiments/data/df_coronanet_20220124_test.csv")
-#df_test_samp.to_csv("./NLI-experiments/data/df_coronanet_20220124_test.csv")
+df_cl.to_csv("./data_clean/df_coronanet_20220124_all.csv")
+df_train.to_csv("./data_clean/df_coronanet_20220124_train.csv")
+df_test.to_csv("./data_clean/df_coronanet_20220124_test.csv")
 

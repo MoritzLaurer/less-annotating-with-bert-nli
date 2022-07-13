@@ -1,23 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+### dataset not used in the end because already enough manifesto datasets
+
 # ## Install and load packages
-
-# In[1]:
-
-
-get_ipython().system('pip install transformers[sentencepiece]==4.13')
-get_ipython().system('pip install datasets==1.17')
-
-get_ipython().system('pip install optuna==2.10')
-get_ipython().system('pip install pandas==1.3.5  # for df.explode on multiple columns')
-
-#!pip install spacy
-#!python -m spacy download en_core_web_sm
-#!pip install -U easynmt  # for data augmentation
-
-
-# In[2]:
 
 
 # benefits of colab pro: https://colab.research.google.com/signup#advantage

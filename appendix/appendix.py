@@ -1,8 +1,5 @@
 
-# optuna import issue
-#no module named sqlalchemy.dialects.postgresql
-# updating sqlalchemy from 1.4.35 to 1.4.39 latest
-# new error: "AttributeError: partially initialized module 'optuna' has no attribute 'logging' (most likely due to a circular import)"
+## script for creating the data for the appe
 
 import pandas as pd
 import numpy as np
@@ -12,9 +9,9 @@ import optuna
 from os import listdir
 from os.path import isfile, join
 from collections import OrderedDict
-#from IPython.display import Markdown, display
-#pd.set_option("display.notebook_repr_html", True)
-#nb_setup.setup_pandas(escape_latex = False)
+
+
+
 SEED_GLOBAL = 42
 
 print(os.getcwd())

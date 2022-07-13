@@ -2,24 +2,16 @@
 # coding: utf-8
 
 # ## Install and load packages
-
-
-#!pip install pandas==1.3.5  # for df.explode on multiple columns
-
-
-
 import pandas as pd
 import numpy as np
 import random
 import os
-
 
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
 
 # ## Load & prepare data
-
 
 #set wd
 print(os.getcwd())
@@ -30,7 +22,6 @@ print(os.getcwd())
 
 ## load data
 # data repository: https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/MXKRDE
-
 df_test_raw = pd.read_csv("./data_raw/sentiment-econ/ground-truth-dataset-cf.csv", sep=",", encoding='utf-8') #encoding='utf-8',  # low_memory=False  #lineterminator='\t',
 df_train_raw = pd.read_csv("./data_raw/sentiment-econ/5AC.csv", sep=",", encoding='utf-8') #encoding='utf-8',  # low_memory=False  #lineterminator='\t',
 
@@ -42,12 +33,9 @@ print(len(df))
 df_overlap = df_test_raw[df_test_raw.text.isin(df_train_raw.text)]
 print(f"Numers of rows in df_test which have same text as df_train: {len(df_overlap)}")
 print(f"This is {round((len(df_overlap) / len(df_test_raw)) * 100, 1)}% of the entire test set (lenght: {len(df_test_raw)})")
-#df_overlap
 
 
 # ### Data Cleaning
-
-
 ### data cleaning
 
 ## initial cleaning
@@ -104,8 +92,7 @@ df_train_test_leakage.drop_duplicates(subset=["text", "split"], keep="first")
 print("df_cl before removing leaked texts", len(df_cl))
 df_cl = df_cl.groupby(by="text", group_keys=False, as_index=False, sort=False).filter(lambda x: all(isinstance(label, type(x.positivity.iloc[0])) for label in x.positivity))  # for df_test positivity is a string, for df_train positivity is int
 print("df_cl after removing leaked texts", len(df_cl))
-# I've removed the overlapping texts in both train and test. Probably better solution would have been to only remove in train.
-
+# I've removed the overlapping texts in both train and test. Probably better solution could have been to only remove in train.
 
 
 
@@ -151,25 +138,13 @@ print(df_cl.split.value_counts())
 len(df_cl[df_cl.text.duplicated(keep=False)])
 
 
-# In[32]:
-
-
 ### length of texts
 # ! some texts are quite long. processing with transformers max_len=512 will probably lead to truncation for a few texts
 text_length = [len(text) for text in df_cl.text]
 pd.Series(text_length).value_counts(bins=10).plot.bar()
 
 
-# In[33]:
-
-
-DataTable(df_cl, num_rows_per_page=5, max_rows=10_000)
-
-
 # ### Train-Test-Split
-
-# In[34]:
-
 
 ### separate train and test here
 
@@ -185,20 +160,13 @@ df_train_test_dist
 
 # ## Save Data
 
-# In[36]:
-
-
 # dataset statistics
 text_length = [len(text) for text in df_cl.text]
 print("Average number of characters in text: ", int(np.mean(text_length)), "\n")
 
-
-# In[35]:
-
-
 print(os.getcwd())
 
-df_cl.to_csv("./NLI-experiments/data/df_sentiment_news_econ_all.csv")
-df_train.to_csv("./NLI-experiments/data/df_sentiment_news_econ_train.csv")
-df_test.to_csv("./NLI-experiments/data/df_sentiment_news_econ_test.csv")
+df_cl.to_csv("./data_clean/df_sentiment_news_econ_all.csv")
+df_train.to_csv("./data_clean/df_sentiment_news_econ_train.csv")
+df_test.to_csv("./data_clean/df_sentiment_news_econ_test.csv")
 
