@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-EXECUTION_TERMINAL = True
+EXECUTION_TERMINAL = False
 
 # ## Load packages
 import transformers
@@ -99,10 +99,10 @@ if EXECUTION_TERMINAL == True:
 
 elif EXECUTION_TERMINAL == False:
   # parse args if not in terminal, but in script
-  args = parser.parse_args(["--n_trials", "60", "--n_trials_sampling", "30", "--n_trials_pruning", "40", "--n_cross_val_hyperparam", "2",
+  args = parser.parse_args(["--n_trials", "80", "--n_trials_sampling", "40", "--n_trials_pruning", "50", "--n_cross_val_hyperparam", "2",
                             "--context", "--dataset", "cap-sotu", "--sample_interval", "100", "500", "1000", #"2500", "5000", #"10000",
-                            "--method", "classical_ml", "--model", "SVM", "--vectorizer", "embeddings",
-                            "--n_cross_val_final", "3", "--hyperparam_study_date", "20220712"])
+                            "--method", "classical_ml", "--model", "SVM", "--vectorizer", "tfidf",
+                            "--n_cross_val_final", "3", "--hyperparam_study_date", "20220713"])
 
 
 ### args only for hyperparameter tuning
@@ -241,6 +241,7 @@ if "context" not in classical_templates:
 
 ##### prepare texts for classical ML
 nlp = spacy.load("en_core_web_lg")
+np.random.seed(SEED_GLOBAL)
 
 ## lemmatize text
 def lemmatize(text_lst, embeddings=False):
@@ -291,19 +292,20 @@ if "text_preceding" in df_cl.columns:
   df_train_lemma["text_preceding"] = lemmatize(df_train.text_preceding.fillna(""), embeddings=embeddings)
   df_test_lemma["text_preceding"] = lemmatize(df_test.text_preceding.fillna(""), embeddings=embeddings)
   # if surrounding text was nan, insert vector of original text to avoid nan error
-  df_train_lemma["text_preceding"] = [text_surrounding if text_surrounding is np.nan else text_original for text_surrounding, text_original in
+  df_train_lemma["text_preceding"] = [text_original if text_surrounding is np.nan else text_surrounding for text_surrounding, text_original in
                                       zip(df_train_lemma["text_preceding"], df_train_lemma["text_original"])]
-  df_test_lemma["text_preceding"] = [text_surrounding if text_surrounding is np.nan else text_original for text_surrounding, text_original in
+  df_test_lemma["text_preceding"] = [text_original if text_surrounding is np.nan else text_surrounding for text_surrounding, text_original in
                                       zip(df_test_lemma["text_preceding"], df_test_lemma["text_original"])]
 if "text_following" in df_cl.columns:
   #df_cl_lemma["text_following"] = lemmatize(df_cl.text_following.fillna(""))
   df_train_lemma["text_following"] = lemmatize(df_train.text_following.fillna(""), embeddings=embeddings)
   df_test_lemma["text_following"] = lemmatize(df_test.text_following.fillna(""), embeddings=embeddings)
   # if surrounding text was nan, insert vector of original text to avoid nan error
-  df_train_lemma["text_following"] = [text_surrounding if text_surrounding is np.nan else text_original for text_surrounding, text_original in
+  df_train_lemma["text_following"] = [text_original if text_surrounding is np.nan else text_surrounding for text_surrounding, text_original in
                                       zip(df_train_lemma["text_following"], df_train_lemma["text_original"])]
-  df_test_lemma["text_following"] = [text_surrounding if text_surrounding is np.nan else text_original for text_surrounding, text_original in
+  df_test_lemma["text_following"] = [text_original if text_surrounding is np.nan else text_surrounding for text_surrounding, text_original in
                                       zip(df_test_lemma["text_following"], df_test_lemma["text_original"])]
+
 
 
 ##### hyperparameter tuning
@@ -318,12 +320,12 @@ if "text_following" in df_cl.columns:
 
 def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_train=None, df=None):
   clean_memory()
-  np.random.seed(SEED_GLOBAL)  # setting seed again for safety. not sure why this needs to be run here at each iteration. it should stay constant once set globally?!
+  np.random.seed(SEED_GLOBAL)  # setting seed again for safety. not sure why this needs to be run here at each iteration. it should stay constant once set globally?! explanation could be this https://towardsdatascience.com/stop-using-numpy-random-seed-581a9972805f
   
   if VECTORIZER == "tfidf":
       # https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html
       hyperparams_vectorizer = {
-          'ngram_range': trial.suggest_categorical("ngram_range", [(1,2), (1,3)]),
+          'ngram_range': trial.suggest_categorical("ngram_range", [(1, 2), (1, 3)]),
           'max_df': trial.suggest_categorical("max_df", [0.9, 0.8, 0.7]),
           'min_df': trial.suggest_categorical("min_df", [0.01, 0.03, 0.06])
       }
@@ -368,9 +370,7 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
   #if CONTEXT == True:
   #  text_template_classical_ml = [template for template in list(hypothesis_hyperparams_dic.keys()) if ("not_nli" in template) and ("context" in template)]
   #elif CONTEXT == False:
-
-  ### !!!!! remove the last if condition at the end - is just for testing
-  text_template_classical_ml = [template for template in list(hypothesis_hyperparams_dic.keys()) if ("not_nli" in template) and ("context" in template)]
+  text_template_classical_ml = [template for template in list(hypothesis_hyperparams_dic.keys()) if "not_nli" in template]   #and ("context" in template)
   #else:
   #  raise Exception(f"CONTEXT variable is {CONTEXT}. Can only be True/False")
 
@@ -460,6 +460,8 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
 # catch catch following error. unclear if good to catch this. [W 2022-01-12 14:18:30,377] Trial 9 failed because of the following error: HTTPError('504 Server Error: Gateway Time-out for url: https://huggingface.co/api/models/MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli')
 
 def run_study(n_sample=None):
+  np.random.seed(SEED_GLOBAL)
+
   optuna_pruner = optuna.pruners.MedianPruner(n_startup_trials=N_STARTUP_TRIALS_PRUNING, n_warmup_steps=0, interval_steps=1, n_min_trials=1)  # https://optuna.readthedocs.io/en/stable/reference/pruners.html
   optuna_sampler = optuna.samplers.TPESampler(seed=SEED_GLOBAL, consider_prior=True, prior_weight=1.0, consider_magic_clip=True, consider_endpoints=False, 
                                               n_startup_trials=N_STARTUP_TRIALS_SAMPLING, n_ei_candidates=24, multivariate=False, group=False, warn_independent_sampling=True, constant_liar=False)  # https://optuna.readthedocs.io/en/stable/reference/generated/optuna.samplers.TPESampler.html#optuna.samplers.TPESampler

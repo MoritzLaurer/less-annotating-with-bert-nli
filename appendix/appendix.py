@@ -224,7 +224,7 @@ path_files_lst = [os.path.join(path, name) for path, subdirs, files in os.walk("
 path_files_lst = [path_files for path_files in path_files_lst if ".DS_Store" not in path_files]
 path_files_lst = [path_files for path_files in path_files_lst if "experiment" not in path_files]
 # exclude/only specific algo?
-path_files_lst = [path_files for path_files in path_files_lst if ("SVM_tfidf" in path_files) and ("20220712" not in path_files)]
+path_files_lst = [path_files for path_files in path_files_lst if ("SVM_tfidf" in path_files)]  #("20220700" in path_files)
 
 # add path name as key again to distinguish between datasets
 hp_study_dic = {}
@@ -306,7 +306,7 @@ path_files_lst = [os.path.join(path, name) for path, subdirs, files in os.walk("
 path_files_lst = [path_files for path_files in path_files_lst if ".DS_Store" not in path_files]
 path_files_lst = [path_files for path_files in path_files_lst if "experiment" not in path_files]
 # exclude/only specific algo?
-path_files_lst = [path_files for path_files in path_files_lst if ("logistic_tfidf" in path_files) and ("20220712" not in path_files)]  # and ("20220712" in path_files)
+path_files_lst = [path_files for path_files in path_files_lst if ("logistic_tfidf" in path_files)]  # and ("20220712" in path_files)
 
 # add path name as key again to distinguish between datasets
 hp_study_dic = {}
@@ -394,8 +394,8 @@ def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
     ## ! need to manually make sure that experiments for same dataset and method have same latest date
     # experiment_dates = [int(file_name.split("_")[-1].replace(".pkl", "")) for file_name in file_names_lst if method_name in file_name]
     experiment_dates = [int(file_name.split("_")[-1].replace(".pkl", "")) for file_name in file_names_lst if (method_name in file_name) and ("experiment" in file_name)]
-    if method_name in ["SVM_tfidf", "logistic_tfidf"]:
-        experiment_dates = [date for date in experiment_dates if date != 20220712]  # there seems to be a bug for this run
+    #if method_name in ["SVM_tfidf", "logistic_tfidf"]:
+    #    experiment_dates = [date for date in experiment_dates if date != 20220712]  # testing potential issue with specific runs
     if len(experiment_dates) > 0:  # in case no experiment for method available yet
         latest_experiment_date = np.max(experiment_dates)
         # get only file names for latest experiment and respective method - ordered starting with smalles experiment

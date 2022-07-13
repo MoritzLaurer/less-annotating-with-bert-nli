@@ -11,6 +11,8 @@ from collections import OrderedDict
 import pandas as pd
 import numpy as np
 
+np.random.seed(42)
+
 
 def hypothesis_hyperparams(dataset_name=None, df_cl=None, embeddings=False):
     # hypotheses and text templates

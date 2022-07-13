@@ -34,9 +34,9 @@ def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
   file_names_lst = [f for f in listdir(path_dataset) if isfile(join(path_dataset, f))]
 
   experiment_dates = [int(file_name.split("_")[-1].replace(".pkl", "")) for file_name in file_names_lst if (method_name in file_name) and ("experiment" in file_name)]
-  # test
+  # !!! test
   if method_name in ["SVM_tfidf", "logistic_tfidf"]:
-     experiment_dates = [date for date in experiment_dates if date != 20220712]  # there seems to be a bug for this run
+     experiment_dates = [date for date in experiment_dates if date == 20220700]  # there seems to be a bug for this run
   if len(experiment_dates) > 0:  # in case no experiment for method available yet
     latest_experiment_date = np.max(experiment_dates)
     # get only file names for latest experiment and respective method - ordered starting with smalles experiment

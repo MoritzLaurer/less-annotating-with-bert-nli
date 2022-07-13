@@ -277,7 +277,8 @@ def inference_run_transformer(df_train=None, df_dev=None, random_seed=None, hype
 
 
 def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_train=None, df=None):  #df_train=None,
-  np.random.seed(SEED_GLOBAL)  # don't understand why this needs to be run here at each iteration. it should stay constant once set globally?!
+  np.random.seed(SEED_GLOBAL)  # don't understand why this needs to be run here at each iteration. it should stay constant once set globally?! Explanation could be this: https://towardsdatascience.com/stop-using-numpy-random-seed-581a9972805f
+
   if METHOD == "nli":
     hyperparam_epochs = {"num_train_epochs": trial.suggest_int("num_train_epochs", EPOCHS_LOW, EPOCHS_HIGH, log=False, step=2)}
     hyperparam_lr_scheduler = {"lr_scheduler_type": "linear"}
@@ -387,6 +388,8 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
 # catch catch following error. unclear if good to catch this. [W 2022-01-12 14:18:30,377] Trial 9 failed because of the following error: HTTPError('504 Server Error: Gateway Time-out for url: https://huggingface.co/api/models/MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli')
 
 def run_study(n_sample=None):
+  np.random.seed(SEED_GLOBAL)
+
   optuna_pruner = optuna.pruners.MedianPruner(n_startup_trials=N_STARTUP_TRIALS_PRUNING, n_warmup_steps=0, interval_steps=1, n_min_trials=1)  # https://optuna.readthedocs.io/en/stable/reference/pruners.html
   optuna_sampler = optuna.samplers.TPESampler(seed=SEED_GLOBAL, consider_prior=True, prior_weight=1.0, consider_magic_clip=True, consider_endpoints=False, 
                                               n_startup_trials=N_STARTUP_TRIALS_SAMPLING, n_ei_candidates=24, multivariate=False, group=False, warn_independent_sampling=True, constant_liar=False)  # https://optuna.readthedocs.io/en/stable/reference/generated/optuna.samplers.TPESampler.html#optuna.samplers.TPESampler

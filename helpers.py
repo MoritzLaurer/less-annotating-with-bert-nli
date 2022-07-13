@@ -6,6 +6,10 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification, Auto
 import torch
 import datasets
 import copy
+import numpy as np
+
+np.random.seed(42)
+
 
 ### reformat training data for NLI binary classification
 def format_nli_trainset(df_train=None, hypo_label_dic=None, random_seed=42):

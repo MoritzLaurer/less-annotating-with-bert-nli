@@ -226,6 +226,7 @@ if "context" not in nli_templates:
 
 
 # ## Final test with best hyperparameters
+np.random.seed(SEED_GLOBAL)
 
 # carbon tracker  https://github.com/mlco2/codecarbon/tree/master
 #if CARBON_TRACKING:
@@ -304,7 +305,8 @@ np.random.seed(SEED_GLOBAL)
 ### K example intervals loop
 experiment_details_dic = {}
 for n_max_sample, hyperparams, hypothesis_template in tqdm.tqdm(zip(N_SAMPLE_TEST, HYPER_PARAMS_LST_TEST, HYPOTHESIS_TEMPLATE_LST), desc="Iterations for different number of texts", leave=True):
-  
+  np.random.seed(SEED_GLOBAL)
+
   # log how long training of model takes
   t_start = time.time()
 

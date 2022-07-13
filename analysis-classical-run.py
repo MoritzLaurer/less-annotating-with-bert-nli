@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-EXECUTION_TERMINAL = True
+EXECUTION_TERMINAL = False
 
 # ## Load packages
 import transformers
@@ -103,8 +103,8 @@ if EXECUTION_TERMINAL == True:
 elif EXECUTION_TERMINAL == False:
   # parse args if not in terminal, but in script
   args = parser.parse_args(["--dataset", "cap-sotu", "--sample_interval", "100", "500", "1000", #"2500", "5000", #"10000",
-                            "--method", "classical_ml", "--model", "SVM", "--vectorizer", "embeddings",
-                            "--n_cross_val_final", "3", "--hyperparam_study_date", "20220712"])
+                            "--method", "classical_ml", "--model", "SVM", "--vectorizer", "tfidf",
+                            "--n_cross_val_final", "3", "--hyperparam_study_date", "20220713"])
 
 
 ### args for both hyperparameter tuning and test runs
@@ -235,6 +235,7 @@ if "context" not in classical_templates:
 
 ##### prepare texts for classical ML
 nlp = spacy.load("en_core_web_lg")
+np.random.seed(SEED_GLOBAL)
 
 ## lemmatize text
 def lemmatize(text_lst, embeddings=False):
@@ -245,7 +246,6 @@ def lemmatize(text_lst, embeddings=False):
       doc_lemmas = " ".join([token.lemma_ for token in doc])
       texts_lemma.append(doc_lemmas)
     return texts_lemma
-  # test: only include specific parts-of-speech and output word vectors
   elif embeddings==True:
     for doc in nlp.pipe(text_lst, n_process=4):  #  disable=["parser", "ner"] "tagger", "attribute_ruler", "tok2vec",
       # only use specific parts-of-speech
@@ -285,18 +285,18 @@ if "text_preceding" in df_cl.columns:
   df_train_lemma["text_preceding"] = lemmatize(df_train.text_preceding.fillna(""), embeddings=embeddings)
   df_test_lemma["text_preceding"] = lemmatize(df_test.text_preceding.fillna(""), embeddings=embeddings)
   # if surrounding text was nan, insert vector of original text to avoid nan error
-  df_train_lemma["text_preceding"] = [text_surrounding if text_surrounding is np.nan else text_original for text_surrounding, text_original in
+  df_train_lemma["text_preceding"] = [text_original if text_surrounding is np.nan else text_surrounding for text_surrounding, text_original in
                                       zip(df_train_lemma["text_preceding"], df_train_lemma["text_original"])]
-  df_test_lemma["text_preceding"] = [text_surrounding if text_surrounding is np.nan else text_original for text_surrounding, text_original in
+  df_test_lemma["text_preceding"] = [text_original if text_surrounding is np.nan else text_surrounding for text_surrounding, text_original in
                                       zip(df_test_lemma["text_preceding"], df_test_lemma["text_original"])]
 if "text_following" in df_cl.columns:
   #df_cl_lemma["text_following"] = lemmatize(df_cl.text_following.fillna(""))
   df_train_lemma["text_following"] = lemmatize(df_train.text_following.fillna(""), embeddings=embeddings)
   df_test_lemma["text_following"] = lemmatize(df_test.text_following.fillna(""), embeddings=embeddings)
   # if surrounding text was nan, insert vector of original text to avoid nan error
-  df_train_lemma["text_following"] = [text_surrounding if text_surrounding is np.nan else text_original for text_surrounding, text_original in
+  df_train_lemma["text_following"] = [text_original if text_surrounding is np.nan else text_surrounding for text_surrounding, text_original in
                                       zip(df_train_lemma["text_following"], df_train_lemma["text_original"])]
-  df_test_lemma["text_following"] = [text_surrounding if text_surrounding is np.nan else text_original for text_surrounding, text_original in
+  df_test_lemma["text_following"] = [text_original if text_surrounding is np.nan else text_surrounding for text_surrounding, text_original in
                                       zip(df_test_lemma["text_following"], df_test_lemma["text_original"])]
 
 
@@ -349,12 +349,11 @@ elif ZEROSHOT == False:
   print(N_SAMPLE_TEST)
 
   HYPER_PARAMS_LST = [study_value['optuna_study'].best_trial.user_attrs["hyperparameters_all"] for study_key, study_value in hp_study_dic.items()]
-  ### !!!! delete the if condition later. is only for testing potential context issue for TFIDF
-  HYPOTHESIS_TEMPLATE_LST = [hyperparams_dic["hypothesis_template"] for hyperparams_dic in HYPER_PARAMS_LST if ("context" in hyperparams_dic["hypothesis_template"])]
+  HYPOTHESIS_TEMPLATE_LST = [hyperparams_dic["hypothesis_template"] for hyperparams_dic in HYPER_PARAMS_LST]  #if ("context" in hyperparams_dic["hypothesis_template"])
   print(HYPOTHESIS_TEMPLATE_LST)
 
   HYPER_PARAMS_LST = [{key: dic[key] for key in dic if key!="hypothesis_template"} for dic in HYPER_PARAMS_LST]  # return dic with all elements, except hypothesis template
-  HYPER_PARAMS_LST_TEST = HYPER_PARAMS_LST  # add random hyperparams for 0-shot run (will not be used anyways)
+  HYPER_PARAMS_LST_TEST = HYPER_PARAMS_LST  # add random hyperparams for 0-shot run (will not be used anyway)
   print(HYPER_PARAMS_LST_TEST)
 
 
@@ -365,8 +364,9 @@ np.random.seed(SEED_GLOBAL)
 ### K example intervals loop
 experiment_details_dic = {}
 for n_max_sample, hyperparams, hypothesis_template in tqdm.tqdm(zip(N_SAMPLE_TEST, HYPER_PARAMS_LST_TEST, HYPOTHESIS_TEMPLATE_LST), desc="Iterations for different number of texts", leave=True):
-  
-  # log how long training of model takes
+  np.random.seed(SEED_GLOBAL)
+
+    # log how long training of model takes
   t_start = time.time()
 
   k_samples_experiment_dic = {"method": METHOD, "n_max_sample": n_max_sample, "model": MODEL_NAME, "hyperparams": hyperparams}  # "trainer_args": train_args, "hypotheses": HYPOTHESIS_TYPE, "dataset_stats": dataset_stats_dic
@@ -394,8 +394,8 @@ for n_max_sample, hyperparams, hypothesis_template in tqdm.tqdm(zip(N_SAMPLE_TES
     df_test_formatted = format_text(df=df_test_lemma, text_format=hypothesis_template, embeddings=embeddings)
 
     # separate hyperparams for vectorizer and classifier
-    hyperparams_vectorizer = {key:value for key, value in hyperparams.items() if key in ["ngram_range", "max_df", "min_df"]}
-    hyperparams_clf = {key:value for key, value in hyperparams.items() if key not in ["ngram_range", "max_df", "min_df"]}
+    hyperparams_vectorizer = {key: value for key, value in hyperparams.items() if key in ["ngram_range", "max_df", "min_df"]}
+    hyperparams_clf = {key: value for key, value in hyperparams.items() if key not in ["ngram_range", "max_df", "min_df"]}
 
     # Vectorization
     if VECTORIZER == "tfidf":
@@ -488,7 +488,7 @@ experiment_sample_00500_classical_ml_SVM: f1_macro: 0.15717866968205293 , f1_mic
 experiment_sample_01000_classical_ml_SVM: f1_macro: 0.17380751939396086 , f1_micro: 0.3332297171277588
 # for some reason slightly different to same run with Snellius
 # 100: 0.028, 500: 0.149, 1000: 0.178,
-# very different to previous run
+# very different to previous good run. results before the rerun were: 
 # 100: 0.11, 500: 0.28, 1000: 0.35
 
 SVM, embeddings, cap-sotu, local run: 
@@ -497,6 +497,14 @@ experiment_sample_00500_classical_ml_SVM: f1_macro: 0.30027714799508287 , f1_mic
 experiment_sample_01000_classical_ml_SVM: f1_macro: 0.3615014325535526 , f1_micro: 0.4519738887161952
 # for some reason slightly different to same run with Snellius
 # 100: 0.136, 500: 0.293, 1000: 0.356,
+
+SVM, tfidf, cap-sotu, local run, with 80 HP searches: 
+experiment_sample_00100_classical_ml_SVM: f1_macro: 0.03601407743193098 , f1_micro: 0.18257175422236038
+experiment_sample_00500_classical_ml_SVM: f1_macro: 0.15728503667299906 , f1_micro: 0.30209304735260595
+experiment_sample_01000_classical_ml_SVM: f1_macro: 0.17404640247460787 , f1_micro: 0.33374779815563155
+
+SVM, tfidf, cap-sotu, local run, with 80 HP searches, no lemmatization: 
+
 
 ## BERT-nli, manifesto-protectionism, run via Snellius on 12.07.22
 experiment_sample_00100_nli_MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c: f1_macro: 0.563010735031385 , f1_micro: 0.8237639553429027
