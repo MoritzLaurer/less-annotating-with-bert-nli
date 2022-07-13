@@ -34,9 +34,9 @@ def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
   file_names_lst = [f for f in listdir(path_dataset) if isfile(join(path_dataset, f))]
 
   experiment_dates = [int(file_name.split("_")[-1].replace(".pkl", "")) for file_name in file_names_lst if (method_name in file_name) and ("experiment" in file_name)]
-  # !!! test
-  if method_name in ["SVM_tfidf", "logistic_tfidf"]:
-     experiment_dates = [date for date in experiment_dates if date == 20220700]  # there seems to be a bug for this run
+  #if method_name in ["SVM_tfidf", "logistic_tfidf"]:
+  #   experiment_dates = [date for date in experiment_dates if date == 20220700]  # in case specific run needs to be selected
+
   if len(experiment_dates) > 0:  # in case no experiment for method available yet
     latest_experiment_date = np.max(experiment_dates)
     # get only file names for latest experiment and respective method - ordered starting with smalles experiment
@@ -296,7 +296,7 @@ for key_dataset_name, visual_data_dic in visual_data_dic_datasets.items():
           name=simple_algo_names_dic[key_algo],
           x=visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
           y=visual_data_dic[key_algo][f"{metric}_mean"] if "nli" in key_algo else visual_data_dic[key_algo][f"{metric}_mean"][1:],
-          mode='lines+markers',
+          mode='lines',
           line=dict(color=hex),
           line_dash="dash" if key_algo in ["SVM_tfidf", "logistic_tfidf"] else "solid",  #['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
           showlegend=False if i != 5 else True
