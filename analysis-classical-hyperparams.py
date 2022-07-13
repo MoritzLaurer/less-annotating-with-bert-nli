@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-EXECUTION_TERMINAL = False
+EXECUTION_TERMINAL = True
 
 # ## Load packages
 import transformers
