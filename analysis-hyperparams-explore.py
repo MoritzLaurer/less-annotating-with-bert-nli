@@ -12,7 +12,8 @@ from optuna.visualization import plot_optimization_history, plot_contour, plot_s
 
 # set path
 print(os.getcwd())
-os.chdir("./NLI-experiments")
+if "NLI-experiments" not in os.getcwd():
+    os.chdir("./NLI-experiments")
 print(os.getcwd())
 
 
@@ -306,7 +307,7 @@ for key_dataset_algo, value_dataset_algo in hp_study_dic.items():
                 print(f"Study {study_key}:")
                 plot_slice(study_value["optuna_study"]).show()
 
-## notes on hp-search 100 & 500:
+## old notes on hp-search 100 & 500 with BERT variants:
 # sentiment-news-econ: hps good, 15 runs adequate
 # coronanet: standard_dl: could reduce num_train_epochs to 20 (especially for bigger samples); nli: num_train_epochs could be higher than 11, batch size could try higher than 32
 # cap-us-court: standard_dl: could reduce num_train_epochs to 20 (especially for bigger samples, maybe even 10); nli: num_train_epochs should be higher than 11, batch size could try higher than 32
@@ -316,7 +317,7 @@ for key_dataset_algo, value_dataset_algo in hp_study_dic.items():
 # manifesto-protectionism:  standard_dl:  good  ; nli:  good (epochs could be higher for 100_samp)
 # manifesto-morality:  standard_dl:  x  ; nli:  x
 
-## notes for SVM: 100, 500, 1000, 2500, 5000, 10000
+## old notes for SVM: 100, 500, 1000, 2500, 5000, 10000
 # sentiment-news-econ: good. hardly improvements after 25
 # coronanet: good. hardly improvements after 30
 # cap-us-court: good. hardly improvements after 15-30
@@ -352,37 +353,4 @@ for key_dataset_algo, value_dataset_algo in hp_study_dic.items():
       #print("Best trial full info: ", study_value["optuna_study"].best_trial, "\n")
       #print(study.trials)
 
-
-
-### old notes from google colab - lessons on hyperparams
-## sentiment-econ-news - 2 class - 20, 40, 80, 160, 320
-# minilm: epochs 30 - 60 fine (not 100); lr always around 1e-5; lr constant early, linear 160-360; batches: varied, 8 or higher (probably because 2 class)
-# deberta-base: lr 1/2e-5 consistently best (except 20samp 1e-4); linear/constant no big diff; epochs: 40-50 often sufficient (sometimes 80, with linear lr); batch inconsistent (tendency 16 over 8) => 50 epochs w constant lr seems sufficient
-# nli mini: 30 - 100 epochs way too much, 3 epochs (or 5) better; linear seems better; 1/2e-5 seems always good; batch size no big difference
-# nli deberta-base: low lr around 5e-6 best (range not good enough) ; linear lr always better; epochs unclear (sometimes 3, sometimes 7); batch no big difference (8 slightly better than 16 maybe); quote or complex template no clear difference
-
-## cap-us-court - 20 class - 20, 40, 80, 160, 320
-# minilm: 100 epochs clearly best; lr constant best; lr 6e-5 always best (except 9e-5 for 40samp); batch 16 best
-# nli minilm: max perf 4-8 hp-search iter (6 fine); lr best at 1/2e-4 (should try higher); lr constant or linear (no big diff); epochs around 8-9 (10 was max, should try higher); batch 16/32 no big diff
-# second try: try on 80samp:  tried 1e-3 max at clearly improved, should even try higher; 16 epoch best
-
-## cap-sotu - 20 class - 20, 40, 80, 160, 320
-# deberta-base: lr around 5e-5; hypo context always best; lr constant tendency better (no big diff, advantage: entails less epochs); 80 epochs best (not 100; 50 already close);
-# deberta-nli: max perf increases until very end; hypo always quote context; lr always 1.2-1.7e-5 best; linear lr always best (const only good for 360samp); 4 epochs always best
-
-## coronanet
-# minilm: max perf mostly with first hp step; lr 1e-4 (40+ class) to 5e-4 (20 class) best (by far most important parameter); linear best; 100 epoch best; 16 or 32 batch no big diff (16 better with low n sample)
-
-## manifesto-8
-# minilm: max perf mostly first hp step (once 5% better at last step 11); best without context; lr 1.5e-4 always best; linear best at low n, constant slightly better at high n; epochs 100 mostly best; batch 8 mostly best, 16 at higher n
-# minilm-nli: max per after around 8 (but 20samp improved until end); best with context; lr 1.5e-4 always best; linear always best; 4 epochs always best; 8 batch always best
-# deberta-nli: max perf after 3 steps; lr by far most important param; quote-context best; lr 1.8e-5 always best (only 20 samp 5e-6); lr linear best (no huge diff); 4 epochs best (only 20samp 7 epochs); batch no big diff (8 only slighly better than 16); (could may have tried lower lr than 1e-6, but 1.5e-5 seems always best)
-# deberta-base: lr mostly optimal around 5e-4 (but also good up to 3e-5); linear tendency better (esp. for low n); context always better; epochs mostly 120 best (sometimes 40 or 60); batch 8 tendency better 20-160 samp, 16 tendency better 160 samp       # (should have tried lr lower than 5e-4, but tried lower for 320samp and didn't improve)
-
-## manifesto-morality
-# minilm-nli: lr 1.2e-2.7e-4 (once 4e-5); epochs 7-16; hypo w more details;  (tested only linear); batch 4 for 40samp-, batch 8 for 80samp+; max perf still improved towards 12 iter
-# minilm: lr mostly 1-6e-5 (once 3.8e-4) (clearly most important hp); both linear or constant, unclear; epochs 60-80; batch tendency 8; hypo w/o context mostly better;
-
-## manifesto-protectionism
-# deberta-nli: lr always 2e-6 (wrong range 5e-7, 2e-6); epoch 16-22 (but with bad low lr); hypo no big diff (tendency third one with slighly more details); lr always linear; batch always set to 8 to increase speed and assume no big diff to 4.
 
