@@ -12,8 +12,7 @@ import joblib
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
-metric = "f1_macro"  # for figure with performance per dataset
-
+metric = "f1_micro"  # for figure with performance per dataset
 
 
 

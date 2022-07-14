@@ -99,9 +99,9 @@ if EXECUTION_TERMINAL == True:
 
 elif EXECUTION_TERMINAL == False:
   # parse args if not in terminal, but in script
-  args = parser.parse_args(["--n_trials", "80", "--n_trials_sampling", "40", "--n_trials_pruning", "50", "--n_cross_val_hyperparam", "2",
-                            "--context", "--dataset", "cap-sotu", "--sample_interval", "100", "500", "1000", #"2500", "5000", #"10000",
-                            "--method", "classical_ml", "--model", "SVM", "--vectorizer", "tfidf",
+  args = parser.parse_args(["--n_trials", "70", "--n_trials_sampling", "30", "--n_trials_pruning", "40", "--n_cross_val_hyperparam", "2",
+                            "--context", "--dataset", "manifesto-military", "--sample_interval", "500",  #"100", "500", "1000", #"2500", "5000", #"10000",
+                            "--method", "classical_ml", "--model", "SVM", "--vectorizer", "embeddings",
                             "--n_cross_val_final", "3", "--hyperparam_study_date", "20220713"])
 
 
@@ -292,19 +292,21 @@ if "text_preceding" in df_cl.columns:
   df_train_lemma["text_preceding"] = lemmatize(df_train.text_preceding.fillna(""), embeddings=embeddings)
   df_test_lemma["text_preceding"] = lemmatize(df_test.text_preceding.fillna(""), embeddings=embeddings)
   # if surrounding text was nan, insert vector of original text to avoid nan error
-  df_train_lemma["text_preceding"] = [text_original if text_surrounding is np.nan else text_surrounding for text_surrounding, text_original in
-                                      zip(df_train_lemma["text_preceding"], df_train_lemma["text_original"])]
-  df_test_lemma["text_preceding"] = [text_original if text_surrounding is np.nan else text_surrounding for text_surrounding, text_original in
-                                      zip(df_test_lemma["text_preceding"], df_test_lemma["text_original"])]
+  if embeddings == True:
+      df_train_lemma["text_preceding"] = [text_original if str(text_surrounding) == "nan" else text_surrounding for text_surrounding, text_original in
+                                          zip(df_train_lemma["text_preceding"], df_train_lemma["text_original"])]
+      df_test_lemma["text_preceding"] = [text_original if str(text_surrounding) == "nan" else text_surrounding for text_surrounding, text_original in
+                                          zip(df_test_lemma["text_preceding"], df_test_lemma["text_original"])]
 if "text_following" in df_cl.columns:
   #df_cl_lemma["text_following"] = lemmatize(df_cl.text_following.fillna(""))
   df_train_lemma["text_following"] = lemmatize(df_train.text_following.fillna(""), embeddings=embeddings)
   df_test_lemma["text_following"] = lemmatize(df_test.text_following.fillna(""), embeddings=embeddings)
   # if surrounding text was nan, insert vector of original text to avoid nan error
-  df_train_lemma["text_following"] = [text_original if text_surrounding is np.nan else text_surrounding for text_surrounding, text_original in
-                                      zip(df_train_lemma["text_following"], df_train_lemma["text_original"])]
-  df_test_lemma["text_following"] = [text_original if text_surrounding is np.nan else text_surrounding for text_surrounding, text_original in
-                                      zip(df_test_lemma["text_following"], df_test_lemma["text_original"])]
+  if embeddings == True:
+      df_train_lemma["text_following"] = [text_original if str(text_surrounding) == "nan" else text_surrounding for text_surrounding, text_original in
+                                          zip(df_train_lemma["text_following"], df_train_lemma["text_original"])]
+      df_test_lemma["text_following"] = [text_original if str(text_surrounding) == "nan" else text_surrounding for text_surrounding, text_original in
+                                          zip(df_test_lemma["text_following"], df_test_lemma["text_original"])]
 
 
 
