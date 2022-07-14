@@ -1,5 +1,5 @@
 
-## script for creating the data for the appe
+## script for creating the data for the appendix
 
 import pandas as pd
 import numpy as np
@@ -221,7 +221,7 @@ path_files_lst = [os.path.join(path, name) for path, subdirs, files in os.walk("
 path_files_lst = [path_files for path_files in path_files_lst if ".DS_Store" not in path_files]
 path_files_lst = [path_files for path_files in path_files_lst if "experiment" not in path_files]
 # exclude/only specific algo?
-path_files_lst = [path_files for path_files in path_files_lst if ("SVM_tfidf" in path_files)]  #("20220700" in path_files)
+path_files_lst = [path_files for path_files in path_files_lst if ("SVM_tfidf" in path_files) and ("20220713" in path_files)]  #("20220700" in path_files)
 
 # add path name as key again to distinguish between datasets
 hp_study_dic = {}
@@ -303,7 +303,7 @@ path_files_lst = [os.path.join(path, name) for path, subdirs, files in os.walk("
 path_files_lst = [path_files for path_files in path_files_lst if ".DS_Store" not in path_files]
 path_files_lst = [path_files for path_files in path_files_lst if "experiment" not in path_files]
 # exclude/only specific algo?
-path_files_lst = [path_files for path_files in path_files_lst if ("logistic_tfidf" in path_files)]  # and ("20220712" in path_files)
+path_files_lst = [path_files for path_files in path_files_lst if ("logistic_tfidf" in path_files) and ("20220713" in path_files)]  # and ("20220712" in path_files)
 
 # add path name as key again to distinguish between datasets
 hp_study_dic = {}
@@ -500,7 +500,7 @@ for key_dataset, value_dataset in visual_data_dic_datasets_cl.items():
     metrics_all_dic.update({key_dataset: df_metrics_all_dataset})
 
 for dataset in metrics_all_dic:
-    metrics_all_dic[dataset].to_csv(f"./appendix/metrics_all_{dataset}.csv")
+    metrics_all_dic[dataset].to_excel(f"./appendix/metrics_all_{dataset}.xlsx")
 
 
 
@@ -567,6 +567,19 @@ for i, metric in enumerate(["f1_macro", "f1_micro"]):
     df_metrics_mean.index.name = "Sample size / Algorithm"
     df_metrics_mean_dic.update({metric: df_metrics_mean.round(3)})
 
+## comparing performance for 4 datasets that go up to 5000, for statement "similar performance 500 vs. 5000"
+df_metrics_mean_4ds_dic = {}
+for i, metric in enumerate(["f1_macro", "f1_micro"]):
+    df_metrics_mean_4ds = df_metrics_lst[i][df_metrics_lst[i].dataset.isin(datasets_5000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)
+    # add row with best classical algo value
+    df_metrics_mean_4ds.loc["classical-best-tfidf"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean_4ds.loc["SVM_tfidf"], df_metrics_mean_4ds.loc["logistic_tfidf"])]
+    df_metrics_mean_4ds.loc["classical-best-embeddings"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean_4ds.loc["SVM_embeddings"], df_metrics_mean_4ds.loc["logistic_embeddings"])]
+    # order rows
+    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embeddings", "BERT-base", "BERT-base-nli"]
+    df_metrics_mean_4ds = df_metrics_mean_4ds.reindex(order_algos)
+    df_metrics_mean_4ds.index.name = "Sample size / Algorithm"
+    df_metrics_mean_4ds_dic.update({metric: df_metrics_mean_4ds.round(3)})
+
 
 ## difference in performance
 df_metrics_difference_dic = {}
@@ -574,6 +587,7 @@ for i, metric in enumerate(["f1_macro", "f1_micro"]):
     df_metrics_difference = pd.DataFrame(data={
         #"BERT-base vs. SVM": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["SVM"],
         #"BERT-base vs. Log. Reg.": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["logistic regression"],
+        "classical-best-embeddings vs. classical-best-tfidf": df_metrics_mean_dic[metric].loc["classical-best-embeddings"] - df_metrics_mean_dic[metric].loc["classical-best-tfidf"],
         "BERT-base vs. classical-best-tfidf": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["classical-best-tfidf"],
         "BERT-base vs. classical-best-embeddings": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["classical-best-embeddings"],
         #"BERT-base-nli vs. SVM": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["SVM"],
@@ -581,19 +595,20 @@ for i, metric in enumerate(["f1_macro", "f1_micro"]):
         "BERT-base-nli vs. classical-best-tfidf": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["classical-best-tfidf"],
         "BERT-base-nli vs. classical-best-embeddings": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["classical-best-embeddings"],
         "BERT-base-nli vs. BERT-base": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["BERT-base"],
-       #"Transformer-Mini-NLI vs. SVM": df_metrics_mean_all.loc["Transformer-Mini-NLI"] - df_metrics_mean_all.loc["SVM"],
-       #"Transformer-Mini-NLI vs. Transformer-Mini": df_metrics_mean_all.loc["Transformer-Mini-NLI"] - df_metrics_mean_all.loc["Transformer-Mini"]
        }).transpose()
     #df_metrics_difference = df_metrics_difference.applymap(lambda x: f"+{round(x, 2)}" if x > 0 else round(x, 2))
     #df_metrics_difference = df_metrics_difference.applymap(lambda x: round(x, 2))
+    df_metrics_difference["mean (100 to 2500)"] = df_metrics_difference.apply(lambda rows: np.mean([rows['100 (8 datasets)'], rows['500 (8 datasets)'], rows['1000 (8 datasets)'], rows['2500 (8 datasets)']]), axis=1)
+    df_metrics_difference["mean all"] = df_metrics_difference.apply(lambda rows: np.mean([rows['100 (8 datasets)'], rows['500 (8 datasets)'], rows['1000 (8 datasets)'], rows['2500 (8 datasets)'], rows['5000 (4 datasets)'], rows['10000 (3 datasets)']]), axis=1)
     df_metrics_difference.index.name = "Sample size"
     df_metrics_difference_dic.update({metric: df_metrics_difference.round(3)})
 
 df_metrics_mean_dic["f1_macro"].to_excel("./appendix/f1-macro-mean.xlsx")
 df_metrics_mean_dic["f1_micro"].to_excel("./appendix/f1-micro-mean.xlsx")
+df_metrics_mean_4ds_dic["f1_macro"].to_excel("./appendix/f1-macro-mean-4ds.xlsx")
+df_metrics_mean_4ds_dic["f1_micro"].to_excel("./appendix/f1-micro-mean-4ds.xlsx")
 df_metrics_difference_dic["f1_macro"].to_excel("./appendix/f1-macro-mean-difference.xlsx")
 df_metrics_difference_dic["f1_micro"].to_excel("./appendix/f1-micro-mean-difference.xlsx")
-
 
 
 ##### Training time
