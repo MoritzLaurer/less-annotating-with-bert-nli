@@ -480,7 +480,8 @@ metrics_random_average = [f1_macro_random_average_all] * 5 + [f1_macro_random_av
 
 
 ### create plot
-subplot_titles_compare = ["f1_macro", "f1_micro"]
+# ! removing sample size above 2500 because not comparable and visual more confusing
+subplot_titles_compare = ["f1_macro", "accuracy/f1_micro"]
 fig_compare = make_subplots(rows=1, cols=2, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
                             subplot_titles=subplot_titles_compare, x_title="Number of random training examples")  #y_title="f1 score",
 marker_symbols = ["circle", "circle", "circle", "circle"]  # "triangle-down", "triangle-up", "star-triangle-up", "star-square"
@@ -488,7 +489,7 @@ marker_symbols = ["circle", "circle", "circle", "circle"]  # "triangle-down", "t
 for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
     fig_compare.add_trace(go.Scatter(
         name=f"majority baseline",
-        x=[0, 100, 500, 1000, 2500, "5000", "10000"],  #["0 (8 datasets)", "100 (8)", "500 (8)", "1000 (8)", "2500 (8)", "5000 (4)", "10000 (3)"],  #[0, 100, 500, 1000, 2500] + list(cols_metrics_dic.keys())[-2:],
+        x=[0, 100, 500, 1000, 2500],  #["0 (8 datasets)", "100 (8)", "500 (8)", "1000 (8)", "2500 (8)", "5000 (4)", "10000 (3)"],  #[0, 100, 500, 1000, 2500] + list(cols_metrics_dic.keys())[-2:],
         y=metrics_majority_average,  #[metrics_majority_average[i]] * len(list(cols_metrics_dic.keys())),
         mode='lines',
         #line=dict(color="grey"),
@@ -500,7 +501,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
     )
     fig_compare.add_trace(go.Scatter(
         name=f"random baseline",
-        x=[0, 100, 500, 1000, 2500, "5000", "10000"],
+        x=[0, 100, 500, 1000, 2500],
         y=metrics_random_average,  #[metrics_random_average[i]] * len(list(cols_metrics_dic.keys())),
         mode='lines',
         #line=dict(color="grey"),
@@ -513,7 +514,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
     for algo, hex, marker in zip(algo_names_comparison, colors_hex, marker_symbols):
         fig_compare.add_trace(go.Scatter(
             name=algo,
-            x=[0, 100, 500, 1000, 2500, "5000", "10000"],
+            x=[0, 100, 500, 1000, 2500],
             y=df_metrics_mean_lst[i].loc[algo],  #df_metrics_mean_lst[i].loc[algo] if "nli" in algo else [np.nan] + df_metrics_mean_lst[i].loc[algo][1:].tolist(),
             mode='lines+markers',
             marker_symbol=marker,
@@ -529,7 +530,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
         upper_bound_y = pd.Series(df_metrics_mean_lst[i].loc[algo]) + pd.Series(df_std_mean_lst[i].loc[algo])
         fig_compare.add_trace(go.Scatter(
             name=f'Upper Bound {key_algo}',
-            x=[0, 100, 500, 1000, 2500, "5000", "10000"],  #visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
+            x=[0, 100, 500, 1000, 2500],  #visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
             y=upper_bound_y,  #upper_bound_y if "nli" in key_algo else upper_bound_y[1:],  # pd.Series(metric_mean_nli) + pd.Series(metric_std_nli),
             mode='lines',
             marker=dict(color="#444"),
@@ -541,7 +542,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
         lower_bound_y = pd.Series(df_metrics_mean_lst[i].loc[algo]) - pd.Series(df_std_mean_lst[i].loc[algo])
         fig_compare.add_trace(go.Scatter(
             name=f'Lower Bound {key_algo}',
-            x=[0, 100, 500, 1000, 2500, "5000", "10000"],  #visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
+            x=[0, 100, 500, 1000, 2500],  #visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
             y=lower_bound_y,  #lower_bound_y if "nli" in key_algo else lower_bound_y[1:],  # pd.Series(metric_mean_nli) - pd.Series(metric_std_nli),
             marker=dict(color="#444"),
             line=dict(width=0),
@@ -552,7 +553,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
             ),
             row=1, col=i+1
         )
-    fig_compare.add_vline(x=4, line_dash="longdash", annotation_text="8 datasets", annotation_position="left", row=1, col=i+1)  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'] https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
+    #fig_compare.add_vline(x=4, line_dash="longdash", annotation_text="8 datasets", annotation_position="left", row=1, col=i+1)  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'] https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
     #fig_compare.add_vline(x=4, line_dash="dot", annotation_text="4 datasets", annotation_position="right", row=1, col=i+1)  # annotation=dict(font_size=20, font_family="Times New Roman")  # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
 
     # update layout for individual subplots  # https://stackoverflow.com/questions/63580313/update-specific-subplot-axes-in-plotly
@@ -564,7 +565,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
     )
     fig_compare['layout'][f'yaxis{i+1}'].update(
         # range=[0.2, pd.Series(visual_data_dic[key_algo][f"{metric}_mean"]).iloc[-1] + pd.Series(visual_data_dic[key_algo][f"{metric}_std"]).iloc[-1] + 0.1]
-        title_text=metric_i,
+        title_text="accuracy/" + metric_i if metric_i == "f1_micro" else metric_i,
         title_font_size=16,
         dtick=0.1,
         range=[0, 0.82],
