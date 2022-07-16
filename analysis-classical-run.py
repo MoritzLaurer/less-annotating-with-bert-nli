@@ -30,7 +30,7 @@ from sklearn.preprocessing import StandardScaler, Normalizer
 import spacy
 
 
-## set global seed for reproducibility and against seed hacking
+## set global seed for reproducibility and against seed hacking.
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
