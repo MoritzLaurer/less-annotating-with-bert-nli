@@ -65,13 +65,13 @@ parser.add_argument('-context', '--context', action='store_true',
 
 # arguments for both hyperparam and test script
 parser.add_argument('-ds', '--dataset', type=str,
-                    help='Name of dataset. Can be one of: "sentiment-news-econ" "coronanet" "cap-us-court" "cap-sotu" "manifesto-8" "manifesto-military" "manifesto-protectionism" "manifesto-morality" "manifesto-nationalway" "manifesto-44" "manifesto-complex"')
+                    help='Name of dataset. Can be one of: "sentiment-news-econ" "coronanet" "cap-us-court" "cap-sotu" "manifesto-8" "manifesto-military" "manifesto-protectionism" "manifesto-morality"')
 parser.add_argument('-samp', '--sample_interval', type=int, nargs='+',
                     help='Interval of sample sizes to test.')
 parser.add_argument('-m', '--method', type=str,
                     help='Method. One of "nli", "standard_dl"')
 parser.add_argument('-model', '--model', type=str,
-                    help='Model name. String must lead to any Hugging Face model. Must fit to "method" argument.')
+                    help='Model name. String must lead to any Hugging Face model or "SVM" or "logistic". Must fit to "method" argument.')
 parser.add_argument('-tqdm', '--disable_tqdm', action='store_true',
                     help='Adding the flag enables tqdm for progress tracking')
 parser.add_argument('-carbon', '--carbon_tracking', action='store_true',
