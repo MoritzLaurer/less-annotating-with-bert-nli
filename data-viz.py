@@ -12,7 +12,7 @@ import joblib
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
-metric = "f1_micro"  # for figure with performance per dataset
+metric = "accuracy_balanced"  # options: "f1-micro", "fi-macro", "accuracy_balanced  # for figure with performance per dataset
 
 
 
@@ -70,6 +70,18 @@ for key_dataset in experiment_details_dic_all_methods_dataset:
   print("")
 #experiment_details_dic_all_methods_dataset["manifesto-military"]["xtremedistil-l6-h256-uncased"]
 
+### Adding mean balanced accuracy metric for all datasets, algos, sample sizes to "metrics_mean" sub-dictionary
+# based on reviewer feedback
+for key_dataset_name, experiment_details_dic_all_methods in experiment_details_dic_all_methods_dataset.items():
+    for method in experiment_details_dic_all_methods.keys():
+        for sample_size in experiment_details_dic_all_methods[method].keys():
+            results_per_seed_dic = {key: value for key, value in experiment_details_dic_all_methods[method][sample_size].items() if "metrics_seed" in key}
+            # if else, because zero-shot dicts use word "accuracy_balanced", while full runs use word "eval_accuracy_balanced"
+            accuracy_balanced_per_seed = [value_metrics["eval_accuracy_balanced"] if "eval_accuracy_balanced" in value_metrics.keys() else value_metrics["accuracy_balanced"] for key_metrics_seed, value_metrics in results_per_seed_dic.items()]
+            accuracy_balanced_mean = np.mean(accuracy_balanced_per_seed)
+            accuracy_balanced_std = np.std(accuracy_balanced_per_seed)
+            ## add accuracy balanced to metrics_mean sub-dic like f1-macro and f1-micro
+            experiment_details_dic_all_methods[method][sample_size]["metrics_mean"].update({"accuracy_balanced_mean": accuracy_balanced_mean, "accuracy_balanced_std": accuracy_balanced_std})
 
 
 # ## Data preparation
@@ -103,12 +115,18 @@ for key_dataset_name, experiment_details_dic_all_methods in experiment_details_d
     f1_micro_mean_lst = []
     f1_macro_std_lst = []
     f1_micro_std_lst = []
+    accuracy_balanced_mean_lst = []
+    accuracy_balanced_std_lst = []
     for key_step in experiment_details_dic_all_methods[key_method]:
       f1_macro_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_macro_mean"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
       f1_micro_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_micro_mean"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
       f1_macro_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_macro_std"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
       f1_micro_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_micro_std"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
+      # added accuracy balanced based on reviewer feedback
+      accuracy_balanced_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["accuracy_balanced_mean"])
+      accuracy_balanced_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["accuracy_balanced_std"])
     dic_method = { key_method: {"f1_macro_mean": f1_macro_mean_lst, "f1_micro_mean": f1_micro_mean_lst, "f1_macro_std": f1_macro_std_lst, "f1_micro_std": f1_micro_std_lst,
+                                "accuracy_balanced_mean": accuracy_balanced_mean_lst, "accuracy_balanced_std": accuracy_balanced_std_lst,
                                 "n_classes": n_classes, "x_axis_values": x_axis_values} }  #"n_max_sample": n_sample_per_class, "n_total_samples": n_total_samples,
     visual_data_dic.update(dic_method)
 
@@ -143,6 +161,8 @@ for dataset_name in DATASET_NAME_LST:
     raise Exception(f"Dataset name not found: {dataset_name}")
   df_test_dic.update({dataset_name: df_test})
 
+
+
 from sklearn.metrics import balanced_accuracy_score, precision_recall_fscore_support, accuracy_score, classification_report
 def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
     ## metrics
@@ -162,13 +182,16 @@ def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
             }
     return metrics
 
+
 ## create metrics for random and majority base-line
 metrics_baseline_dic = {}
 for key_dataset_name, value_df_test in df_test_dic.items():
   np.random.seed(SEED_GLOBAL)
+
   ## get random metrics averaged over several seeds
   f1_macro_random_mean_lst = []
   f1_micro_random_mean_lst = []
+  accuracy_balanced_random_mean_lst = []
   for seed in np.random.choice(range(1000), 10):
     # label column different depending on dataset
     if "manifesto-8" in key_dataset_name:
@@ -177,15 +200,18 @@ for key_dataset_name, value_df_test in df_test_dic.items():
       metrics_random = compute_metrics(labels_random, labels_gold, label_text_alphabetical=np.sort(value_df_test.label_domain_text.unique()))
       f1_macro_random_mean_lst.append(metrics_random["f1_macro"])
       f1_micro_random_mean_lst.append(metrics_random["f1_micro"])
+      accuracy_balanced_random_mean_lst.append(metrics_random["accuracy_balanced"])
     else:
       labels_random = np.random.choice(value_df_test.label_text, len(value_df_test))
       labels_gold = value_df_test.label_text
       metrics_random = compute_metrics(labels_random, labels_gold, label_text_alphabetical=np.sort(value_df_test.label_text.unique()))
       f1_macro_random_mean_lst.append(metrics_random["f1_macro"])
       f1_micro_random_mean_lst.append(metrics_random["f1_micro"])
+      accuracy_balanced_random_mean_lst.append(metrics_random["accuracy_balanced"])
 
   f1_macro_random_mean = np.mean(f1_macro_random_mean_lst)
   f1_micro_random_mean = np.mean(f1_micro_random_mean_lst)
+  accuracy_balanced_random_mean = np.mean(accuracy_balanced_random_mean_lst)
 
   ## get majority metrics
   # label column different depending on dataset
@@ -195,14 +221,20 @@ for key_dataset_name, value_df_test in df_test_dic.items():
     metrics_majority = compute_metrics(labels_majority, labels_gold, label_text_alphabetical=np.sort(value_df_test.label_domain_text.unique()))
     f1_macro_majority = metrics_majority["f1_macro"]
     f1_micro_majority = metrics_majority["f1_micro"]
+    accuracy_balanced_majority = metrics_majority["accuracy_balanced"]
   else:
     labels_majority = [value_df_test.label_text.value_counts().idxmax()] * len(value_df_test)
     labels_gold = value_df_test.label_text
     metrics_majority = compute_metrics(labels_majority, labels_gold, label_text_alphabetical=np.sort(value_df_test.label_text.unique()))
     f1_macro_majority = metrics_majority["f1_macro"]
     f1_micro_majority = metrics_majority["f1_micro"]
+    accuracy_balanced_majority = metrics_majority["accuracy_balanced"]
 
-  metrics_baseline_dic.update({key_dataset_name: {"f1_macro_random": f1_macro_random_mean, "f1_micro_random": f1_micro_random_mean, "f1_macro_majority": f1_macro_majority, "f1_micro_majority": f1_micro_majority} })
+  metrics_baseline_dic.update({key_dataset_name: {"f1_macro_random": f1_macro_random_mean, "f1_micro_random": f1_micro_random_mean,
+                                                  "f1_macro_majority": f1_macro_majority, "f1_micro_majority": f1_micro_majority,
+                                                  "accuracy_balanced_random": accuracy_balanced_random_mean, "accuracy_balanced_majority": accuracy_balanced_majority,
+                                                  }
+                               })
 
 metrics_baseline_dic
 
@@ -365,7 +397,7 @@ fig.show(renderer="browser")
 
 df_metrics_lst = []
 df_std_lst = []
-for metric in ["f1_macro", "f1_micro"]:
+for metric in ["f1_macro", "f1_micro", "accuracy_balanced"]:
     col_dataset = []
     col_algo = []
     col_f1_macro = []
@@ -399,7 +431,7 @@ datasets_5000 = ["cap-us-court", "coronanet", "cap-sotu", "manifesto-8"]
 datasets_10000 = ["coronanet", "cap-sotu", "manifesto-8"]
 
 df_metrics_mean_lst = []
-for i in range(len(["f1_macro", "f1_micro"])):
+for i in range(len(["f1_macro", "f1_micro", "accuracy_balanced"])):
     df_metrics_mean_all = df_metrics_lst[i][df_metrics_lst[i].dataset.isin(datasets_all)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["0\n(8 datasets)", "100\n(8 datasets)", "500\n(8 datasets)", "1000\n(8 datasets)", "2500\n(8 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
     df_metrics_mean_medium = df_metrics_lst[i][df_metrics_lst[i].dataset.isin(datasets_5000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["5000\n(4 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
     df_metrics_mean_large = df_metrics_lst[i][df_metrics_lst[i].dataset.isin(datasets_10000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["10000\n(3 datasets)"]]
@@ -416,7 +448,7 @@ for i in range(len(["f1_macro", "f1_micro"])):
 
 # average standard deviation
 df_std_mean_lst = []
-for i in range(len(["f1_macro", "f1_micro"])):
+for i in range(len(["f1_macro", "f1_micro", "accuracy_balanced"])):
     df_std_mean_all = df_std_lst[i][df_std_lst[i].dataset.isin(datasets_all)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["0\n(8 datasets)", "100\n(8 datasets)", "500\n(8 datasets)", "1000\n(8 datasets)", "2500\n(8 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
     df_std_mean_medium = df_std_lst[i][df_std_lst[i].dataset.isin(datasets_5000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["5000\n(4 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
     df_std_mean_large = df_std_lst[i][df_std_lst[i].dataset.isin(datasets_10000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["10000\n(3 datasets)"]]
@@ -434,7 +466,7 @@ for i in range(len(["f1_macro", "f1_micro"])):
 
 ## difference in performance
 df_metrics_difference_lst = []
-for i in range(len(["f1_macro", "f1_micro"])):
+for i in range(len(["f1_macro", "f1_micro", "accuracy_balanced"])):
     df_metrics_difference = pd.DataFrame(data={
         #"BERT-base vs. SVM": df_metrics_mean_lst[i].loc["BERT-base"] - df_metrics_mean_lst[i].loc["SVM"],
         #"BERT-base vs. Log. Reg.": df_metrics_mean_lst[i].loc["BERT-base"] - df_metrics_mean_lst[i].loc["logistic regression"],
@@ -455,42 +487,61 @@ for i in range(len(["f1_macro", "f1_micro"])):
 
 
 
-### Visualisation of overall average performance
+#### Visualisation of overall average performance
 colors_hex = ["#45a7d9", "#4451c4", "#7EAB55", "#FFC000"]  # order: logistic_tfidf, SVM_tfidf, logistic_embeddings, SVM_embeddings, deberta, deberta-nli   # must have same order as visual_data_dic
 algo_names_comparison = ["classical-best-tfidf", "classical-best-embeddings", "BERT-base", "BERT-base-nli"]
 
-## average random baseline, changes depending on sample size, because less datasets included in higher sample size
-# majority
+### average random baseline, changes depending on sample size, because less datasets included in higher sample size
+## majority
 f1_macro_majority_average_all = np.mean([value["f1_macro_majority"] for key, value in metrics_baseline_dic.items()])
 f1_micro_majority_average_all = np.mean([value["f1_micro_majority"] for key, value in metrics_baseline_dic.items()])
+accuracy_balanced_majority_average_all = np.mean([value["accuracy_balanced_majority"] for key, value in metrics_baseline_dic.items()])
 f1_macro_majority_average_5000 = np.mean([value["f1_macro_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
 f1_micro_majority_average_5000 = np.mean([value["f1_micro_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
+accuracy_balanced_majority_average_5000 = np.mean([value["accuracy_balanced_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
 f1_macro_majority_average_10000 = np.mean([value["f1_macro_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
 f1_micro_majority_average_10000 = np.mean([value["f1_micro_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
-metrics_majority_average = [f1_macro_majority_average_all] * 5 + [f1_macro_majority_average_5000, f1_macro_majority_average_10000]
-# random
+accuracy_balanced_majority_average_10000 = np.mean([value["accuracy_balanced_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
+
+metrics_majority_dic = {
+    "f1_macro": [f1_macro_majority_average_all] * 5 + [f1_macro_majority_average_5000, f1_macro_majority_average_10000],
+    "f1_micro": [f1_micro_majority_average_all] * 5 + [f1_micro_majority_average_5000, f1_micro_majority_average_10000],
+    "accuracy_balanced": [accuracy_balanced_majority_average_all] * 5 + [accuracy_balanced_majority_average_5000, accuracy_balanced_majority_average_10000]
+}
+#metrics_majority_average = [f1_macro_majority_average_all] * 5 + [f1_macro_majority_average_5000, f1_macro_majority_average_10000]
+
+## random
 f1_macro_random_average_all = np.mean([value["f1_macro_random"] for key, value in metrics_baseline_dic.items()])
 f1_micro_random_average_all = np.mean([value["f1_micro_random"] for key, value in metrics_baseline_dic.items()])
+accuracy_balanced_random_average_all = np.mean([value["accuracy_balanced_random"] for key, value in metrics_baseline_dic.items()])
 f1_macro_random_average_5000 = np.mean([value["f1_macro_random"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
 f1_micro_random_average_5000 = np.mean([value["f1_micro_random"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
+accuracy_balanced_random_average_5000 = np.mean([value["accuracy_balanced_random"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
 f1_macro_random_average_10000 = np.mean([value["f1_macro_random"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
 f1_micro_random_average_10000 = np.mean([value["f1_micro_random"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
-metrics_random_average = [f1_macro_random_average_all] * 5 + [f1_macro_random_average_5000, f1_macro_random_average_10000]
+accuracy_balanced_random_average_10000 = np.mean([value["accuracy_balanced_random"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
+
+metrics_random_dic = {
+    "f1_macro": [f1_macro_random_average_all] * 5 + [f1_macro_random_average_5000, f1_macro_random_average_10000],
+    "f1_micro": [f1_micro_random_average_all] * 5 + [f1_micro_random_average_5000, f1_micro_random_average_10000],
+    "accuracy_balanced": [accuracy_balanced_random_average_all] * 5 + [accuracy_balanced_random_average_5000, accuracy_balanced_random_average_10000],
+}
+#metrics_random_average = [f1_macro_random_average_all] * 5 + [f1_macro_random_average_5000, f1_macro_random_average_10000]
 #metrics_random_average = [f1_macro_random_average, f1_micro_random_average]
 
 
 ### create plot
 # ! removing sample size above 2500 because not comparable and visual more confusing
-subplot_titles_compare = ["f1_macro", "accuracy/f1_micro"]
-fig_compare = make_subplots(rows=1, cols=2, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
+subplot_titles_compare = ["f1_macro", "accuracy/f1_micro", "accuracy_balanced"]
+fig_compare = make_subplots(rows=1, cols=3, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
                             subplot_titles=subplot_titles_compare, x_title="Number of random training examples")  #y_title="f1 score",
 marker_symbols = ["circle", "circle", "circle", "circle"]  # "triangle-down", "triangle-up", "star-triangle-up", "star-square"
 
-for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
+for i, metric_i in enumerate(["f1_macro", "f1_micro", "accuracy_balanced"]):
     fig_compare.add_trace(go.Scatter(
         name=f"majority baseline",
         x=[0, 100, 500, 1000, 2500],  #["0 (8 datasets)", "100 (8)", "500 (8)", "1000 (8)", "2500 (8)", "5000 (4)", "10000 (3)"],  #[0, 100, 500, 1000, 2500] + list(cols_metrics_dic.keys())[-2:],
-        y=metrics_majority_average,  #[metrics_majority_average[i]] * len(list(cols_metrics_dic.keys())),
+        y=metrics_majority_dic[metric_i],  #[metrics_majority_average[i]] * len(list(cols_metrics_dic.keys())),
         mode='lines',
         #line=dict(color="grey"),
         line_dash="dashdot", line_color="grey", line=dict(width=3),
@@ -502,7 +553,7 @@ for i, metric_i in enumerate(["f1_macro", "f1_micro"]):
     fig_compare.add_trace(go.Scatter(
         name=f"random baseline",
         x=[0, 100, 500, 1000, 2500],
-        y=metrics_random_average,  #[metrics_random_average[i]] * len(list(cols_metrics_dic.keys())),
+        y=metrics_random_dic[metric_i],  #[metrics_random_average[i]] * len(list(cols_metrics_dic.keys())),
         mode='lines',
         #line=dict(color="grey"),
         line_dash="dot", line_color="grey", line=dict(width=3),
