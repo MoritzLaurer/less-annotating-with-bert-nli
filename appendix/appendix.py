@@ -89,7 +89,7 @@ df_test_cap_uscourt = pd.read_csv("./data_clean/df_cap_us_court_test.csv", index
 df_train_test_distribution_cap_uscourt = pd.DataFrame([df_train_cap_uscourt.label_text.value_counts().rename("train"), df_test_cap_uscourt.label_text.value_counts().rename("test"),
                                                  df_cl_cap_uscourt.label_text.value_counts().rename("all")]).transpose()
 df_train_test_distribution_cap_uscourt.index.name = "labels"
-df_train_test_distribution_cap_sotu.to_csv("./appendix/data-distribution-cap-us-court.csv")
+df_train_test_distribution_cap_uscourt.to_csv("./appendix/data-distribution-cap-us-court.csv")
 
 
 ### CoronaNet
