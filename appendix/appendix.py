@@ -11,7 +11,6 @@ from os.path import isfile, join
 from collections import OrderedDict
 
 
-
 SEED_GLOBAL = 42
 
 print(os.getcwd())
@@ -375,6 +374,7 @@ df_hp_lr.to_csv("./appendix/hyperparams-logistic-tfidf.csv")
 
 
 
+
 #### appendix 3 - Metrics per algorithm per sample size
 
 ### extract metrics
@@ -434,8 +434,70 @@ dataset_n_class_dic = {"sentiment-news-econ": 2, "coronanet": 20, "cap-sotu": 22
                        "manifesto-military": 3, "manifesto-protectionism": 3, "manifesto-morality": 3}
 
 
-### Adding mean balanced accuracy metric for all datasets, algos, sample sizes to "metrics_mean" sub-dictionary
+### Adding several additional metrics for all datasets, algos, sample sizes to "metrics_mean" sub-dictionary
 # based on reviewer feedback
+# testing different metrics from sklearn https://scikit-learn.org/stable/modules/model_evaluation.html#classification-metrics
+from sklearn.metrics import balanced_accuracy_score, precision_recall_fscore_support, accuracy_score, classification_report, cohen_kappa_score, matthews_corrcoef, roc_auc_score
+def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
+    ## metrics
+    precision_macro, recall_macro, f1_macro, _ = precision_recall_fscore_support(label_gold, label_pred, average='macro')  # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_fscore_support.html
+    precision_micro, recall_micro, f1_micro, _ = precision_recall_fscore_support(label_gold, label_pred, average='micro')  # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_fscore_support.html
+    acc_balanced = balanced_accuracy_score(label_gold, label_pred)
+    #acc_not_balanced = accuracy_score(label_gold, label_pred)  # same as F1-micro
+    cohen_kappa = cohen_kappa_score(label_gold, label_pred)
+    matthews = matthews_corrcoef(label_gold, label_pred)  # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.matthews_corrcoef.html#sklearn.metrics.matthews_corrcoef
+    #roc_auc_macro = roc_auc_score(label_gold, label_pred, average='macro', multi_class='ovo')  # no possible because requires probabilites for predictions, but categorical ints, see https://stackoverflow.com/questions/61288972/axiserror-axis-1-is-out-of-bounds-for-array-of-dimension-1-when-calculating-auc;  https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score
+    ## manual calculation of per-class-average accuracy - to test equivalence with accuracy balanced from sklearn
+    # empirically confirmed that equivalent
+    """if not isinstance(label_gold, pd.core.series.Series):  # some label arrays are already series for some reason
+        eval_gold_df = pd.DataFrame(pd.Series(label_gold, name="labels"))
+    else:
+        eval_gold_df = pd.DataFrame(data={"labels": label_gold.reset_index(drop=True)})
+    if not isinstance(label_pred, pd.core.series.Series):  # some label arrays are already series for some reason
+        eval_pred_df = pd.DataFrame(pd.Series(label_pred, name="labels"))
+    else:
+        eval_pred_df = pd.DataFrame(data={"labels": label_pred.reset_index(drop=True)})
+    accuracy_per_class_lst = []
+    for group_name, group_df in eval_gold_df.groupby(by="labels"):
+        label_gold_class_n = group_df
+        label_pred_class_n = eval_pred_df[eval_pred_df.index.isin(group_df.index)]
+        accuracy_per_class_lst.append(accuracy_score(label_gold_class_n, label_pred_class_n))
+    accuracy_balanced_manual = np.mean(accuracy_per_class_lst)"""
+
+    metrics = {'f1_macro': f1_macro,
+            'accuracy/f1_micro': f1_micro,
+            #'accuracy': acc_not_balanced,
+            'accuracy_balanced': acc_balanced,
+            #'accuracy_balanced_manual': accuracy_balanced_manual,  # confirmed that same as sklearn
+            'recall_macro': recall_macro,
+            'recall_micro': recall_micro,
+            'precision_macro': precision_macro,
+            'precision_micro': precision_micro,
+            'cohen_kappa': cohen_kappa,
+            'matthews_corrcoef': matthews,
+            #'roc_auc_macro': roc_auc_macro
+            }
+    return metrics
+
+
+metrics_all_name = ['f1_macro', 'accuracy/f1_micro', 'accuracy_balanced', 'recall_macro', 'recall_micro',   # 'accuracy_balanced_manual',
+                    'precision_macro', 'precision_micro',  'cohen_kappa', 'matthews_corrcoef']
+
+for key_dataset_name, experiment_details_dic_all_methods in experiment_details_dic_all_methods_dataset.items():
+    for method in experiment_details_dic_all_methods.keys():
+        for sample_size in experiment_details_dic_all_methods[method].keys():
+            results_per_seed_dic = {key: value for key, value in experiment_details_dic_all_methods[method][sample_size].items() if "metrics_seed" in key}
+
+            ## recalculate several additional metrics based on reviewer feedback
+            for metric in metrics_all_name:  #['f1_macro', 'f1_micro', 'accuracy_balanced', 'accuracy_not_b', 'precision_macro', 'recall_macro', 'precision_micro', 'recall_micro', 'cohen_kappa']:
+                metric_per_seed = [compute_metrics(value_metrics["eval_label_predicted_raw"], value_metrics["eval_label_gold_raw"])[metric] if len(value_metrics.keys()) >= 8 else 0 for key_metrics_seed, value_metrics in results_per_seed_dic.items()]  # if else to distinguish between 0-shot runs for non-NLI algos and actual runs for all algos
+                #metric_per_seed = [print(len(value_metrics.keys())) if len(value_metrics.keys()) >= 8 else print("pups") for key_metrics_seed, value_metrics in results_per_seed_dic.items()]  # if else to distinguish between 0-shot runs for non-NLI algos and actual runs for all algos
+                metric_mean = np.mean(metric_per_seed)
+                metric_std = np.std(metric_per_seed)
+                experiment_details_dic_all_methods[method][sample_size]["metrics_mean"].update({f"{metric}_mean": metric_mean, f"{metric}_std": metric_std})
+    print("Dataset done: ", key_dataset_name)
+
+"""
 for key_dataset_name, experiment_details_dic_all_methods in experiment_details_dic_all_methods_dataset.items():
     for method in experiment_details_dic_all_methods.keys():
         for sample_size in experiment_details_dic_all_methods[method].keys():
@@ -446,10 +508,71 @@ for key_dataset_name, experiment_details_dic_all_methods in experiment_details_d
             accuracy_balanced_std = np.std(accuracy_balanced_per_seed)
             ## add accuracy balanced to metrics_mean sub-dic like f1-macro and f1-micro
             experiment_details_dic_all_methods[method][sample_size]["metrics_mean"].update({"accuracy_balanced_mean": accuracy_balanced_mean, "accuracy_balanced_std": accuracy_balanced_std})
+"""
 
 
 ## iterate over all dataset experiment dics to extract metrics for viz
 visual_data_dic_datasets = {}
+for key_dataset_name, experiment_details_dic_all_methods in experiment_details_dic_all_methods_dataset.items():
+    ### for one dataset iterate over each approach
+    ## overall data for all approaches
+    n_classes = dataset_n_class_dic[key_dataset_name]
+
+    n_max_sample = []
+    n_total_samples = []
+    for key, value in experiment_details_dic_all_methods[list(experiment_details_dic_all_methods.keys())[0]].items():  # experiment_details_dic_all_methods["SVM"].items():
+        n_max_sample.append(value["n_max_sample"])
+        n_total_samples.append(value["n_train_total"])
+
+    if n_max_sample[-1] < 10000:
+        n_max_sample[-1] = f"{n_max_sample[-1]} (all)"
+    x_axis_values = [f"{n_sample}" for n_sample in n_max_sample]
+    # x_axis_values = ["0" if n_per_class == 0 else f"{str(n_total)} (all)" if n_per_class >= 1001 else f"{str(n_total)}"  for n_per_class, n_total in zip(n_sample_per_class, n_total_samples)]
+    # if key_dataset_name == "cap-us-court":  # CAP-us-court reaches max dataset with 320 samples per class
+    #  x_axis_values = ["0" if n_per_class == 0 else f"{str(n_total)} (all)" if n_per_class >= 320 else f"{str(n_total)}"  for n_per_class, n_total in zip(n_sample_per_class, n_total_samples)]
+
+    ## old deletable code unnesting specific metrics individually for better viz format
+    """
+    visual_data_dic = {}
+    for key_method in experiment_details_dic_all_methods:
+      f1_macro_mean_lst = []
+      f1_micro_mean_lst = []
+      f1_macro_std_lst = []
+      f1_micro_std_lst = []
+      accuracy_balanced_mean_lst = []
+      accuracy_balanced_std_lst = []
+      for key_step in experiment_details_dic_all_methods[key_method]:
+        f1_macro_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_macro_mean"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
+        f1_micro_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_micro_mean"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
+        f1_macro_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_macro_std"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
+        f1_micro_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_micro_std"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
+        # added accuracy balanced based on reviewer feedback
+        accuracy_balanced_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["accuracy_balanced_mean"])
+        accuracy_balanced_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["accuracy_balanced_std"])
+      dic_method = { key_method: {"f1_macro_mean": f1_macro_mean_lst, "f1_micro_mean": f1_micro_mean_lst, "f1_macro_std": f1_macro_std_lst, "f1_micro_std": f1_micro_std_lst,
+                                  "accuracy_balanced_mean": accuracy_balanced_mean_lst, "accuracy_balanced_std": accuracy_balanced_std_lst,
+                                  "n_classes": n_classes, "x_axis_values": x_axis_values} }  #"n_max_sample": n_sample_per_class, "n_total_samples": n_total_samples,
+      """
+    ## unnest metric results in better format for visualisation
+    # generalised code for any metric
+    visual_data_dic = {}
+    for key_method in experiment_details_dic_all_methods:
+        name_second_step = list(experiment_details_dic_all_methods[key_method].items())[2][0]
+        # create empty list per metric to write/append to
+        metrics_dic = {key: [] for key in experiment_details_dic_all_methods[key_method][name_second_step]["metrics_mean"].keys()}
+        # metric_std_dic = {key: [] for key in experiment_details_dic_all_methods[key_method][name_second_step]["metrics_mean"].keys()}
+        for key_step in experiment_details_dic_all_methods[key_method]:
+            # metrics per step
+            for key_metric_name, value_metric in experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"].items():
+                metrics_dic[key_metric_name].append(value_metric)
+        dic_method = {key_method: {"n_classes": n_classes, "x_axis_values": x_axis_values, **metrics_dic}}
+        # dic_method[key_method].update({key_metric_name: value_metric})
+        visual_data_dic.update(dic_method)
+
+    visual_data_dic_datasets.update({key_dataset_name: visual_data_dic})
+
+# delete
+"""visual_data_dic_datasets = {}
 for key_dataset_name, experiment_details_dic_all_methods in experiment_details_dic_all_methods_dataset.items():
     n_classes = dataset_n_class_dic[key_dataset_name]
 
@@ -489,9 +612,7 @@ for key_dataset_name, experiment_details_dic_all_methods in experiment_details_d
                                    "n_classes": n_classes, "x_axis_values": x_axis_values}}  # "n_max_sample": n_sample_per_class, "n_total_samples": n_total_samples,
         visual_data_dic.update(dic_method)
 
-    visual_data_dic_datasets.update({key_dataset_name: visual_data_dic})
-
-
+    visual_data_dic_datasets.update({key_dataset_name: visual_data_dic})"""
 
 
 ### Disaggregated metrics per dataset
@@ -502,6 +623,8 @@ metrics_all_dic = {}
 for key_dataset, value_dataset in visual_data_dic_datasets_cl.items():
     # delete unnecessary column
     [visual_data_dic_datasets_cl[key_dataset][key_method].pop("n_classes", None) for key_method, value_method in visual_data_dic_datasets_cl[key_dataset].items()]
+    [visual_data_dic_datasets_cl[key_dataset][key_method].pop("f1_micro_mean", None) for key_method, value_method in visual_data_dic_datasets_cl[key_dataset].items()]
+    [visual_data_dic_datasets_cl[key_dataset][key_method].pop("f1_micro_std", None) for key_method, value_method in visual_data_dic_datasets_cl[key_dataset].items()]
     # round numbers
     for key_method, value_method in visual_data_dic_datasets_cl[key_dataset].items():
         for key_metric, value_metric in visual_data_dic_datasets_cl[key_dataset][key_method].items():
@@ -510,12 +633,16 @@ for key_dataset, value_dataset in visual_data_dic_datasets_cl.items():
     # build df
     df_metrics_all_dataset = pd.DataFrame(data=visual_data_dic_datasets_cl[key_dataset]).round(3)
     df_metrics_all_dataset = df_metrics_all_dataset.rename(index={'x_axis_values': 'n_sample'})
-    df_metrics_all_dataset = df_metrics_all_dataset.reindex(["n_sample", "f1_macro_mean", "f1_micro_mean", "accuracy_balanced_mean", "f1_macro_std", "f1_micro_std", "accuracy_balanced_std"])
+    metrics_ordered_lst = ["f1_macro_mean", "accuracy/f1_micro_mean", "accuracy_balanced_mean", "recall_macro_mean", "recall_micro_mean",
+                            "precision_macro_mean", "precision_micro_mean", "cohen_kappa_mean", "matthews_corrcoef_mean",
+                            "f1_macro_std", "accuracy/f1_micro_std", "accuracy_balanced_std", "recall_macro_std", "recall_micro_std",
+                            "precision_macro_std", "precision_micro_std", "cohen_kappa_std", "matthews_corrcoef_std"]
+    df_metrics_all_dataset = df_metrics_all_dataset.reindex(["n_sample"] + metrics_ordered_lst)
 
     n_sample = df_metrics_all_dataset.loc["n_sample"][0]
     df_metrics_all_dataset = df_metrics_all_dataset.drop("n_sample")
     df_metrics_all_dataset = df_metrics_all_dataset.explode(list(df_metrics_all_dataset.columns))
-    df_metrics_all_dataset["n_sample"] = 6 * n_sample
+    df_metrics_all_dataset["n_sample"] = len(metrics_ordered_lst) * n_sample
     df_metrics_all_dataset = df_metrics_all_dataset[['n_sample', 'logistic_tfidf', 'SVM_tfidf', 'logistic_embeddings', 'SVM_embeddings', 'deberta-v3-base', 'DeBERTa-v3-base-mnli-fever-docnli-ling-2c']]
     df_metrics_all_dataset = df_metrics_all_dataset.rename(columns={'DeBERTa-v3-base-mnli-fever-docnli-ling-2c': 'deberta-v3-nli'})
     metrics_all_dic.update({key_dataset: df_metrics_all_dataset})
@@ -537,7 +664,7 @@ simple_algo_names_dic = {"logistic_tfidf": "logistic_tfidf", "logistic_embedding
 
 df_metrics_lst = []
 df_std_lst = []
-for metric in ["f1_macro", "f1_micro", "accuracy_balanced"]:
+for metric in metrics_all_name:  #["f1_macro", "f1_micro", "accuracy_balanced"]:
     col_dataset = []
     col_algo = []
     col_f1_macro = []
@@ -572,7 +699,7 @@ datasets_5000 = ["cap-us-court", "coronanet", "cap-sotu", "manifesto-8"]
 datasets_10000 = ["coronanet", "cap-sotu", "manifesto-8"]
 
 df_metrics_mean_dic = {}
-for i, metric in enumerate(["f1_macro", "f1_micro", "accuracy_balanced"]):
+for i, metric in enumerate(metrics_all_name):
     df_metrics_mean_all = df_metrics_lst[i][df_metrics_lst[i].dataset.isin(datasets_all)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["0 (8 datasets)", "100 (8 datasets)", "500 (8 datasets)", "1000 (8 datasets)", "2500 (8 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
     df_metrics_mean_medium = df_metrics_lst[i][df_metrics_lst[i].dataset.isin(datasets_5000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["5000 (4 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
     df_metrics_mean_large = df_metrics_lst[i][df_metrics_lst[i].dataset.isin(datasets_10000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["10000 (3 datasets)"]]
@@ -589,7 +716,7 @@ for i, metric in enumerate(["f1_macro", "f1_micro", "accuracy_balanced"]):
 
 ## comparing performance for 4 datasets that go up to 5000, for statement "similar performance 500 vs. 5000"
 df_metrics_mean_4ds_dic = {}
-for i, metric in enumerate(["f1_macro", "f1_micro", "accuracy_balanced"]):
+for i, metric in enumerate(metrics_all_name):
     df_metrics_mean_4ds = df_metrics_lst[i][df_metrics_lst[i].dataset.isin(datasets_5000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)
     # add row with best classical algo value
     df_metrics_mean_4ds.loc["classical-best-tfidf"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean_4ds.loc["SVM_tfidf"], df_metrics_mean_4ds.loc["logistic_tfidf"])]
@@ -603,7 +730,7 @@ for i, metric in enumerate(["f1_macro", "f1_micro", "accuracy_balanced"]):
 
 ## difference in performance
 df_metrics_difference_dic = {}
-for i, metric in enumerate(["f1_macro", "f1_micro", "accuracy_balanced"]):
+for i, metric in enumerate(metrics_all_name):
     df_metrics_difference = pd.DataFrame(data={
         #"BERT-base vs. SVM": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["SVM"],
         #"BERT-base vs. Log. Reg.": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["logistic regression"],
@@ -623,16 +750,15 @@ for i, metric in enumerate(["f1_macro", "f1_micro", "accuracy_balanced"]):
     df_metrics_difference.index.name = "Sample size"
     df_metrics_difference_dic.update({metric: df_metrics_difference.round(3)})
 
-df_metrics_mean_dic["f1_macro"].to_excel("./appendix/f1-macro-mean.xlsx")
-df_metrics_mean_dic["f1_micro"].to_excel("./appendix/f1-micro-mean.xlsx")
-df_metrics_mean_dic["accuracy_balanced"].to_excel("./appendix/accuracy-balanced-mean.xlsx")
-df_metrics_mean_4ds_dic["f1_macro"].to_excel("./appendix/f1-macro-mean-4ds.xlsx")
-df_metrics_mean_4ds_dic["f1_micro"].to_excel("./appendix/f1-micro-mean-4ds.xlsx")
-df_metrics_mean_4ds_dic["accuracy_balanced"].to_excel("./appendix/accuracy-balanced-mean-4ds.xlsx")
-df_metrics_difference_dic["f1_macro"].to_excel("./appendix/f1-macro-mean-difference.xlsx")
-df_metrics_difference_dic["f1_micro"].to_excel("./appendix/f1-micro-mean-difference.xlsx")
-df_metrics_difference_dic["accuracy_balanced"].to_excel("./appendix/accuracy-balanced-mean-difference.xlsx")
-
+## write to disk
+for metric in metrics_all_name:
+    if metric == "accuracy/f1_micro":
+        metric_path = "f1_micro"
+    else:
+        metric_path = metric
+    df_metrics_mean_dic[metric].to_excel(f"./appendix/mean_{metric_path}.xlsx")
+    df_metrics_mean_4ds_dic[metric].to_excel(f"./appendix/mean_4ds_{metric_path}.xlsx")
+    df_metrics_difference_dic[metric].to_excel(f"./appendix/mean_difference_{metric_path}.xlsx")
 
 
 
