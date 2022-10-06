@@ -438,6 +438,7 @@ dataset_n_class_dic = {"sentiment-news-econ": 2, "coronanet": 20, "cap-sotu": 22
 # based on reviewer feedback
 # testing different metrics from sklearn https://scikit-learn.org/stable/modules/model_evaluation.html#classification-metrics
 from sklearn.metrics import balanced_accuracy_score, precision_recall_fscore_support, accuracy_score, classification_report, cohen_kappa_score, matthews_corrcoef, roc_auc_score
+top_xth = 4
 def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
     ## metrics
     precision_macro, recall_macro, f1_macro, _ = precision_recall_fscore_support(label_gold, label_pred, average='macro')  # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_fscore_support.html
@@ -447,9 +448,9 @@ def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
     cohen_kappa = cohen_kappa_score(label_gold, label_pred)
     matthews = matthews_corrcoef(label_gold, label_pred)  # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.matthews_corrcoef.html#sklearn.metrics.matthews_corrcoef
     #roc_auc_macro = roc_auc_score(label_gold, label_pred, average='macro', multi_class='ovo')  # no possible because requires probabilites for predictions, but categorical ints, see https://stackoverflow.com/questions/61288972/axiserror-axis-1-is-out-of-bounds-for-array-of-dimension-1-when-calculating-auc;  https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score
-    ## manual calculation of per-class-average accuracy - to test equivalence with accuracy balanced from sklearn
-    # empirically confirmed that equivalent
-    """if not isinstance(label_gold, pd.core.series.Series):  # some label arrays are already series for some reason
+
+    ## manual calculation of per-class-average accuracy and per intervals (thirds)
+    if not isinstance(label_gold, pd.core.series.Series):  # some label arrays are already series for some reason
         eval_gold_df = pd.DataFrame(pd.Series(label_gold, name="labels"))
     else:
         eval_gold_df = pd.DataFrame(data={"labels": label_gold.reset_index(drop=True)})
@@ -457,31 +458,77 @@ def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
         eval_pred_df = pd.DataFrame(pd.Series(label_pred, name="labels"))
     else:
         eval_pred_df = pd.DataFrame(data={"labels": label_pred.reset_index(drop=True)})
-    accuracy_per_class_lst = []
+    # calculate balanced accuracy manually - same as recall-macro
+    """accuracy_per_class_dic = {}
     for group_name, group_df in eval_gold_df.groupby(by="labels"):
         label_gold_class_n = group_df
         label_pred_class_n = eval_pred_df[eval_pred_df.index.isin(group_df.index)]
-        accuracy_per_class_lst.append(accuracy_score(label_gold_class_n, label_pred_class_n))
-    accuracy_balanced_manual = np.mean(accuracy_per_class_lst)"""
+        accuracy_per_class_dic.update({str(group_name): accuracy_score(label_gold_class_n, label_pred_class_n)})
+    accuracy_balanced_manual = np.mean(list(accuracy_per_class_dic.values()))"""
+    # calculate non-balanced accuracy for top 3rd and bottom two 3rd
+    n_class_topshare = int(len(np.unique(eval_gold_df)) / top_xth)
+    if n_class_topshare == 0: n_class_topshare = 1  # if only two classes, then n_class_topshare is 0. then set it to 1
+    # top 3rd
+    labels_topshare = [weird_tuple[0] for weird_tuple in eval_gold_df.value_counts()[:n_class_topshare].index.values.tolist()]
+    eval_gold_df_topshare = eval_gold_df[eval_gold_df.labels.isin(labels_topshare)]
+    eval_pred_df_topshare = eval_pred_df[eval_pred_df.index.isin(eval_gold_df_topshare.index)]
+    accuracy_topshare = accuracy_score(eval_gold_df_topshare, eval_pred_df_topshare)
+    # bottom two thirds
+    labels_bottomrest = [weird_tuple[0] for weird_tuple in eval_gold_df.value_counts()[n_class_topshare:].index.values.tolist()]
+    eval_gold_df_bottomrest = eval_gold_df[eval_gold_df.labels.isin(labels_bottomrest)]
+    eval_pred_df_bottomrest = eval_pred_df[eval_pred_df.index.isin(eval_gold_df_bottomrest.index)]
+    accuracy_bottomrest = accuracy_score(eval_gold_df_bottomrest, eval_pred_df_bottomrest)
+
+    ## calculate F1 for high N classes (top 3rd) and low N class (bottom two 3rds) separately to see impact of class size on metrics
+    class_report = classification_report(label_gold, label_pred, output_dict=True, digits=2)
+    class_report = {k: v for k, v in class_report.items() if k not in ["accuracy", "macro avg", "weighted avg"]}  # remove overall aggregate metrics and only maintain per-class metrics
+    class_report = dict(sorted(class_report.items(), key=lambda item: item[1]["support"], reverse=True))  # order report from highest to lowest support (examples per class)
+    #class_report = {"0": {"precision": "test", "support": 1}, "1": {"precision": "test", "support": 9}, "2": {"precision": "test", "support": 5}, "3": {"precision": "test", "support": 99}}
+    #class_report = dict(sorted(class_report.items(), key=lambda item: item[1]["support"]))
+    # add per-class accuracy - is equivalent to per-class recall
+    #class_report = {key_class_name: {**value_class_metrics, "accuracy": accuracy_per_class_dic[key_class_name]} for key_class_name, value_class_metrics in class_report.items()}
+    n_class_topshare = int(len(class_report) / top_xth)
+    if n_class_topshare == 0: n_class_topshare = 1  # if only two classes, then n_class_topshare is 0. then set it to 1
+    class_report_topshare = {k: class_report[k] for k in list(class_report)[:n_class_topshare]}
+    class_report_bottomrest = {k: class_report[k] for k in list(class_report)[n_class_topshare:]}
+    f1_macro_topshare = np.mean([value_class_metrics["f1-score"] for key_class, value_class_metrics in class_report_topshare.items()])
+    f1_macro_bottomrest = np.mean([value_class_metrics["f1-score"] for key_class, value_class_metrics in class_report_bottomrest.items()])
+    recall_macro_topshare = np.mean([value_class_metrics["recall"] for key_class, value_class_metrics in class_report_topshare.items()])
+    recall_macro_bottomrest = np.mean([value_class_metrics["recall"] for key_class, value_class_metrics in class_report_bottomrest.items()])
+    precision_macro_topshare = np.mean([value_class_metrics["precision"] for key_class, value_class_metrics in class_report_topshare.items()])
+    precision_macro_bottomrest = np.mean([value_class_metrics["precision"] for key_class, value_class_metrics in class_report_bottomrest.items()])
 
     metrics = {'f1_macro': f1_macro,
-            'accuracy/f1_micro': f1_micro,
-            #'accuracy': acc_not_balanced,
-            'accuracy_balanced': acc_balanced,
-            #'accuracy_balanced_manual': accuracy_balanced_manual,  # confirmed that same as sklearn
-            'recall_macro': recall_macro,
-            'recall_micro': recall_micro,
-            'precision_macro': precision_macro,
-            'precision_micro': precision_micro,
-            'cohen_kappa': cohen_kappa,
-            'matthews_corrcoef': matthews,
-            #'roc_auc_macro': roc_auc_macro
-            }
+               f'f1_macro_top{top_xth}th': f1_macro_topshare,
+               f'f1_macro_rest': f1_macro_bottomrest,
+               'accuracy/f1_micro': f1_micro,
+               #'accuracy': acc_not_balanced,
+               'accuracy_balanced': acc_balanced,
+               f"accuracy_top{top_xth}th": accuracy_topshare,
+               "accuracy_rest": accuracy_bottomrest,
+               #'accuracy_balanced_manual': accuracy_balanced_manual,  # confirmed that same as sklearn
+               'recall_macro': recall_macro,
+               'recall_micro': recall_micro,
+               f'recall_macro_top{top_xth}th': recall_macro_topshare,
+               'recall_macro_rest': recall_macro_bottomrest,
+               'precision_macro': precision_macro,
+               'precision_micro': precision_micro,
+               f'precision_macro_top{top_xth}th': precision_macro_topshare,
+               'precision_macro_rest': precision_macro_bottomrest,
+               'cohen_kappa': cohen_kappa,
+               'matthews_corrcoef': matthews,
+               #'roc_auc_macro': roc_auc_macro
+               }
+
     return metrics
 
+metrics_all_name = ['f1_macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",  'accuracy/f1_micro', 'accuracy_balanced',
+                    'recall_macro', 'recall_micro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',   # 'accuracy_balanced_manual',
+                    'precision_macro', 'precision_micro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',
+                    f"accuracy_top{top_xth}th", "accuracy_rest",
+                    'cohen_kappa', 'matthews_corrcoef']
 
-metrics_all_name = ['f1_macro', 'accuracy/f1_micro', 'accuracy_balanced', 'recall_macro', 'recall_micro',   # 'accuracy_balanced_manual',
-                    'precision_macro', 'precision_micro',  'cohen_kappa', 'matthews_corrcoef']
+
 
 for key_dataset_name, experiment_details_dic_all_methods in experiment_details_dic_all_methods_dataset.items():
     for method in experiment_details_dic_all_methods.keys():
@@ -633,10 +680,11 @@ for key_dataset, value_dataset in visual_data_dic_datasets_cl.items():
     # build df
     df_metrics_all_dataset = pd.DataFrame(data=visual_data_dic_datasets_cl[key_dataset]).round(3)
     df_metrics_all_dataset = df_metrics_all_dataset.rename(index={'x_axis_values': 'n_sample'})
-    metrics_ordered_lst = ["f1_macro_mean", "accuracy/f1_micro_mean", "accuracy_balanced_mean", "recall_macro_mean", "recall_micro_mean",
-                            "precision_macro_mean", "precision_micro_mean", "cohen_kappa_mean", "matthews_corrcoef_mean",
-                            "f1_macro_std", "accuracy/f1_micro_std", "accuracy_balanced_std", "recall_macro_std", "recall_micro_std",
-                            "precision_macro_std", "precision_micro_std", "cohen_kappa_std", "matthews_corrcoef_std"]
+    #metrics_ordered_lst = ["f1_macro_mean", "accuracy/f1_micro_mean", "accuracy_balanced_mean", "recall_macro_mean", "recall_micro_mean",
+    #                        "precision_macro_mean", "precision_micro_mean", "cohen_kappa_mean", "matthews_corrcoef_mean",
+    #                        "f1_macro_std", "accuracy/f1_micro_std", "accuracy_balanced_std", "recall_macro_std", "recall_micro_std",
+    #                        "precision_macro_std", "precision_micro_std", "cohen_kappa_std", "matthews_corrcoef_std"]
+    metrics_ordered_lst = [metric_name + "_mean" for metric_name in metrics_all_name] + [metric_name + "_std" for metric_name in metrics_all_name]
     df_metrics_all_dataset = df_metrics_all_dataset.reindex(["n_sample"] + metrics_ordered_lst)
 
     n_sample = df_metrics_all_dataset.loc["n_sample"][0]
