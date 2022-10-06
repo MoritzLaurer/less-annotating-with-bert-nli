@@ -183,6 +183,9 @@ print(DATASET_NAME)
 n_sample_dev_filt = [sample for sample in N_SAMPLE_DEV if sample < len(df_train)]
 if len(df_train) < N_SAMPLE_DEV[-1]:
   n_sample_dev_filt = n_sample_dev_filt + [len(df_train)]
+  if len(n_sample_dev_filt) > 1:
+    if n_sample_dev_filt[-1] == n_sample_dev_filt[-2]:  # if last two sample sizes are duplicates, delete the last one
+      n_sample_dev_filt = n_sample_dev_filt[:-1]
 N_SAMPLE_DEV = n_sample_dev_filt
 print("Final sample size intervals: ", N_SAMPLE_DEV)
 

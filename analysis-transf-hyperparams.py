@@ -188,6 +188,9 @@ if DATASET_NAME == "manifesto-8":
 n_sample_dev_filt = [sample for sample in N_SAMPLE_DEV if sample < len(df_train)]
 if len(df_train) < N_SAMPLE_DEV[-1]:
   n_sample_dev_filt = n_sample_dev_filt + [len(df_train)]
+  if len(n_sample_dev_filt) > 1:
+    if n_sample_dev_filt[-1] == n_sample_dev_filt[-2]:  # if last two sample sizes are duplicates, delete the last one
+      n_sample_dev_filt = n_sample_dev_filt[:-1]
 N_SAMPLE_DEV = n_sample_dev_filt
 print("Final sample size intervals: ", N_SAMPLE_DEV)
 
@@ -282,8 +285,8 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
   if METHOD == "nli":
     hyperparam_epochs = {"num_train_epochs": trial.suggest_int("num_train_epochs", EPOCHS_LOW, EPOCHS_HIGH, log=False, step=2)}
     hyperparam_lr_scheduler = {"lr_scheduler_type": "linear"}
-    #hyperparam_warmup = {"warmup_ratio":  trial.suggest_categorical("warmup_ratio", [0.05, 0.25, 0.5])}  # only tested this for hyperparam search on 2500 samp
-    hyperparam_warmup = {"warmup_ratio":  0.06}
+    hyperparam_warmup = {"warmup_ratio":  trial.suggest_categorical("warmup_ratio", [0.06, 0.20, 0.40, 60])}   # only tested this for hyperparam search on 2500 samp
+    #hyperparam_warmup = {"warmup_ratio":  0.06}
   elif METHOD == "standard_dl":
     hyperparam_epochs = {"num_train_epochs": trial.suggest_int("num_train_epochs", EPOCHS_LOW, EPOCHS_HIGH, log=False, step=10)}
     hyperparam_lr_scheduler = {"lr_scheduler_type": "constant"}
@@ -410,6 +413,15 @@ for n_sample in tqdm.tqdm(N_SAMPLE_DEV):
   while len(str(n_sample)) <= 4:
     n_sample = "0" + str(n_sample)
   joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
+
+  ## copy some hps for higher sample sizes to save compute
+  if n_sample == "05000":
+    joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_10000samp_{HYPERPARAM_STUDY_DATE}.pkl")
+  if (n_sample == "02500") and (DATASET_NAME == "cap-us-court"):  # dataset is particularly slow and benefit of additional hp-search is unclear
+    joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_05000samp_{HYPERPARAM_STUDY_DATE}.pkl")
+    joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_05426samp_{HYPERPARAM_STUDY_DATE}.pkl")
+  if (n_sample == "02500") and (DATASET_NAME == "sentiment-news-econ"):  # slow dataset, small data size difference between intervals
+    joblib.dump(hp_study_dic_step, f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_03000samp_{HYPERPARAM_STUDY_DATE}.pkl")
 
 
 ## stop carbon tracker
