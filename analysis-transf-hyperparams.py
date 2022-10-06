@@ -285,7 +285,7 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
   if METHOD == "nli":
     hyperparam_epochs = {"num_train_epochs": trial.suggest_int("num_train_epochs", EPOCHS_LOW, EPOCHS_HIGH, log=False, step=3)}
     hyperparam_lr_scheduler = {"lr_scheduler_type": "linear"}
-    hyperparam_warmup = {"warmup_ratio":  trial.suggest_categorical("warmup_ratio", [0.06, 0.20, 0.40, 60])}   # only tested this for hyperparam search on 2500 samp
+    hyperparam_warmup = {"warmup_ratio":  trial.suggest_categorical("warmup_ratio", [0.06, 0.2, 0.4, 0.6])}   # only tested this for hyperparam search on 2500 samp
     #hyperparam_warmup = {"warmup_ratio":  0.06}
   elif METHOD == "standard_dl":
     hyperparam_epochs = {"num_train_epochs": trial.suggest_int("num_train_epochs", EPOCHS_LOW, EPOCHS_HIGH, log=False, step=10)}
