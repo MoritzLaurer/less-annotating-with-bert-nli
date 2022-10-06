@@ -382,13 +382,13 @@ simple_algo_names_dic = {"logistic_tfidf": "logistic_tfidf", "logistic_embedding
                          }
 
 ### iterate over all datasets
-i = 0
 subplot_titles = ["Sentiment News (2 class)", "CoronaNet (20 class)", "CAP SotU (22 class)", "CAP US Court (20 class)", "Manifesto (8 class)", #"Manifesto Simple (44 class)",
                   "Manifesto Military (3 class)", "Manifesto Protectionism (3 class)", "Manifesto Morality (3 class)"]
 fig = make_subplots(rows=3, cols=3, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
                     subplot_titles=subplot_titles,
                     x_title="Number of random training examples", y_title=METRIC)
 
+i = 0
 for key_dataset_name, visual_data_dic in visual_data_dic_datasets.items():
   ## for one dataset, create one figure
   # determine position of subplot
@@ -723,7 +723,7 @@ for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "acc
             row=i_row, col=i_col
         )
         # add standard deviation
-        upper_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) + pd.Series(df_std_mean_lst[i].loc[algo])
+        upper_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) + pd.Series(df_std_mean_dic[metric_i].loc[algo])
         fig_compare.add_trace(go.Scatter(
             name=f'Upper Bound {algo}',
             x=[0, 100, 500, 1000, 2500],  #visual_data_dic[algo]["x_axis_values"] if "nli" in algo else visual_data_dic[algo]["x_axis_values"][1:],
@@ -735,7 +735,7 @@ for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "acc
             ),
             row=i_row, col=i_col
         )
-        lower_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) - pd.Series(df_std_mean_lst[i].loc[algo])
+        lower_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) - pd.Series(df_std_mean_dic[metric_i].loc[algo])
         fig_compare.add_trace(go.Scatter(
             name=f'Lower Bound {algo}',
             x=[0, 100, 500, 1000, 2500],  #visual_data_dic[algo]["x_axis_values"] if "nli" in algo else visual_data_dic[algo]["x_axis_values"][1:],
