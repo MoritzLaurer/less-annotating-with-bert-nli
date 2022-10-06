@@ -17,7 +17,7 @@ print(os.getcwd())
 if os.getcwd() != "/Users/moritzlaurer/Dropbox/PhD/Papers/nli/snellius/NLI-experiments":
     os.chdir("./NLI-experiments")
 
-## !! fix necessary: remove multiple results from different dates from results folder (final best option), or make this appendix script handle multiple dates
+## !! fix necessary: remove multiple results from different dates from results folder (final best option!) (both for hp-search and results, ((or make this appendix script handle multiple dates))
 
 
 ##### 1. appendix
@@ -115,7 +115,7 @@ path_files_lst = [path_files for path_files in path_files_lst if "experiment" no
 path_files_lst = [path_files for path_files in path_files_lst if "logistic" not in path_files]
 path_files_lst = [path_files for path_files in path_files_lst if "SVM" not in path_files]
 
-# exclude hyperparameter dictionaries which are just copies from smaller sample runs to save compute
+# exclude hyperparameter dictionaries which are just copies from smaller sample runs (some don't have hp-search to save compute)
 hyperparams_copies = [# no search after 2500
                       'results/sentiment-news-econ/optuna_study_deberta-v3-base_03000samp_20220428.pkl',
                       'results/sentiment-news-econ/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_03000samp_20220429.pkl',
