@@ -283,7 +283,7 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
   np.random.seed(SEED_GLOBAL)  # don't understand why this needs to be run here at each iteration. it should stay constant once set globally?! Explanation could be this: https://towardsdatascience.com/stop-using-numpy-random-seed-581a9972805f
 
   if METHOD == "nli":
-    hyperparam_epochs = {"num_train_epochs": trial.suggest_int("num_train_epochs", EPOCHS_LOW, EPOCHS_HIGH, log=False, step=2)}
+    hyperparam_epochs = {"num_train_epochs": trial.suggest_int("num_train_epochs", EPOCHS_LOW, EPOCHS_HIGH, log=False, step=3)}
     hyperparam_lr_scheduler = {"lr_scheduler_type": "linear"}
     hyperparam_warmup = {"warmup_ratio":  trial.suggest_categorical("warmup_ratio", [0.06, 0.20, 0.40, 60])}   # only tested this for hyperparam search on 2500 samp
     #hyperparam_warmup = {"warmup_ratio":  0.06}
@@ -308,7 +308,7 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
     #"per_device_train_batch_size": 8,
     #"warmup_ratio": 0.06,  # hf default: 0  # FB paper uses 0.0
     "weight_decay": 0.05,
-    "per_device_eval_batch_size": 128,  # increase eval speed
+    "per_device_eval_batch_size": 160,  # increase eval speed
     #"gradient_accumulation_steps": 2,
   }
 
@@ -346,6 +346,7 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
   # cross-validation loop. Objective: determine F1 for specific sample for specific hyperparams, without a test set
   run_info_dic_lst = []
   for step_i, random_seed_cross_val in enumerate(np.random.choice(range(1000), size=CROSS_VALIDATION_REPETITIONS_HYPERPARAM)):
+    np.random.seed(SEED_GLOBAL)
     df_train_samp, df_dev_samp = data_preparation(random_seed=random_seed_cross_val, df_train=df_train, df=df,
                                                   hypothesis_template=hypothesis_template, 
                                                   hypo_label_dic=hypothesis_hyperparams_dic[hypothesis_template], 

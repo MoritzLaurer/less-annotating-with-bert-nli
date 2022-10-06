@@ -392,6 +392,7 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
   # cross-validation loop. Objective: determine F1 for specific sample for specific hyperparams, without a test set
   run_info_dic_lst = []
   for step_i, random_seed_cross_val in enumerate(np.random.choice(range(1000), size=CROSS_VALIDATION_REPETITIONS_HYPERPARAM)):
+    np.random.seed(SEED_GLOBAL)
     df_train_samp, df_dev_samp = data_preparation(random_seed=random_seed_cross_val, df_train=df_train, df=df,
                                                   hypothesis_template=hypothesis_template, 
                                                   hypo_label_dic=hypothesis_hyperparams_dic[hypothesis_template], 

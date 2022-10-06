@@ -182,7 +182,9 @@ if len(df_train) < N_SAMPLE_DEV[-1]:
 N_SAMPLE_DEV = n_sample_dev_filt
 print("Final sample size intervals: ", N_SAMPLE_DEV)
 
-"""N_SAMPLE_DEV = [5000, 5555]
+"""
+# tests for code above
+N_SAMPLE_DEV = [5000, 5555]
 len_df_train = 5555
 n_sample_dev_filt = [sample for sample in N_SAMPLE_DEV if sample <= len_df_train]
 if len_df_train < N_SAMPLE_DEV[-1]:
