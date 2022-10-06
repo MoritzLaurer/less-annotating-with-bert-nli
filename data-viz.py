@@ -521,9 +521,9 @@ fig.show(renderer="browser")
 ## extract metrics to create df comparing performance per dataset per algo
 # ! careful: not all datasets have 2500 data points, so if it says 2500, this includes 2116 for protectionism (and less full samples for higher intervals)
 
-df_metrics_lst = []
-df_std_lst = []
-for metric in metrics_all_name:  #["f1_macro", "f1_micro", "accuracy_balanced"]:
+df_metrics_dic = {}
+df_std_dic = {}
+for metric_name in metrics_all_name:  #["f1_macro", "f1_micro", "accuracy_balanced"]:
     col_dataset = []
     col_algo = []
     #col_f1_macro = []
@@ -537,9 +537,9 @@ for metric in metrics_all_name:  #["f1_macro", "f1_micro", "accuracy_balanced"]:
             col_dataset.append(key_dataset)
             col_algo.append(simple_algo_names_dic[key_algo])
             for i, k in enumerate(cols_metrics_dic.keys()):
-                if len(visual_data_dic_datasets[key_dataset][key_algo][f"{metric}_mean"]) > i:
-                    cols_metrics_dic[k].append(visual_data_dic_datasets[key_dataset][key_algo][f"{metric}_mean"][i])
-                    cols_std_dic[k].append(visual_data_dic_datasets[key_dataset][key_algo][f"{metric}_std"][i])
+                if len(visual_data_dic_datasets[key_dataset][key_algo][f"{metric_name}_mean"]) > i:
+                    cols_metrics_dic[k].append(visual_data_dic_datasets[key_dataset][key_algo][f"{metric_name}_mean"][i])
+                    cols_std_dic[k].append(visual_data_dic_datasets[key_dataset][key_algo][f"{metric_name}_std"][i])
                 else:
                     cols_metrics_dic[k].append(np.nan)
                     cols_std_dic[k].append(np.nan)
@@ -547,8 +547,8 @@ for metric in metrics_all_name:  #["f1_macro", "f1_micro", "accuracy_balanced"]:
     ## create aggregate metric dfs
     df_metrics = pd.DataFrame(data={"dataset": col_dataset, "algorithm": col_algo, **cols_metrics_dic})
     df_std = pd.DataFrame(data={"dataset": col_dataset, "algorithm": col_algo, **cols_std_dic})
-    df_metrics_lst.append(df_metrics)
-    df_std_lst.append(df_std)
+    df_metrics_dic.update({metric_name: df_metrics})
+    df_std_dic.update({metric_name: df_std})
 
 
 ## subset average metrics by dataset size
@@ -556,11 +556,11 @@ datasets_all = ["sentiment-news-econ", "cap-us-court", "manifesto-military", "ma
 datasets_5000 = ["cap-us-court", "coronanet", "cap-sotu", "manifesto-8"]
 datasets_10000 = ["coronanet", "cap-sotu", "manifesto-8"]
 
-df_metrics_mean_lst = []
-for i in range(len(metrics_all_name)):
-    df_metrics_mean_all = df_metrics_lst[i][df_metrics_lst[i].dataset.isin(datasets_all)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["0\n(8 datasets)", "100\n(8 datasets)", "500\n(8 datasets)", "1000\n(8 datasets)", "2500\n(8 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
-    df_metrics_mean_medium = df_metrics_lst[i][df_metrics_lst[i].dataset.isin(datasets_5000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["5000\n(4 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
-    df_metrics_mean_large = df_metrics_lst[i][df_metrics_lst[i].dataset.isin(datasets_10000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["10000\n(3 datasets)"]]
+df_metrics_mean_dic = {}
+for i, metric_name in enumerate(metrics_all_name):
+    df_metrics_mean_all = df_metrics_dic[metric_name][df_metrics_dic[metric_name].dataset.isin(datasets_all)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["0\n(8 datasets)", "100\n(8 datasets)", "500\n(8 datasets)", "1000\n(8 datasets)", "2500\n(8 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
+    df_metrics_mean_medium = df_metrics_dic[metric_name][df_metrics_dic[metric_name].dataset.isin(datasets_5000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["5000\n(4 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
+    df_metrics_mean_large = df_metrics_dic[metric_name][df_metrics_dic[metric_name].dataset.isin(datasets_10000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["10000\n(3 datasets)"]]
     #df_metrics_mean_all = df_metrics.groupby(by="algorithm", as_index=True).apply(np.mean).round(4)
     df_metrics_mean = pd.concat([df_metrics_mean_all, df_metrics_mean_medium, df_metrics_mean_large], axis=1)
     # add row with best classical algo value
@@ -570,45 +570,40 @@ for i in range(len(metrics_all_name)):
     order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embeddings", "BERT-base", "BERT-base-nli"]
     df_metrics_mean = df_metrics_mean.reindex(order_algos)
     df_metrics_mean.index.name = "Sample size /\nAlgorithm"
-    df_metrics_mean_lst.append(df_metrics_mean)
+    df_metrics_mean_dic.update({metric_name: df_metrics_mean})
 
 # average standard deviation
-df_std_mean_lst = []
-for i in range(len(metrics_all_name)):
-    df_std_mean_all = df_std_lst[i][df_std_lst[i].dataset.isin(datasets_all)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["0\n(8 datasets)", "100\n(8 datasets)", "500\n(8 datasets)", "1000\n(8 datasets)", "2500\n(8 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
-    df_std_mean_medium = df_std_lst[i][df_std_lst[i].dataset.isin(datasets_5000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["5000\n(4 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
-    df_std_mean_large = df_std_lst[i][df_std_lst[i].dataset.isin(datasets_10000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["10000\n(3 datasets)"]]
+df_std_mean_dic = {}
+for i, metric_name in enumerate(metrics_all_name):
+    df_std_mean_all = df_std_dic[metric_name][df_std_dic[metric_name].dataset.isin(datasets_all)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["0\n(8 datasets)", "100\n(8 datasets)", "500\n(8 datasets)", "1000\n(8 datasets)", "2500\n(8 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
+    df_std_mean_medium = df_std_dic[metric_name][df_std_dic[metric_name].dataset.isin(datasets_5000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["5000\n(4 datasets)"]]   #.iloc[:,:-1]  # drop last column, is only us-court
+    df_std_mean_large = df_std_dic[metric_name][df_std_dic[metric_name].dataset.isin(datasets_10000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)[["10000\n(3 datasets)"]]
     #df_std_mean_all = df_std.groupby(by="algorithm", as_index=True).apply(np.mean).round(4)
     df_std_mean = pd.concat([df_std_mean_all, df_std_mean_medium, df_std_mean_large], axis=1)
     # add std for best classical algo. need to go into df_metrics_mean
-    df_std_mean.loc["classical-best-tfidf"] = [svm_std if max(svm_metric, lr_metric) == svm_metric else lr_std for svm_metric, lr_metric, svm_std, lr_std in zip(df_metrics_mean_lst[i].loc["SVM_tfidf"], df_metrics_mean_lst[i].loc["logistic_tfidf"], df_std_mean.loc["SVM_tfidf"], df_std_mean.loc["logistic_tfidf"])]
-    df_std_mean.loc["classical-best-embeddings"] = [svm_std if max(svm_metric, lr_metric) == svm_metric else lr_std for svm_metric, lr_metric, svm_std, lr_std in zip(df_metrics_mean_lst[i].loc["SVM_embeddings"], df_metrics_mean_lst[i].loc["logistic_embeddings"], df_std_mean.loc["SVM_embeddings"], df_std_mean.loc["logistic_embeddings"])]
+    df_std_mean.loc["classical-best-tfidf"] = [svm_std if max(svm_metric, lr_metric) == svm_metric else lr_std for svm_metric, lr_metric, svm_std, lr_std in zip(df_metrics_mean_dic[metric_name].loc["SVM_tfidf"], df_metrics_mean_dic[metric_name].loc["logistic_tfidf"], df_std_mean.loc["SVM_tfidf"], df_std_mean.loc["logistic_tfidf"])]
+    df_std_mean.loc["classical-best-embeddings"] = [svm_std if max(svm_metric, lr_metric) == svm_metric else lr_std for svm_metric, lr_metric, svm_std, lr_std in zip(df_metrics_mean_dic[metric_name].loc["SVM_embeddings"], df_metrics_mean_dic[metric_name].loc["logistic_embeddings"], df_std_mean.loc["SVM_embeddings"], df_std_mean.loc["logistic_embeddings"])]
     # order rows
     order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embeddings", "BERT-base", "BERT-base-nli"]
     df_std_mean = df_std_mean.reindex(order_algos)
     df_std_mean.index.name = "Sample size /\nAlgorithm"
-    df_std_mean_lst.append(df_std_mean)
+    df_std_mean_dic.update({metric_name: df_std_mean})
 
 
 ## difference in performance
-df_metrics_difference_lst = []
-for i in range(len(metrics_all_name)):
+df_metrics_difference_dic = {}
+for i, metric_name in enumerate(metrics_all_name):
     df_metrics_difference = pd.DataFrame(data={
-        #"BERT-base vs. SVM": df_metrics_mean_lst[i].loc["BERT-base"] - df_metrics_mean_lst[i].loc["SVM"],
-        #"BERT-base vs. Log. Reg.": df_metrics_mean_lst[i].loc["BERT-base"] - df_metrics_mean_lst[i].loc["logistic regression"],
-        "BERT-base vs. classical-best-tfidf": df_metrics_mean_lst[i].loc["BERT-base"] - df_metrics_mean_lst[i].loc["classical-best-tfidf"],
-        "BERT-base vs. classical-best-embeddings": df_metrics_mean_lst[i].loc["BERT-base"] - df_metrics_mean_lst[i].loc["classical-best-embeddings"],
-        #"BERT-base-nli vs. SVM": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["SVM"],
-        #"BERT-base-nli vs. Log. Reg.": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["logistic regression"],
-        "BERT-base-nli vs. classical-best-tfidf": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["classical-best-tfidf"],
-        "BERT-base-nli vs. classical-best-embeddings": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["classical-best-embeddings"],
-        "BERT-base-nli vs. BERT-base": df_metrics_mean_lst[i].loc["BERT-base-nli"] - df_metrics_mean_lst[i].loc["BERT-base"],
+        "BERT-base vs. classical-best-tfidf": df_metrics_mean_dic[metric_name].loc["BERT-base"] - df_metrics_mean_dic[metric_name].loc["classical-best-tfidf"],
+        "BERT-base vs. classical-best-embeddings": df_metrics_mean_dic[metric_name].loc["BERT-base"] - df_metrics_mean_dic[metric_name].loc["classical-best-embeddings"],
+        "BERT-base-nli vs. classical-best-tfidf": df_metrics_mean_dic[metric_name].loc["BERT-base-nli"] - df_metrics_mean_dic[metric_name].loc["classical-best-tfidf"],
+        "BERT-base-nli vs. classical-best-embeddings": df_metrics_mean_dic[metric_name].loc["BERT-base-nli"] - df_metrics_mean_dic[metric_name].loc["classical-best-embeddings"],
+        "BERT-base-nli vs. BERT-base": df_metrics_mean_dic[metric_name].loc["BERT-base-nli"] - df_metrics_mean_dic[metric_name].loc["BERT-base"],
        }).transpose()
     #df_metrics_difference = df_metrics_difference.applymap(lambda x: f"+{round(x, 2)}" if x > 0 else round(x, 2))
     #df_metrics_difference = df_metrics_difference.applymap(lambda x: round(x, 2))
     df_metrics_difference.index.name = "Sample size /\nComparison"
-    df_metrics_difference_lst.append(df_metrics_difference)
-
+    df_metrics_difference_dic.update({metric_name: df_metrics_difference})
 
 
 
@@ -619,24 +614,6 @@ algo_names_comparison = ["classical-best-tfidf", "classical-best-embeddings", "B
 
 ### average random baseline, changes depending on sample size, because less datasets included in higher sample size
 ## majority
-"""
-f1_macro_majority_average_all = np.mean([value["f1_macro_majority"] for key, value in metrics_baseline_dic.items()])
-f1_micro_majority_average_all = np.mean([value["f1_micro_majority"] for key, value in metrics_baseline_dic.items()])
-accuracy_balanced_majority_average_all = np.mean([value["accuracy_balanced_majority"] for key, value in metrics_baseline_dic.items()])
-f1_macro_majority_average_5000 = np.mean([value["f1_macro_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
-f1_micro_majority_average_5000 = np.mean([value["f1_micro_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
-accuracy_balanced_majority_average_5000 = np.mean([value["accuracy_balanced_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
-f1_macro_majority_average_10000 = np.mean([value["f1_macro_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
-f1_micro_majority_average_10000 = np.mean([value["f1_micro_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
-accuracy_balanced_majority_average_10000 = np.mean([value["accuracy_balanced_majority"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
-
-metrics_majority_dic = {
-    "f1_macro": [f1_macro_majority_average_all] * 5 + [f1_macro_majority_average_5000, f1_macro_majority_average_10000],
-    "f1_micro": [f1_micro_majority_average_all] * 5 + [f1_micro_majority_average_5000, f1_micro_majority_average_10000],
-    "accuracy_balanced": [accuracy_balanced_majority_average_all] * 5 + [accuracy_balanced_majority_average_5000, accuracy_balanced_majority_average_10000]
-}
-"""
-
 metric_majority_average_all_dic = {}
 metric_majority_average_5000_dic = {}
 metric_majority_average_10000_dic = {}
@@ -649,28 +626,7 @@ metrics_majority_dic = {}
 for metric in metrics_all_name:
     metrics_majority_dic.update({metric: [metric_majority_average_all_dic[metric]] * 5 + [metric_majority_average_5000_dic[metric], metric_majority_average_10000_dic[metric]]})
 
-
-################
-
 ## random
-"""
-f1_macro_random_average_all = np.mean([value["f1_macro_random"] for key, value in metrics_baseline_dic.items()])
-f1_micro_random_average_all = np.mean([value["f1_micro_random"] for key, value in metrics_baseline_dic.items()])
-accuracy_balanced_random_average_all = np.mean([value["accuracy_balanced_random"] for key, value in metrics_baseline_dic.items()])
-f1_macro_random_average_5000 = np.mean([value["f1_macro_random"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
-f1_micro_random_average_5000 = np.mean([value["f1_micro_random"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
-accuracy_balanced_random_average_5000 = np.mean([value["accuracy_balanced_random"] for key, value in metrics_baseline_dic.items() if key in datasets_5000])
-f1_macro_random_average_10000 = np.mean([value["f1_macro_random"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
-f1_micro_random_average_10000 = np.mean([value["f1_micro_random"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
-accuracy_balanced_random_average_10000 = np.mean([value["accuracy_balanced_random"] for key, value in metrics_baseline_dic.items() if key in datasets_10000])
-
-metrics_random_dic = {
-    "f1_macro": [f1_macro_random_average_all] * 5 + [f1_macro_random_average_5000, f1_macro_random_average_10000],
-    "f1_micro": [f1_micro_random_average_all] * 5 + [f1_micro_random_average_5000, f1_micro_random_average_10000],
-    "accuracy_balanced": [accuracy_balanced_random_average_all] * 5 + [accuracy_balanced_random_average_5000, accuracy_balanced_random_average_10000],
-}
-"""
-
 metric_random_average_all_dic = {}
 metric_random_average_5000_dic = {}
 metric_random_average_10000_dic = {}
@@ -686,13 +642,16 @@ for metric in metrics_all_name:
 
 
 ### create plot
-# ! removing sample size above 2500 because not comparable and visual more confusing
+# for annex
 metrics_all_name = ['f1_macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     'accuracy/f1_micro', f"accuracy_top{top_xth}th", "accuracy_rest",  #'accuracy_balanced',
                     'recall_macro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',  # 'recall_micro',
                     'precision_macro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',  #'precision_micro',
                     #'cohen_kappa', 'matthews_corrcoef'
                     ]
+# for main text
+metrics_all_name = ['f1_macro', 'accuracy_balanced', 'accuracy/f1_micro']
+
 
 subplot_titles_compare = metrics_all_name  #["f1_macro", "accuracy/f1_micro", "accuracy_balanced"]
 # determine max number of rows
@@ -752,7 +711,7 @@ for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "acc
         fig_compare.add_trace(go.Scatter(
             name=algo,
             x=[0, 100, 500, 1000, 2500],
-            y=df_metrics_mean_lst[i].loc[algo],  #df_metrics_mean_lst[i].loc[algo] if "nli" in algo else [np.nan] + df_metrics_mean_lst[i].loc[algo][1:].tolist(),
+            y=df_metrics_mean_dic[metric_i].loc[algo],  #df_metrics_mean_dic[metric_i].loc[algo] if "nli" in algo else [np.nan] + df_metrics_mean_dic[metric_i].loc[algo][1:].tolist(),
             mode='lines+markers',
             marker_symbol=marker,
             #marker_size=10,
@@ -764,7 +723,7 @@ for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "acc
             row=i_row, col=i_col
         )
         # add standard deviation
-        upper_bound_y = pd.Series(df_metrics_mean_lst[i].loc[algo]) + pd.Series(df_std_mean_lst[i].loc[algo])
+        upper_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) + pd.Series(df_std_mean_lst[i].loc[algo])
         fig_compare.add_trace(go.Scatter(
             name=f'Upper Bound {algo}',
             x=[0, 100, 500, 1000, 2500],  #visual_data_dic[algo]["x_axis_values"] if "nli" in algo else visual_data_dic[algo]["x_axis_values"][1:],
@@ -776,7 +735,7 @@ for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "acc
             ),
             row=i_row, col=i_col
         )
-        lower_bound_y = pd.Series(df_metrics_mean_lst[i].loc[algo]) - pd.Series(df_std_mean_lst[i].loc[algo])
+        lower_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) - pd.Series(df_std_mean_lst[i].loc[algo])
         fig_compare.add_trace(go.Scatter(
             name=f'Lower Bound {algo}',
             x=[0, 100, 500, 1000, 2500],  #visual_data_dic[algo]["x_axis_values"] if "nli" in algo else visual_data_dic[algo]["x_axis_values"][1:],
