@@ -45,7 +45,7 @@ python analysis-transf-run.py --dataset "cap-us-court" --sample_interval 2500 --
 
 ### 5000 & 10000 run (5426 max in this dataset)
 ## base-nli
-python analysis-transf-run.py --dataset "cap-us-court" --sample_interval 5000, 10000 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --n_cross_val_final 3 --hyperparam_study_date 20221006 --hyperparam_study_date 20221006 --carbon_tracking
+python analysis-transf-run.py --dataset "cap-us-court" --sample_interval 5000 10000 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --n_cross_val_final 3 --hyperparam_study_date 20221006 --carbon_tracking
 ## base-standard
-python analysis-transf-run.py --dataset "cap-us-court" --sample_interval 5000, 10000 --method "standard_dl" --model "microsoft/deberta-v3-base" --n_cross_val_final 3 --hyperparam_study_date 20221006 --hyperparam_study_date 20221006 --carbon_tracking
+python analysis-transf-run.py --dataset "cap-us-court" --sample_interval 5000 10000 --method "standard_dl" --model "microsoft/deberta-v3-base" --n_cross_val_final 3 --hyperparam_study_date 20221006 --carbon_tracking
 

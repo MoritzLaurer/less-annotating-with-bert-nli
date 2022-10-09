@@ -42,3 +42,13 @@ python analysis-transf-run.py --dataset "manifesto-morality" --sample_interval 2
 ## base-standard
 python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 30 100 --batch_size 8 16 --n_trials 14 --n_trials_sampling 7 --n_trials_pruning 5 --n_cross_val_hyperparam 2 --context --dataset "manifesto-morality" --sample_interval 2500 --method "standard_dl" --model "microsoft/deberta-v3-base" --hyperparam_study_date 20221006 --carbon_tracking
 python analysis-transf-run.py --dataset "manifesto-morality" --sample_interval 2500 --method "standard_dl" --model "microsoft/deberta-v3-base" --n_cross_val_final 3 --hyperparam_study_date 20221006 --carbon_tracking
+
+### run 5000 (3188)
+## base-nli
+python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 3 39 --batch_size 8 16 --n_trials 14 --n_trials_sampling 7 --n_trials_pruning 5 --n_cross_val_hyperparam 2 --context --dataset "manifesto-morality" --sample_interval 5000 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --hyperparam_study_date 20221006 --carbon_tracking
+python analysis-transf-run.py --dataset "manifesto-morality" --sample_interval 5000 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --n_cross_val_final 3 --hyperparam_study_date 20221006 --carbon_tracking
+## base-standard
+python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 30 100 --batch_size 8 16 --n_trials 14 --n_trials_sampling 7 --n_trials_pruning 5 --n_cross_val_hyperparam 2 --context --dataset "manifesto-morality" --sample_interval 5000 --method "standard_dl" --model "microsoft/deberta-v3-base" --hyperparam_study_date 20221006 --carbon_tracking
+python analysis-transf-run.py --dataset "manifesto-morality" --sample_interval 5000 --method "standard_dl" --model "microsoft/deberta-v3-base" --n_cross_val_final 3 --hyperparam_study_date 20221006 --carbon_tracking
+
+
