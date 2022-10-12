@@ -1,6 +1,6 @@
 #!/bin/bash
 #Set batch job requirements
-#SBATCH -t 60:00:00
+#SBATCH -t 100:00:00
 #SBATCH --partition=gpu
 #SBATCH --gpus=1
 #SBATCH --mail-type=BEGIN,END,FAIL
@@ -19,11 +19,13 @@ pip install -r requirements.txt
 pip uninstall -y codecarbon
 
 
-
+### 0-shot run
+python analysis-transf-run.py --dataset "manifesto-military" --sample_interval 0 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --n_cross_val_final 3 --hyperparam_study_date 20221006 --carbon_tracking
+python analysis-transf-run.py --dataset "manifesto-military" --sample_interval 0 --method "standard_dl" --model "microsoft/deberta-v3-base" --n_cross_val_final 3 --hyperparam_study_date 20221006 --carbon_tracking
 
 ### run 100 & 500
 ## base-nli
-python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 3 39 --batch_size 8 16 --n_trials 15 --n_trials_sampling 9 --n_trials_pruning 6 --n_cross_val_hyperparam 2 --context --dataset "manifesto-military" --sample_interval 100 500 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --hyperparam_study_date 20221006 --carbon_tracking
+python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 5 50 --batch_size 8 16 --n_trials 23 --n_trials_sampling 9 --n_trials_pruning 6 --n_cross_val_hyperparam 2 --context --dataset "manifesto-military" --sample_interval 100 500 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --hyperparam_study_date 20221006 --carbon_tracking
 python analysis-transf-run.py --dataset "manifesto-military" --sample_interval 100 500 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --n_cross_val_final 3 --hyperparam_study_date 20221006 --carbon_tracking
 ## base-standard
 python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 40 100 --batch_size 8 16 --n_trials 15 --n_trials_sampling 9 --n_trials_pruning 6 --n_cross_val_hyperparam 2 --context --dataset "manifesto-military" --sample_interval 100 500 --method "standard_dl" --model "microsoft/deberta-v3-base" --hyperparam_study_date 20221006 --carbon_tracking
@@ -31,7 +33,7 @@ python analysis-transf-run.py --dataset "manifesto-military" --sample_interval 1
 
 ### run 1000
 ## base-nli
-python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 3 39 --batch_size 8 16 --n_trials 15 --n_trials_sampling 9 --n_trials_pruning 6 --n_cross_val_hyperparam 2 --context --dataset "manifesto-military" --sample_interval 1000 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --hyperparam_study_date 20221006 --carbon_tracking
+python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 5 50 --batch_size 8 16 --n_trials 23 --n_trials_sampling 9 --n_trials_pruning 6 --n_cross_val_hyperparam 2 --context --dataset "manifesto-military" --sample_interval 1000 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --hyperparam_study_date 20221006 --carbon_tracking
 python analysis-transf-run.py --dataset "manifesto-military" --sample_interval 1000 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --n_cross_val_final 3 --hyperparam_study_date 20221006 --carbon_tracking
 ## base-standard
 python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 30 100 --batch_size 8 16 --n_trials 15 --n_trials_sampling 9 --n_trials_pruning 6 --n_cross_val_hyperparam 2 --context --dataset "manifesto-military" --sample_interval 1000 --method "standard_dl" --model "microsoft/deberta-v3-base" --hyperparam_study_date 20221006 --carbon_tracking
@@ -39,7 +41,7 @@ python analysis-transf-run.py --dataset "manifesto-military" --sample_interval 1
 
 ### run 2500
 ## base-nli
-python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 3 39 --batch_size 8 16 --n_trials 14 --n_trials_sampling 7 --n_trials_pruning 5 --n_cross_val_hyperparam 2 --context --dataset "manifesto-military" --sample_interval 2500 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --hyperparam_study_date 20221006 --carbon_tracking
+python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 5 50 --batch_size 8 16 --n_trials 22 --n_trials_sampling 7 --n_trials_pruning 5 --n_cross_val_hyperparam 2 --context --dataset "manifesto-military" --sample_interval 2500 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --hyperparam_study_date 20221006 --carbon_tracking
 python analysis-transf-run.py --dataset "manifesto-military" --sample_interval 2500 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --n_cross_val_final 3 --hyperparam_study_date 20221006 --carbon_tracking
 ## base-standard
 python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 30 100 --batch_size 8 16 --n_trials 14 --n_trials_sampling 7 --n_trials_pruning 5 --n_cross_val_hyperparam 2 --context --dataset "manifesto-military" --sample_interval 2500 --method "standard_dl" --model "microsoft/deberta-v3-base" --hyperparam_study_date 20221006 --carbon_tracking
@@ -47,7 +49,7 @@ python analysis-transf-run.py --dataset "manifesto-military" --sample_interval 2
 
 ### run 5000 (3970)
 ## base-nli
-python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 3 39 --batch_size 8 16 --n_trials 14 --n_trials_sampling 7 --n_trials_pruning 5 --n_cross_val_hyperparam 2 --context --dataset "manifesto-military" --sample_interval 5000 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --hyperparam_study_date 20221006 --carbon_tracking
+python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 5 50 --batch_size 8 16 --n_trials 22 --n_trials_sampling 7 --n_trials_pruning 5 --n_cross_val_hyperparam 2 --context --dataset "manifesto-military" --sample_interval 5000 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --hyperparam_study_date 20221006 --carbon_tracking
 python analysis-transf-run.py --dataset "manifesto-military" --sample_interval 5000 --method "nli" --model "MoritzLaurer/DeBERTa-v3-base-mnli-fever-docnli-ling-2c" --n_cross_val_final 3 --hyperparam_study_date 20221006 --carbon_tracking
 ## base-standard
 python analysis-transf-hyperparams.py --learning_rate 1e-6 5e-4 --epochs 30 100 --batch_size 8 16 --n_trials 14 --n_trials_sampling 7 --n_trials_pruning 5 --n_cross_val_hyperparam 2 --context --dataset "manifesto-military" --sample_interval 5000 --method "standard_dl" --model "microsoft/deberta-v3-base" --hyperparam_study_date 20221006 --carbon_tracking
