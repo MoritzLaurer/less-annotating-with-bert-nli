@@ -17,10 +17,10 @@ print(os.getcwd())
 if os.getcwd() != "/Users/moritzlaurer/Dropbox/PhD/Papers/nli/snellius/NLI-experiments":
     os.chdir("./NLI-experiments")
 
-## !! fix necessary: remove multiple results from different dates from results folder (final best option!) (both for hp-search and results, ((or make this appendix script handle multiple dates))
 
 
 ##### 1. appendix
+# ! careful: always remove multiple results from different dates from results folder
 
 ### Manifesto
 
@@ -117,19 +117,19 @@ path_files_lst = [path_files for path_files in path_files_lst if "SVM" not in pa
 
 # exclude hyperparameter dictionaries which are just copies from smaller sample runs (some don't have hp-search to save compute)
 hyperparams_copies = [# no search after 2500
-                      'results/sentiment-news-econ/optuna_study_deberta-v3-base_03000samp_20220428.pkl',
-                      'results/sentiment-news-econ/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_03000samp_20220429.pkl',
-                      'results/cap-us-court/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_05000samp_20220428.pkl',
-                      'results/cap-us-court/optuna_study_deberta-v3-base_05000samp_20220428.pkl',
-                      'results/cap-us-court/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_10000samp_20220428.pkl',
-                      'results/cap-us-court/optuna_study_deberta-v3-base_10000samp_20220428.pkl',
+                      'results/sentiment-news-econ/optuna_study_deberta-v3-base_03000samp_20221006.pkl',
+                      'results/sentiment-news-econ/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_03000samp_20221006.pkl',
+                      'results/cap-us-court/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_05000samp_20221006.pkl',
+                      'results/cap-us-court/optuna_study_deberta-v3-base_05000samp_20221006.pkl',
+                      'results/cap-us-court/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_10000samp_20221006.pkl',
+                      'results/cap-us-court/optuna_study_deberta-v3-base_10000samp_20221006.pkl',
                       # no search after 5000
-                      'results/cap-sotu/optuna_study_deberta-v3-base_10000samp_20220428.pkl',
-                      'results/manifesto-8/optuna_study_deberta-v3-base_10000samp_20220428.pkl',
-                      'results/coronanet/optuna_study_deberta-v3-base_10000samp_20220428.pkl',
-                      'results/cap-sotu/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_10000samp_20220428.pkl',
-                      'results/manifesto-8/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_10000samp_20220428.pkl',
-                      'results/coronanet/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_10000samp_20220428.pkl'
+                      'results/cap-sotu/optuna_study_deberta-v3-base_10000samp_20221006.pkl',
+                      'results/manifesto-8/optuna_study_deberta-v3-base_10000samp_20221006.pkl',
+                      'results/coronanet/optuna_study_deberta-v3-base_10000samp_20221006.pkl',
+                      'results/cap-sotu/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_10000samp_20221006.pkl',
+                      'results/manifesto-8/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_10000samp_20221006.pkl',
+                      'results/coronanet/optuna_study_DeBERTa-v3-base-mnli-fever-docnli-ling-2c_10000samp_20221006.pkl'
                       ]
 path_files_lst = [path_files for path_files in path_files_lst if path_files not in hyperparams_copies]
 
@@ -220,7 +220,7 @@ path_files_lst = [os.path.join(path, name) for path, subdirs, files in os.walk("
 path_files_lst = [path_files for path_files in path_files_lst if ".DS_Store" not in path_files]
 path_files_lst = [path_files for path_files in path_files_lst if "experiment" not in path_files]
 # exclude/only specific algo?
-path_files_lst = [path_files for path_files in path_files_lst if ("SVM_tfidf" in path_files) and ("20220713" in path_files)]  #("20220700" in path_files)
+path_files_lst = [path_files for path_files in path_files_lst if "SVM_tfidf" in path_files]  #("20220700" in path_files)
 
 # add path name as key again to distinguish between datasets
 hp_study_dic = {}
@@ -302,7 +302,7 @@ path_files_lst = [os.path.join(path, name) for path, subdirs, files in os.walk("
 path_files_lst = [path_files for path_files in path_files_lst if ".DS_Store" not in path_files]
 path_files_lst = [path_files for path_files in path_files_lst if "experiment" not in path_files]
 # exclude/only specific algo?
-path_files_lst = [path_files for path_files in path_files_lst if ("logistic_tfidf" in path_files) and ("20220713" in path_files)]  # and ("20220712" in path_files)
+path_files_lst = [path_files for path_files in path_files_lst if "logistic_tfidf" in path_files]  # and ("20220712" in path_files)
 
 # add path name as key again to distinguish between datasets
 hp_study_dic = {}
@@ -449,6 +449,110 @@ def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
     matthews = matthews_corrcoef(label_gold, label_pred)  # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.matthews_corrcoef.html#sklearn.metrics.matthews_corrcoef
     #roc_auc_macro = roc_auc_score(label_gold, label_pred, average='macro', multi_class='ovo')  # no possible because requires probabilites for predictions, but categorical ints, see https://stackoverflow.com/questions/61288972/axiserror-axis-1-is-out-of-bounds-for-array-of-dimension-1-when-calculating-auc;  https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score
 
+    ## manual calculation of per-class-average accuracy and per intervals (e.g. thirds)
+    if not isinstance(label_gold, pd.core.series.Series):  # some label arrays are already series for some reason
+        eval_gold_df = pd.DataFrame(pd.Series(label_gold, name="labels"))
+    else:
+        eval_gold_df = pd.DataFrame(data={"labels": label_gold.reset_index(drop=True)})
+    if not isinstance(label_pred, pd.core.series.Series):  # some label arrays are already series for some reason
+        eval_pred_df = pd.DataFrame(pd.Series(label_pred, name="labels"))
+    else:
+        eval_pred_df = pd.DataFrame(data={"labels": label_pred.reset_index(drop=True)})
+    # calculate balanced accuracy manually - same as recall-macro
+    accuracy_per_class_dic = {}
+    for group_name, group_df in eval_gold_df.groupby(by="labels"):
+        label_gold_class_n = group_df
+        label_pred_class_n = eval_pred_df[eval_pred_df.index.isin(group_df.index)]
+        accuracy_per_class_dic.update({str(group_name): accuracy_score(label_gold_class_n, label_pred_class_n)})
+    accuracy_balanced_manual = np.mean(list(accuracy_per_class_dic.values()))
+    # calculate non-balanced accuracy for top 3rd and bottom two 3rd
+    n_class_topshare = int(len(np.unique(eval_gold_df)) / top_xth)
+    if n_class_topshare == 0: n_class_topshare = 1  # if only two classes, then n_class_topshare is 0. then set it to 1
+    # top 3rd
+    labels_topshare = [weird_tuple[0] for weird_tuple in eval_gold_df.value_counts()[:n_class_topshare].index.values.tolist()]
+    eval_gold_df_topshare = eval_gold_df[eval_gold_df.labels.isin(labels_topshare)]
+    eval_pred_df_topshare = eval_pred_df[eval_pred_df.index.isin(eval_gold_df_topshare.index)]
+    accuracy_topshare = accuracy_score(eval_gold_df_topshare, eval_pred_df_topshare)
+    # bottom two thirds
+    labels_bottomrest = [weird_tuple[0] for weird_tuple in eval_gold_df.value_counts()[n_class_topshare:].index.values.tolist()]
+    eval_gold_df_bottomrest = eval_gold_df[eval_gold_df.labels.isin(labels_bottomrest)]
+    eval_pred_df_bottomrest = eval_pred_df[eval_pred_df.index.isin(eval_gold_df_bottomrest.index)]
+    accuracy_bottomrest = accuracy_score(eval_gold_df_bottomrest, eval_pred_df_bottomrest)
+
+    ## calculate F1 for high N classes (top 3rd) and low N class (bottom two 3rds) separately to see impact of class size on metrics
+    class_report = classification_report(label_gold, label_pred, output_dict=True, digits=2)
+    class_report = {k: v for k, v in class_report.items() if k not in ["accuracy", "macro avg", "weighted avg"]}  # remove overall aggregate metrics and only maintain per-class metrics
+    class_report = dict(sorted(class_report.items(), key=lambda item: item[1]["support"], reverse=True))  # order report from highest to lowest support (examples per class)
+    #class_report = {"0": {"precision": "test", "support": 1}, "1": {"precision": "test", "support": 9}, "2": {"precision": "test", "support": 5}, "3": {"precision": "test", "support": 99}}
+    #class_report = dict(sorted(class_report.items(), key=lambda item: item[1]["support"]))
+    # add per-class accuracy - is equivalent to per-class recall
+    #class_report = {key_class_name: {**value_class_metrics, "accuracy": accuracy_per_class_dic[key_class_name]} for key_class_name, value_class_metrics in class_report.items()}
+    n_class_topshare = int(len(class_report) / top_xth)
+    if n_class_topshare == 0: n_class_topshare = 1  # if only two classes, then n_class_topshare is 0. then set it to 1
+    class_report_topshare = {k: class_report[k] for k in list(class_report)[:n_class_topshare]}
+    class_report_bottomrest = {k: class_report[k] for k in list(class_report)[n_class_topshare:]}
+    f1_macro_topshare = np.mean([value_class_metrics["f1-score"] for key_class, value_class_metrics in class_report_topshare.items()])
+    f1_macro_bottomrest = np.mean([value_class_metrics["f1-score"] for key_class, value_class_metrics in class_report_bottomrest.items()])
+    recall_macro_topshare = np.mean([value_class_metrics["recall"] for key_class, value_class_metrics in class_report_topshare.items()])
+    recall_macro_bottomrest = np.mean([value_class_metrics["recall"] for key_class, value_class_metrics in class_report_bottomrest.items()])
+    precision_macro_topshare = np.mean([value_class_metrics["precision"] for key_class, value_class_metrics in class_report_topshare.items()])
+    precision_macro_bottomrest = np.mean([value_class_metrics["precision"] for key_class, value_class_metrics in class_report_bottomrest.items()])
+
+    ## calculate standard deviation of per-class metrics
+    accuracy_crossclass_std = np.std(list(accuracy_per_class_dic.values()))
+    f1_crossclass_std = np.std([value_class_metrics["f1-score"] for key_class, value_class_metrics in class_report.items()])
+    recall_crossclass_std = np.std([value_class_metrics["recall"] for key_class, value_class_metrics in class_report.items()])
+    precision_crossclass_std = np.std([value_class_metrics["precision"] for key_class, value_class_metrics in class_report.items()])
+
+    metrics = {'f1_macro': f1_macro,
+               f'f1_macro_top{top_xth}th': f1_macro_topshare,
+               f'f1_macro_rest': f1_macro_bottomrest,
+               'accuracy/f1_micro': f1_micro,
+               #'accuracy': acc_not_balanced,
+               'accuracy_balanced': acc_balanced,
+               f"accuracy_top{top_xth}th": accuracy_topshare,
+               "accuracy_rest": accuracy_bottomrest,
+               #'accuracy_balanced_manual': accuracy_balanced_manual,  # confirmed that same as sklearn
+               'recall_macro': recall_macro,
+               'recall_micro': recall_micro,
+               f'recall_macro_top{top_xth}th': recall_macro_topshare,
+               'recall_macro_rest': recall_macro_bottomrest,
+               'precision_macro': precision_macro,
+               'precision_micro': precision_micro,
+               f'precision_macro_top{top_xth}th': precision_macro_topshare,
+               'precision_macro_rest': precision_macro_bottomrest,
+               'cohen_kappa': cohen_kappa,
+               'matthews_corrcoef': matthews,
+               #'roc_auc_macro': roc_auc_macro
+               'accuracy_crossclass_std': accuracy_crossclass_std,
+               'f1_crossclass_std': f1_crossclass_std,
+               'recall_crossclass_std': recall_crossclass_std,
+               'precision_crossclass_std': precision_crossclass_std
+               }
+
+    return metrics
+
+metrics_all_name = ['f1_macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",  'accuracy/f1_micro', 'accuracy_balanced',
+                    'recall_macro', 'recall_micro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',   # 'accuracy_balanced_manual',
+                    'precision_macro', 'precision_micro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',
+                    f"accuracy_top{top_xth}th", "accuracy_rest",
+                    'cohen_kappa', 'matthews_corrcoef',
+                    'accuracy_crossclass_std', 'f1_crossclass_std', 'recall_crossclass_std', 'precision_crossclass_std']
+
+# previous code with crossclass std - can be deleted
+"""# testing different metrics from sklearn https://scikit-learn.org/stable/modules/model_evaluation.html#classification-metrics
+from sklearn.metrics import balanced_accuracy_score, precision_recall_fscore_support, accuracy_score, classification_report, cohen_kappa_score, matthews_corrcoef, roc_auc_score
+top_xth = 4
+def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
+    ## metrics
+    precision_macro, recall_macro, f1_macro, _ = precision_recall_fscore_support(label_gold, label_pred, average='macro')  # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_fscore_support.html
+    precision_micro, recall_micro, f1_micro, _ = precision_recall_fscore_support(label_gold, label_pred, average='micro')  # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_fscore_support.html
+    acc_balanced = balanced_accuracy_score(label_gold, label_pred)
+    #acc_not_balanced = accuracy_score(label_gold, label_pred)  # same as F1-micro
+    cohen_kappa = cohen_kappa_score(label_gold, label_pred)
+    matthews = matthews_corrcoef(label_gold, label_pred)  # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.matthews_corrcoef.html#sklearn.metrics.matthews_corrcoef
+    #roc_auc_macro = roc_auc_score(label_gold, label_pred, average='macro', multi_class='ovo')  # no possible because requires probabilites for predictions, but categorical ints, see https://stackoverflow.com/questions/61288972/axiserror-axis-1-is-out-of-bounds-for-array-of-dimension-1-when-calculating-auc;  https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score
+
     ## manual calculation of per-class-average accuracy and per intervals (thirds)
     if not isinstance(label_gold, pd.core.series.Series):  # some label arrays are already series for some reason
         eval_gold_df = pd.DataFrame(pd.Series(label_gold, name="labels"))
@@ -459,12 +563,12 @@ def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
     else:
         eval_pred_df = pd.DataFrame(data={"labels": label_pred.reset_index(drop=True)})
     # calculate balanced accuracy manually - same as recall-macro
-    """accuracy_per_class_dic = {}
-    for group_name, group_df in eval_gold_df.groupby(by="labels"):
-        label_gold_class_n = group_df
-        label_pred_class_n = eval_pred_df[eval_pred_df.index.isin(group_df.index)]
-        accuracy_per_class_dic.update({str(group_name): accuracy_score(label_gold_class_n, label_pred_class_n)})
-    accuracy_balanced_manual = np.mean(list(accuracy_per_class_dic.values()))"""
+    #accuracy_per_class_dic = {}
+    #for group_name, group_df in eval_gold_df.groupby(by="labels"):
+    #    label_gold_class_n = group_df
+    #    label_pred_class_n = eval_pred_df[eval_pred_df.index.isin(group_df.index)]
+    #    accuracy_per_class_dic.update({str(group_name): accuracy_score(label_gold_class_n, label_pred_class_n)})
+    #accuracy_balanced_manual = np.mean(list(accuracy_per_class_dic.values()))
     # calculate non-balanced accuracy for top 3rd and bottom two 3rd
     n_class_topshare = int(len(np.unique(eval_gold_df)) / top_xth)
     if n_class_topshare == 0: n_class_topshare = 1  # if only two classes, then n_class_topshare is 0. then set it to 1
@@ -527,7 +631,7 @@ metrics_all_name = ['f1_macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",  'a
                     'precision_macro', 'precision_micro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',
                     f"accuracy_top{top_xth}th", "accuracy_rest",
                     'cohen_kappa', 'matthews_corrcoef']
-
+"""
 
 
 for key_dataset_name, experiment_details_dic_all_methods in experiment_details_dic_all_methods_dataset.items():
@@ -543,19 +647,6 @@ for key_dataset_name, experiment_details_dic_all_methods in experiment_details_d
                 metric_std = np.std(metric_per_seed)
                 experiment_details_dic_all_methods[method][sample_size]["metrics_mean"].update({f"{metric}_mean": metric_mean, f"{metric}_std": metric_std})
     print("Dataset done: ", key_dataset_name)
-
-"""
-for key_dataset_name, experiment_details_dic_all_methods in experiment_details_dic_all_methods_dataset.items():
-    for method in experiment_details_dic_all_methods.keys():
-        for sample_size in experiment_details_dic_all_methods[method].keys():
-            results_per_seed_dic = {key: value for key, value in experiment_details_dic_all_methods[method][sample_size].items() if "metrics_seed" in key}
-            # if else, because zero-shot dicts use word "accuracy_balanced", while full runs use word "eval_accuracy_balanced"
-            accuracy_balanced_per_seed = [value_metrics["eval_accuracy_balanced"] if "eval_accuracy_balanced" in value_metrics.keys() else value_metrics["accuracy_balanced"] for key_metrics_seed, value_metrics in results_per_seed_dic.items()]
-            accuracy_balanced_mean = np.mean(accuracy_balanced_per_seed)
-            accuracy_balanced_std = np.std(accuracy_balanced_per_seed)
-            ## add accuracy balanced to metrics_mean sub-dic like f1-macro and f1-micro
-            experiment_details_dic_all_methods[method][sample_size]["metrics_mean"].update({"accuracy_balanced_mean": accuracy_balanced_mean, "accuracy_balanced_std": accuracy_balanced_std})
-"""
 
 
 ## iterate over all dataset experiment dics to extract metrics for viz
@@ -578,28 +669,6 @@ for key_dataset_name, experiment_details_dic_all_methods in experiment_details_d
     # if key_dataset_name == "cap-us-court":  # CAP-us-court reaches max dataset with 320 samples per class
     #  x_axis_values = ["0" if n_per_class == 0 else f"{str(n_total)} (all)" if n_per_class >= 320 else f"{str(n_total)}"  for n_per_class, n_total in zip(n_sample_per_class, n_total_samples)]
 
-    ## old deletable code unnesting specific metrics individually for better viz format
-    """
-    visual_data_dic = {}
-    for key_method in experiment_details_dic_all_methods:
-      f1_macro_mean_lst = []
-      f1_micro_mean_lst = []
-      f1_macro_std_lst = []
-      f1_micro_std_lst = []
-      accuracy_balanced_mean_lst = []
-      accuracy_balanced_std_lst = []
-      for key_step in experiment_details_dic_all_methods[key_method]:
-        f1_macro_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_macro_mean"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
-        f1_micro_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_micro_mean"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
-        f1_macro_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_macro_std"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
-        f1_micro_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_micro_std"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
-        # added accuracy balanced based on reviewer feedback
-        accuracy_balanced_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["accuracy_balanced_mean"])
-        accuracy_balanced_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["accuracy_balanced_std"])
-      dic_method = { key_method: {"f1_macro_mean": f1_macro_mean_lst, "f1_micro_mean": f1_micro_mean_lst, "f1_macro_std": f1_macro_std_lst, "f1_micro_std": f1_micro_std_lst,
-                                  "accuracy_balanced_mean": accuracy_balanced_mean_lst, "accuracy_balanced_std": accuracy_balanced_std_lst,
-                                  "n_classes": n_classes, "x_axis_values": x_axis_values} }  #"n_max_sample": n_sample_per_class, "n_total_samples": n_total_samples,
-      """
     ## unnest metric results in better format for visualisation
     # generalised code for any metric
     visual_data_dic = {}
@@ -618,48 +687,7 @@ for key_dataset_name, experiment_details_dic_all_methods in experiment_details_d
 
     visual_data_dic_datasets.update({key_dataset_name: visual_data_dic})
 
-# delete
-"""visual_data_dic_datasets = {}
-for key_dataset_name, experiment_details_dic_all_methods in experiment_details_dic_all_methods_dataset.items():
-    n_classes = dataset_n_class_dic[key_dataset_name]
 
-    n_max_sample = []
-    n_total_samples = []
-    for key, value in experiment_details_dic_all_methods[list(experiment_details_dic_all_methods.keys())[0]].items():  # experiment_details_dic_all_methods["SVM"].items():
-        n_max_sample.append(value["n_max_sample"])
-        n_total_samples.append(value["n_train_total"])
-
-    if n_max_sample[-1] < 10000:
-        n_max_sample[-1] = f"{n_max_sample[-1]} (all)"
-    x_axis_values = [f"{n_sample}" for n_sample in n_max_sample]
-    # x_axis_values = ["0" if n_per_class == 0 else f"{str(n_total)} (all)" if n_per_class >= 1001 else f"{str(n_total)}"  for n_per_class, n_total in zip(n_sample_per_class, n_total_samples)]
-    # if key_dataset_name == "cap-us-court":  # CAP-us-court reaches max dataset with 320 samples per class
-    #  x_axis_values = ["0" if n_per_class == 0 else f"{str(n_total)} (all)" if n_per_class >= 320 else f"{str(n_total)}"  for n_per_class, n_total in zip(n_sample_per_class, n_total_samples)]
-
-    ## specific data for indiv approaches
-    visual_data_dic = {}
-    for key_method in experiment_details_dic_all_methods:
-        f1_macro_mean_lst = []
-        f1_micro_mean_lst = []
-        f1_macro_std_lst = []
-        f1_micro_std_lst = []
-        accuracy_balanced_mean_lst = []
-        accuracy_balanced_std_lst = []
-        for key_step in experiment_details_dic_all_methods[key_method]:
-            # experiment_details_dic_all_methods[key_method][key_step]["model"]  # method, model
-            f1_macro_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_macro_mean"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
-            f1_micro_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_micro_mean"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
-            f1_macro_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_macro_std"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
-            f1_micro_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_micro_std"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
-            # added accuracy balanced based on reviewer feedback
-            accuracy_balanced_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["accuracy_balanced_mean"])
-            accuracy_balanced_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["accuracy_balanced_std"])
-        dic_method = {key_method: {"f1_macro_mean": f1_macro_mean_lst, "f1_micro_mean": f1_micro_mean_lst, "f1_macro_std": f1_macro_std_lst, "f1_micro_std": f1_micro_std_lst,
-                                   "accuracy_balanced_mean": accuracy_balanced_mean_lst, "accuracy_balanced_std": accuracy_balanced_std_lst,
-                                   "n_classes": n_classes, "x_axis_values": x_axis_values}}  # "n_max_sample": n_sample_per_class, "n_total_samples": n_total_samples,
-        visual_data_dic.update(dic_method)
-
-    visual_data_dic_datasets.update({key_dataset_name: visual_data_dic})"""
 
 
 ### Disaggregated metrics per dataset
@@ -754,10 +782,16 @@ for i, metric in enumerate(metrics_all_name):
     #df_metrics_mean_all = df_metrics.groupby(by="algorithm", as_index=True).apply(np.mean).round(4)
     df_metrics_mean = pd.concat([df_metrics_mean_all, df_metrics_mean_medium, df_metrics_mean_large], axis=1)
     # add row with best classical algo value
-    df_metrics_mean.loc["classical-best-tfidf"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_tfidf"], df_metrics_mean.loc["logistic_tfidf"])]
-    df_metrics_mean.loc["classical-best-embeddings"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_embeddings"], df_metrics_mean.loc["logistic_embeddings"])]
+    #df_metrics_mean.loc["classical-best-tfidf"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_tfidf"], df_metrics_mean.loc["logistic_tfidf"])]
+    #df_metrics_mean.loc["classical-best-embed"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_embeddings"], df_metrics_mean.loc["logistic_embeddings"])]
+    if metric not in ['accuracy_crossclass_std', 'f1_crossclass_std', 'recall_crossclass_std', 'precision_crossclass_std']:
+        df_metrics_mean.loc["classical-best-tfidf"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_tfidf"], df_metrics_mean.loc["logistic_tfidf"])]
+        df_metrics_mean.loc["classical-best-embed"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_embeddings"], df_metrics_mean.loc["logistic_embeddings"])]
+    else: # minimum value for cross-class standard deviation
+        df_metrics_mean.loc["classical-best-tfidf"] = [min(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_tfidf"], df_metrics_mean.loc["logistic_tfidf"])]
+        df_metrics_mean.loc["classical-best-embed"] = [min(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_embeddings"], df_metrics_mean.loc["logistic_embeddings"])]
     # order rows
-    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embeddings", "BERT-base", "BERT-base-nli"]
+    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embed", "BERT-base", "BERT-base-nli"]
     df_metrics_mean = df_metrics_mean.reindex(order_algos)
     df_metrics_mean.index.name = "Sample size / Algorithm"
     df_metrics_mean_dic.update({metric: df_metrics_mean.round(3)})
@@ -767,10 +801,16 @@ df_metrics_mean_4ds_dic = {}
 for i, metric in enumerate(metrics_all_name):
     df_metrics_mean_4ds = df_metrics_lst[i][df_metrics_lst[i].dataset.isin(datasets_5000)].groupby(by="algorithm", as_index=True).apply(np.mean).round(4)
     # add row with best classical algo value
-    df_metrics_mean_4ds.loc["classical-best-tfidf"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean_4ds.loc["SVM_tfidf"], df_metrics_mean_4ds.loc["logistic_tfidf"])]
-    df_metrics_mean_4ds.loc["classical-best-embeddings"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean_4ds.loc["SVM_embeddings"], df_metrics_mean_4ds.loc["logistic_embeddings"])]
+    #df_metrics_mean_4ds.loc["classical-best-tfidf"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean_4ds.loc["SVM_tfidf"], df_metrics_mean_4ds.loc["logistic_tfidf"])]
+    #df_metrics_mean_4ds.loc["classical-best-embed"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean_4ds.loc["SVM_embeddings"], df_metrics_mean_4ds.loc["logistic_embeddings"])]
+    if metric not in ['accuracy_crossclass_std', 'f1_crossclass_std', 'recall_crossclass_std', 'precision_crossclass_std']:
+        df_metrics_mean_4ds.loc["classical-best-tfidf"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean_4ds.loc["SVM_tfidf"], df_metrics_mean_4ds.loc["logistic_tfidf"])]
+        df_metrics_mean_4ds.loc["classical-best-embed"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean_4ds.loc["SVM_embeddings"], df_metrics_mean_4ds.loc["logistic_embeddings"])]
+    else: # minimum value for cross-class standard deviation
+        df_metrics_mean_4ds.loc["classical-best-tfidf"] = [min(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean_4ds.loc["SVM_tfidf"], df_metrics_mean_4ds.loc["logistic_tfidf"])]
+        df_metrics_mean_4ds.loc["classical-best-embed"] = [min(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean_4ds.loc["SVM_embeddings"], df_metrics_mean_4ds.loc["logistic_embeddings"])]
     # order rows
-    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embeddings", "BERT-base", "BERT-base-nli"]
+    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embed", "BERT-base", "BERT-base-nli"]
     df_metrics_mean_4ds = df_metrics_mean_4ds.reindex(order_algos)
     df_metrics_mean_4ds.index.name = "Sample size / Algorithm"
     df_metrics_mean_4ds_dic.update({metric: df_metrics_mean_4ds.round(3)})
@@ -780,15 +820,11 @@ for i, metric in enumerate(metrics_all_name):
 df_metrics_difference_dic = {}
 for i, metric in enumerate(metrics_all_name):
     df_metrics_difference = pd.DataFrame(data={
-        #"BERT-base vs. SVM": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["SVM"],
-        #"BERT-base vs. Log. Reg.": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["logistic regression"],
-        "classical-best-embeddings vs. classical-best-tfidf": df_metrics_mean_dic[metric].loc["classical-best-embeddings"] - df_metrics_mean_dic[metric].loc["classical-best-tfidf"],
+        "classical-best-embed vs. classical-best-tfidf": df_metrics_mean_dic[metric].loc["classical-best-embed"] - df_metrics_mean_dic[metric].loc["classical-best-tfidf"],
         "BERT-base vs. classical-best-tfidf": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["classical-best-tfidf"],
-        "BERT-base vs. classical-best-embeddings": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["classical-best-embeddings"],
-        #"BERT-base-nli vs. SVM": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["SVM"],
-        #"BERT-base-nli vs. Log. Reg.": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["logistic regression"],
+        "BERT-base vs. classical-best-embed": df_metrics_mean_dic[metric].loc["BERT-base"] - df_metrics_mean_dic[metric].loc["classical-best-embed"],
         "BERT-base-nli vs. classical-best-tfidf": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["classical-best-tfidf"],
-        "BERT-base-nli vs. classical-best-embeddings": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["classical-best-embeddings"],
+        "BERT-base-nli vs. classical-best-embed": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["classical-best-embed"],
         "BERT-base-nli vs. BERT-base": df_metrics_mean_dic[metric].loc["BERT-base-nli"] - df_metrics_mean_dic[metric].loc["BERT-base"],
        }).transpose()
     #df_metrics_difference = df_metrics_difference.applymap(lambda x: f"+{round(x, 2)}" if x > 0 else round(x, 2))

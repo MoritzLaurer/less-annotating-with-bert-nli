@@ -13,7 +13,7 @@ SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
 ## determine metric to use for figure with performance per dataset disaggregated
-METRIC = "f1_macro"  # options: ['f1_macro', 'accuracy/f1_micro', 'accuracy_balanced', 'recall_macro', 'recall_micro', 'precision_macro', 'precision_micro',  'cohen_kappa', 'matthews_corrcoef']
+METRIC = "accuracy/f1_micro"  # options: ['f1_macro', 'accuracy/f1_micro', 'accuracy_balanced', 'recall_macro', 'recall_micro', 'precision_macro', 'precision_micro',  'cohen_kappa', 'matthews_corrcoef']
 
 
 
@@ -687,10 +687,10 @@ metrics_all_name = ['f1_macro', #f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     ]
 
 # for annex - comparison of metrics by top Xth vs. rest
-metrics_all_name = [#'f1_macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
-                    #'accuracy/f1_micro', f"accuracy_top{top_xth}th", "accuracy_rest",  #'accuracy_balanced',
-                    'recall_macro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',  # 'recall_micro',
-                    'precision_macro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',  #'precision_micro',
+metrics_all_name = ['f1_macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
+                    'accuracy/f1_micro', f"accuracy_top{top_xth}th", "accuracy_rest",  #'accuracy_balanced',
+                    #'recall_macro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',  # 'recall_micro',
+                    #'precision_macro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',  #'precision_micro',
                     #'cohen_kappa', 'matthews_corrcoef'
                     ]
 # for main text
@@ -808,7 +808,7 @@ for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "acc
         title_text="accuracy/" + metric_i if metric_i == "f1_micro" else metric_i,
         title_font_size=16,
         dtick=0.1,
-        range=[0, 0.87],
+        range=[0, 0.87] #[0.15, 0.8],
         #font=dict(size=14)
     )
 
