@@ -107,7 +107,7 @@ elif EXECUTION_TERMINAL == False:
 
 ### args for both hyperparameter tuning and test runs
 # choose dataset
-DATASET_NAME = args.dataset  # "sentiment-news-econ" "coronanet" "cap-us-court" "cap-sotu" "manifesto-8" "manifesto-military" "manifesto-protectionism" "manifesto-morality" "manifesto-nationalway" "manifesto-44" "manifesto-complex"
+DATASET_NAME = args.dataset  # "sentiment-news-econ" "coronanet" "cap-us-court" "cap-sotu" "manifesto-8" "manifesto-military" "manifesto-protectionism" "manifesto-morality",
 N_SAMPLE_DEV = args.sample_interval   # [100, 500, 1000, 2500, 5000, 10_000]  999_999 = full dataset  # cannot include 0 here to find best hypothesis template for zero-shot, because 0-shot assumes no dev set
 
 # decide on model to run
@@ -184,7 +184,7 @@ print("Final sample size intervals: ", N_SAMPLE_DEV)
 
 """
 # tests for code above
-N_SAMPLE_DEV = [5000, 5555]
+N_SAMPLE_DEV = [5000, 10000]
 len_df_train = 5555
 n_sample_dev_filt = [sample for sample in N_SAMPLE_DEV if sample <= len_df_train]
 if len_df_train < N_SAMPLE_DEV[-1]:
@@ -254,16 +254,19 @@ np.random.seed(SEED_GLOBAL)
 ### parameters for final tests with best hyperparams
 ## load existing studies with hyperparams
 hp_study_dic = {}
-for n_sample in N_SAMPLE_DEV:   
-  while len(str(n_sample)) <= 4:
-    n_sample = "0" + str(n_sample)
-  hp_study_dic_step = joblib.load(f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
-  #hp_study_dic_step = joblib.load(f"./{TRAINING_DIRECTORY}/optuna_study_{'MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli'.split('/')[-1]}_{n_sample}samp_20220220.pkl")
-  hp_study_dic.update(hp_study_dic_step)
+for n_sample in N_SAMPLE_DEV:
+  if N_SAMPLE_DEV != [0]:
+    while len(str(n_sample)) <= 4:
+      n_sample = "0" + str(n_sample)
+    hp_study_dic_step = joblib.load(f"./{TRAINING_DIRECTORY}/optuna_study_{MODEL_NAME.split('/')[-1]}_{n_sample}samp_{HYPERPARAM_STUDY_DATE}.pkl")
+    #hp_study_dic_step = joblib.load(f"./{TRAINING_DIRECTORY}/optuna_study_{'MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli'.split('/')[-1]}_{n_sample}samp_20220220.pkl")
+    hp_study_dic.update(hp_study_dic_step)
+  else:
+    break
 
 
 # add hyperparameters (particularly hypo list for NLI) for 0-shot run, because 0-shot has no hyperparameters otherwise
-if ZEROSHOT == True:
+if (ZEROSHOT == True) and (N_SAMPLE_DEV != [0]):
   N_SAMPLE_TEST = [0] + N_SAMPLE_DEV  # [0] for zero-shot
   print(N_SAMPLE_TEST)
 
@@ -276,7 +279,7 @@ if ZEROSHOT == True:
   HYPER_PARAMS_LST_TEST = [HYPER_PARAMS_LST[0]] + HYPER_PARAMS_LST  # add random hyperparams for 0-shot run (will not be used anyways)
   print(HYPER_PARAMS_LST_TEST)
 
-elif ZEROSHOT == False:
+elif (ZEROSHOT == False) and (N_SAMPLE_DEV != [0]):
   N_SAMPLE_TEST = N_SAMPLE_DEV
   print(N_SAMPLE_TEST)
 
@@ -287,6 +290,13 @@ elif ZEROSHOT == False:
   HYPER_PARAMS_LST = [{key: dic[key] for key in dic if key!="hypothesis_template"} for dic in HYPER_PARAMS_LST]  # return dic with all elements, except hypothesis template
   HYPER_PARAMS_LST_TEST = HYPER_PARAMS_LST  # add random hyperparams for 0-shot run (will not be used anyways)
   print(HYPER_PARAMS_LST_TEST)
+
+## for only 0-shot runs
+elif N_SAMPLE_DEV == [0]:
+  N_SAMPLE_TEST = [0]
+  zeroshot_templates = {"sentiment-news-econ": "template_complex", "coronanet": "template_quote", "cap-sotu": "template_quote_context", "cap-us-court": "template_quote", "manifesto-8": "template_quote_context",  "manifesto-military": "template_quote_2", "manifesto-morality": "template_quote_2", "manifesto-protectionism": "template_quote_2"}
+  HYPOTHESIS_TEMPLATE_LST = [zeroshot_templates[DATASET_NAME]] #["template_complex"]  # sentiment-news-econ: "template_complex", coronanet: "template_quote", cap-sotu: "template_quote_context", cap-us-court: "template_quote", manifesto-8: "template_quote_context",  manifesto-military: "template_quote_2", manifesto-morality: "template_quote_2", manifesto-protectionism: "template_quote_2"
+  HYPER_PARAMS_LST_TEST = [{"per_device_eval_batch_size": 160}]
 
 
 ## if need to manually set hyperparameters
@@ -302,11 +312,6 @@ elif ZEROSHOT == False:
 #HYPER_PARAMS_LST_TEST = [HYPER_PARAMS_LST_TEST[1]]
 #print(HYPER_PARAMS_LST_TEST)
 
-## for only 0-shot runs
-if N_SAMPLE_DEV == [0]:
-  N_SAMPLE_TEST = [0]
-  HYPOTHESIS_TEMPLATE_LST = ["template_complex"]  # sentiment-news-econ: "template_complex", coronanet: "template_quote", cap-sotu: "template_quote_context", cap-us-court: "template_quote", manifesto-8: "template_quote_context",  manifesto-military: "template_quote_2", manifesto-morality: "template_quote_2", manifesto-protectionism: "template_quote_2"
-  HYPER_PARAMS_LST_TEST = [{"per_device_eval_batch_size": 160}]
 
 
 

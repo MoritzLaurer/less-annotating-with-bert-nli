@@ -283,7 +283,7 @@ def optuna_objective(trial, hypothesis_hyperparams_dic=None, n_sample=None, df_t
   np.random.seed(SEED_GLOBAL)  # don't understand why this needs to be run here at each iteration. it should stay constant once set globally?! Explanation could be this: https://towardsdatascience.com/stop-using-numpy-random-seed-581a9972805f
 
   if METHOD == "nli":
-    hyperparam_epochs = {"num_train_epochs": trial.suggest_int("num_train_epochs", EPOCHS_LOW, EPOCHS_HIGH, log=False, step=3)}
+    hyperparam_epochs = {"num_train_epochs": trial.suggest_int("num_train_epochs", EPOCHS_LOW, EPOCHS_HIGH, log=False, step=5)}
     hyperparam_lr_scheduler = {"lr_scheduler_type": "linear"}
     hyperparam_warmup = {"warmup_ratio":  trial.suggest_categorical("warmup_ratio", [0.06, 0.2, 0.4, 0.6])}   # only tested this for hyperparam search on 2500 samp
     #hyperparam_warmup = {"warmup_ratio":  0.06}

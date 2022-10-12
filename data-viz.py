@@ -85,7 +85,7 @@ def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
     matthews = matthews_corrcoef(label_gold, label_pred)  # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.matthews_corrcoef.html#sklearn.metrics.matthews_corrcoef
     #roc_auc_macro = roc_auc_score(label_gold, label_pred, average='macro', multi_class='ovo')  # no possible because requires probabilites for predictions, but categorical ints, see https://stackoverflow.com/questions/61288972/axiserror-axis-1-is-out-of-bounds-for-array-of-dimension-1-when-calculating-auc;  https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score
 
-    ## manual calculation of per-class-average accuracy and per intervals (thirds)
+    ## manual calculation of per-class-average accuracy and per intervals (e.g. thirds)
     if not isinstance(label_gold, pd.core.series.Series):  # some label arrays are already series for some reason
         eval_gold_df = pd.DataFrame(pd.Series(label_gold, name="labels"))
     else:
@@ -95,12 +95,12 @@ def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
     else:
         eval_pred_df = pd.DataFrame(data={"labels": label_pred.reset_index(drop=True)})
     # calculate balanced accuracy manually - same as recall-macro
-    """accuracy_per_class_dic = {}
+    accuracy_per_class_dic = {}
     for group_name, group_df in eval_gold_df.groupby(by="labels"):
         label_gold_class_n = group_df
         label_pred_class_n = eval_pred_df[eval_pred_df.index.isin(group_df.index)]
         accuracy_per_class_dic.update({str(group_name): accuracy_score(label_gold_class_n, label_pred_class_n)})
-    accuracy_balanced_manual = np.mean(list(accuracy_per_class_dic.values()))"""
+    accuracy_balanced_manual = np.mean(list(accuracy_per_class_dic.values()))
     # calculate non-balanced accuracy for top 3rd and bottom two 3rd
     n_class_topshare = int(len(np.unique(eval_gold_df)) / top_xth)
     if n_class_topshare == 0: n_class_topshare = 1  # if only two classes, then n_class_topshare is 0. then set it to 1
@@ -134,6 +134,12 @@ def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
     precision_macro_topshare = np.mean([value_class_metrics["precision"] for key_class, value_class_metrics in class_report_topshare.items()])
     precision_macro_bottomrest = np.mean([value_class_metrics["precision"] for key_class, value_class_metrics in class_report_bottomrest.items()])
 
+    ## calculate standard deviation of per-class metrics
+    accuracy_crossclass_std = np.std(list(accuracy_per_class_dic.values()))
+    f1_crossclass_std = np.std([value_class_metrics["f1-score"] for key_class, value_class_metrics in class_report.items()])
+    recall_crossclass_std = np.std([value_class_metrics["recall"] for key_class, value_class_metrics in class_report.items()])
+    precision_crossclass_std = np.std([value_class_metrics["precision"] for key_class, value_class_metrics in class_report.items()])
+
     metrics = {'f1_macro': f1_macro,
                f'f1_macro_top{top_xth}th': f1_macro_topshare,
                f'f1_macro_rest': f1_macro_bottomrest,
@@ -154,6 +160,10 @@ def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
                'cohen_kappa': cohen_kappa,
                'matthews_corrcoef': matthews,
                #'roc_auc_macro': roc_auc_macro
+               'accuracy_crossclass_std': accuracy_crossclass_std,
+               'f1_crossclass_std': f1_crossclass_std,
+               'recall_crossclass_std': recall_crossclass_std,
+               'precision_crossclass_std': precision_crossclass_std
                }
 
     return metrics
@@ -162,7 +172,8 @@ metrics_all_name = ['f1_macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",  'a
                     'recall_macro', 'recall_micro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',   # 'accuracy_balanced_manual',
                     'precision_macro', 'precision_micro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',
                     f"accuracy_top{top_xth}th", "accuracy_rest",
-                    'cohen_kappa', 'matthews_corrcoef']
+                    'cohen_kappa', 'matthews_corrcoef',
+                    'accuracy_crossclass_std', 'f1_crossclass_std', 'recall_crossclass_std', 'precision_crossclass_std']
 
 
 ### Adding mean balanced accuracy metric for all datasets, algos, sample sizes to "metrics_mean" sub-dictionary
@@ -386,7 +397,7 @@ subplot_titles = ["Sentiment News (2 class)", "CoronaNet (20 class)", "CAP SotU 
                   "Manifesto Military (3 class)", "Manifesto Protectionism (3 class)", "Manifesto Morality (3 class)"]
 fig = make_subplots(rows=3, cols=3, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
                     subplot_titles=subplot_titles,
-                    x_title="Number of random training examples", y_title=METRIC)
+                    x_title="* Number of random training examples", y_title="* " + METRIC)
 
 i = 0
 for key_dataset_name, visual_data_dic in visual_data_dic_datasets.items():
@@ -408,6 +419,19 @@ for key_dataset_name, visual_data_dic in visual_data_dic_datasets.items():
 
   ## add random and majority baseline data
   algo_string = list(visual_data_dic.keys())[0]  # get name string for one algo to add standard info (x axis value etc.) to plot
+
+  # attempt to accomodate reviewer's axis harmonisation request. Unfortunately makes figures much harder to read
+  """x_axis_harmonised = visual_data_dic[algo_string]["x_axis_values"]
+  if "5000" not in visual_data_dic[algo_string]["x_axis_values"]:
+      x_axis_harmonised = x_axis_harmonised + ["5000"]
+  if "10000" not in visual_data_dic[algo_string]["x_axis_values"]:
+      x_axis_harmonised = x_axis_harmonised + ["10000"]
+  y_axis_harmonised = [metrics_baseline_dic[key_dataset_name][f"{METRIC}_random"]] * len(visual_data_dic[algo_string]["x_axis_values"])
+  if "5000" not in visual_data_dic[algo_string]["x_axis_values"]:
+      y_axis_harmonised = y_axis_harmonised + [y_axis_harmonised[-1]]
+  if "10000" not in visual_data_dic[algo_string]["x_axis_values"]:
+      y_axis_harmonised = y_axis_harmonised + [y_axis_harmonised[-1]]"""
+
   fig.add_trace(go.Scatter(
         name=f"random baseline ({METRIC})",
         x=visual_data_dic[algo_string]["x_axis_values"],
@@ -564,10 +588,14 @@ for i, metric_name in enumerate(metrics_all_name):
     #df_metrics_mean_all = df_metrics.groupby(by="algorithm", as_index=True).apply(np.mean).round(4)
     df_metrics_mean = pd.concat([df_metrics_mean_all, df_metrics_mean_medium, df_metrics_mean_large], axis=1)
     # add row with best classical algo value
-    df_metrics_mean.loc["classical-best-tfidf"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_tfidf"], df_metrics_mean.loc["logistic_tfidf"])]
-    df_metrics_mean.loc["classical-best-embeddings"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_embeddings"], df_metrics_mean.loc["logistic_embeddings"])]
+    if metric_name not in ['accuracy_crossclass_std', 'f1_crossclass_std', 'recall_crossclass_std', 'precision_crossclass_std']:
+        df_metrics_mean.loc["classical-best-tfidf"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_tfidf"], df_metrics_mean.loc["logistic_tfidf"])]
+        df_metrics_mean.loc["classical-best-embed"] = [max(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_embeddings"], df_metrics_mean.loc["logistic_embeddings"])]
+    else: # minimum value for cross-class standard deviation
+        df_metrics_mean.loc["classical-best-tfidf"] = [min(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_tfidf"], df_metrics_mean.loc["logistic_tfidf"])]
+        df_metrics_mean.loc["classical-best-embed"] = [min(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_embeddings"], df_metrics_mean.loc["logistic_embeddings"])]
     # order rows
-    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embeddings", "BERT-base", "BERT-base-nli"]
+    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embed", "BERT-base", "BERT-base-nli"]
     df_metrics_mean = df_metrics_mean.reindex(order_algos)
     df_metrics_mean.index.name = "Sample size /\nAlgorithm"
     df_metrics_mean_dic.update({metric_name: df_metrics_mean})
@@ -581,10 +609,18 @@ for i, metric_name in enumerate(metrics_all_name):
     #df_std_mean_all = df_std.groupby(by="algorithm", as_index=True).apply(np.mean).round(4)
     df_std_mean = pd.concat([df_std_mean_all, df_std_mean_medium, df_std_mean_large], axis=1)
     # add std for best classical algo. need to go into df_metrics_mean
-    df_std_mean.loc["classical-best-tfidf"] = [svm_std if max(svm_metric, lr_metric) == svm_metric else lr_std for svm_metric, lr_metric, svm_std, lr_std in zip(df_metrics_mean_dic[metric_name].loc["SVM_tfidf"], df_metrics_mean_dic[metric_name].loc["logistic_tfidf"], df_std_mean.loc["SVM_tfidf"], df_std_mean.loc["logistic_tfidf"])]
-    df_std_mean.loc["classical-best-embeddings"] = [svm_std if max(svm_metric, lr_metric) == svm_metric else lr_std for svm_metric, lr_metric, svm_std, lr_std in zip(df_metrics_mean_dic[metric_name].loc["SVM_embeddings"], df_metrics_mean_dic[metric_name].loc["logistic_embeddings"], df_std_mean.loc["SVM_embeddings"], df_std_mean.loc["logistic_embeddings"])]
+    if metric_name not in ['accuracy_crossclass_std', 'f1_crossclass_std', 'recall_crossclass_std', 'precision_crossclass_std']:
+        df_std_mean.loc["classical-best-tfidf"] = [svm_std if max(svm_metric, lr_metric) == svm_metric else lr_std for svm_metric, lr_metric, svm_std, lr_std in zip(df_metrics_mean_dic[metric_name].loc["SVM_tfidf"], df_metrics_mean_dic[metric_name].loc["logistic_tfidf"], df_std_mean.loc["SVM_tfidf"], df_std_mean.loc["logistic_tfidf"])]
+        df_std_mean.loc["classical-best-embed"] = [svm_std if max(svm_metric, lr_metric) == svm_metric else lr_std for svm_metric, lr_metric, svm_std, lr_std in zip(df_metrics_mean_dic[metric_name].loc["SVM_embeddings"], df_metrics_mean_dic[metric_name].loc["logistic_embeddings"], df_std_mean.loc["SVM_embeddings"], df_std_mean.loc["logistic_embeddings"])]
+    else: # min value for cross-class std
+        df_std_mean.loc["classical-best-tfidf"] = [svm_std if min(svm_metric, lr_metric) == svm_metric else lr_std for svm_metric, lr_metric, svm_std, lr_std in
+                                                   zip(df_metrics_mean_dic[metric_name].loc["SVM_tfidf"], df_metrics_mean_dic[metric_name].loc["logistic_tfidf"], df_std_mean.loc["SVM_tfidf"],
+                                                       df_std_mean.loc["logistic_tfidf"])]
+        df_std_mean.loc["classical-best-embed"] = [svm_std if min(svm_metric, lr_metric) == svm_metric else lr_std for svm_metric, lr_metric, svm_std, lr_std in
+                                                        zip(df_metrics_mean_dic[metric_name].loc["SVM_embeddings"], df_metrics_mean_dic[metric_name].loc["logistic_embeddings"],
+                                                            df_std_mean.loc["SVM_embeddings"], df_std_mean.loc["logistic_embeddings"])]
     # order rows
-    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embeddings", "BERT-base", "BERT-base-nli"]
+    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embed", "BERT-base", "BERT-base-nli"]
     df_std_mean = df_std_mean.reindex(order_algos)
     df_std_mean.index.name = "Sample size /\nAlgorithm"
     df_std_mean_dic.update({metric_name: df_std_mean})
@@ -595,9 +631,9 @@ df_metrics_difference_dic = {}
 for i, metric_name in enumerate(metrics_all_name):
     df_metrics_difference = pd.DataFrame(data={
         "BERT-base vs. classical-best-tfidf": df_metrics_mean_dic[metric_name].loc["BERT-base"] - df_metrics_mean_dic[metric_name].loc["classical-best-tfidf"],
-        "BERT-base vs. classical-best-embeddings": df_metrics_mean_dic[metric_name].loc["BERT-base"] - df_metrics_mean_dic[metric_name].loc["classical-best-embeddings"],
+        "BERT-base vs. classical-best-embed": df_metrics_mean_dic[metric_name].loc["BERT-base"] - df_metrics_mean_dic[metric_name].loc["classical-best-embed"],
         "BERT-base-nli vs. classical-best-tfidf": df_metrics_mean_dic[metric_name].loc["BERT-base-nli"] - df_metrics_mean_dic[metric_name].loc["classical-best-tfidf"],
-        "BERT-base-nli vs. classical-best-embeddings": df_metrics_mean_dic[metric_name].loc["BERT-base-nli"] - df_metrics_mean_dic[metric_name].loc["classical-best-embeddings"],
+        "BERT-base-nli vs. classical-best-embed": df_metrics_mean_dic[metric_name].loc["BERT-base-nli"] - df_metrics_mean_dic[metric_name].loc["classical-best-embed"],
         "BERT-base-nli vs. BERT-base": df_metrics_mean_dic[metric_name].loc["BERT-base-nli"] - df_metrics_mean_dic[metric_name].loc["BERT-base"],
        }).transpose()
     #df_metrics_difference = df_metrics_difference.applymap(lambda x: f"+{round(x, 2)}" if x > 0 else round(x, 2))
@@ -610,7 +646,7 @@ for i, metric_name in enumerate(metrics_all_name):
 
 #### Visualisation of overall average performance
 colors_hex = ["#45a7d9", "#4451c4", "#7EAB55", "#FFC000"]  # order: logistic_tfidf, SVM_tfidf, logistic_embeddings, SVM_embeddings, deberta, deberta-nli   # must have same order as visual_data_dic
-algo_names_comparison = ["classical-best-tfidf", "classical-best-embeddings", "BERT-base", "BERT-base-nli"]
+algo_names_comparison = ["classical-best-tfidf", "classical-best-embed", "BERT-base", "BERT-base-nli"]
 
 ### average random baseline, changes depending on sample size, because less datasets included in higher sample size
 ## majority
@@ -642,9 +678,17 @@ for metric in metrics_all_name:
 
 
 ### create plot
-# for annex
-metrics_all_name = ['f1_macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
-                    'accuracy/f1_micro', f"accuracy_top{top_xth}th", "accuracy_rest",  #'accuracy_balanced',
+# for annex - displaying all possible metrics
+metrics_all_name = ['f1_macro', #f"f1_macro_top{top_xth}th", "f1_macro_rest",
+                    'accuracy/f1_micro', 'accuracy_balanced', #f"accuracy_top{top_xth}th", "accuracy_rest",
+                    'recall_macro', 'recall_micro',  #f'recall_macro_top{top_xth}th', 'recall_macro_rest',  #
+                    'precision_macro', 'precision_micro',  #f'precision_macro_top{top_xth}th', 'precision_macro_rest',  #
+                    'cohen_kappa', 'matthews_corrcoef'
+                    ]
+
+# for annex - comparison of metrics by top Xth vs. rest
+metrics_all_name = [#'f1_macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
+                    #'accuracy/f1_micro', f"accuracy_top{top_xth}th", "accuracy_rest",  #'accuracy_balanced',
                     'recall_macro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',  # 'recall_micro',
                     'precision_macro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',  #'precision_micro',
                     #'cohen_kappa', 'matthews_corrcoef'
@@ -764,7 +808,7 @@ for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "acc
         title_text="accuracy/" + metric_i if metric_i == "f1_micro" else metric_i,
         title_font_size=16,
         dtick=0.1,
-        range=[0, 0.82],
+        range=[0, 0.87],
         #font=dict(size=14)
     )
 
@@ -783,12 +827,216 @@ fig_compare.show(renderer="browser")
 
 
 
+### plot for standard cross-class standard deviation
+# standard deviation of main metrics for annex D
+metrics_all_name = ['accuracy_crossclass_std', 'f1_crossclass_std', 'recall_crossclass_std', 'precision_crossclass_std']
+#metrics_all_name = ['accuracy_std', 'f1_std', 'recall_std', 'precision_std']
+
+subplot_titles_compare = metrics_all_name  #["f1_macro", "accuracy/f1_micro", "accuracy_balanced"]
+# determine max number of rows
+i_row = 0
+i_col = 0
+col_max = 2
+for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "accuracy_balanced"]
+    i_col += 1
+    if i % col_max == 0:
+        i_row += 1
+        if i > 0:
+            i_col = 1
+    #print("row: ", i_row)
+    #print("col: ", i_col)
+print("row max: ", i_row)
+print("col max: ", col_max)
+fig_compare = make_subplots(rows=i_row, cols=col_max, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
+                            subplot_titles=subplot_titles_compare, x_title="Number of random training examples")  #y_title="f1 score",
+marker_symbols = ["circle", "circle", "circle", "circle"]  # "triangle-down", "triangle-up", "star-triangle-up", "star-square"
+
+## create new sub-plot for each metric
+i_row = 0
+i_col = 0
+for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "accuracy_balanced"]
+    # determine row and col position for each sub-figure
+    i_col += 1
+    if i % col_max == 0:
+        i_row += 1
+        if i > 0:
+            i_col = 1
+
+    for algo, hex, marker in zip(algo_names_comparison, colors_hex, marker_symbols):
+        fig_compare.add_trace(go.Scatter(
+            name=algo,
+            x=[100, 500, 1000, 2500],
+            y=df_metrics_mean_dic[metric_i].loc[algo][1:],  #df_metrics_mean_dic[metric_i].loc[algo] if "nli" in algo else [np.nan] + df_metrics_mean_dic[metric_i].loc[algo][1:].tolist(),
+            mode='lines+markers',
+            marker_symbol=marker,
+            #marker_size=10,
+            line=dict(color=hex, width=3),
+            line_dash="solid",  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
+            showlegend=True if i == 1 else False,
+            #font=dict(size=14),
+            ),
+            row=i_row, col=i_col
+        )
+        # add standard deviation
+        """upper_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) + pd.Series(df_std_mean_dic[metric_i].loc[algo])
+        fig_compare.add_trace(go.Scatter(
+            name=f'Upper Bound {algo}',
+            x=[0, 100, 500, 1000, 2500],  #visual_data_dic[algo]["x_axis_values"] if "nli" in algo else visual_data_dic[algo]["x_axis_values"][1:],
+            y=upper_bound_y,  #upper_bound_y if "nli" in algo else upper_bound_y[1:],  # pd.Series(metric_mean_nli) + pd.Series(metric_std_nli),
+            mode='lines',
+            marker=dict(color="#444"),
+            line=dict(width=0),
+            showlegend=False
+            ),
+            row=i_row, col=i_col
+        )
+        lower_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) - pd.Series(df_std_mean_dic[metric_i].loc[algo])
+        fig_compare.add_trace(go.Scatter(
+            name=f'Lower Bound {algo}',
+            x=[0, 100, 500, 1000, 2500],  #visual_data_dic[algo]["x_axis_values"] if "nli" in algo else visual_data_dic[algo]["x_axis_values"][1:],
+            y=lower_bound_y,  #lower_bound_y if "nli" in algo else lower_bound_y[1:],  # pd.Series(metric_mean_nli) - pd.Series(metric_std_nli),
+            marker=dict(color="#444"),
+            line=dict(width=0),
+            mode='lines',
+            fillcolor='rgba(68, 68, 68, 0.13)',
+            fill='tonexty',
+            showlegend=False
+            ),
+            row=i_row, col=i_col
+        )"""
+    #fig_compare.add_vline(x=4, line_dash="longdash", annotation_text="8 datasets", annotation_position="left", row=1, col=i+1)  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'] https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
+    #fig_compare.add_vline(x=4, line_dash="dot", annotation_text="4 datasets", annotation_position="right", row=1, col=i+1)  # annotation=dict(font_size=20, font_family="Times New Roman")  # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
+
+    # update layout for individual subplots  # https://stackoverflow.com/questions/63580313/update-specific-subplot-axes-in-plotly
+    fig_compare['layout'][f'xaxis{i+1}'].update(
+        # title_text=f'N random examples given {visual_data_dic[algo]["n_classes"]} classes',
+        tickangle=-10,
+        type='category',
+        title_font_size=16,
+    )
+    fig_compare['layout'][f'yaxis{i+1}'].update(
+        # range=[0.2, pd.Series(visual_data_dic[algo][f"{metric}_mean"]).iloc[-1] + pd.Series(visual_data_dic[algo][f"{metric}_std"]).iloc[-1] + 0.1]
+        title_text="accuracy/" + metric_i if metric_i == "f1_micro" else metric_i,
+        title_font_size=16,
+        dtick=0.05,
+        range=[0.1, 0.3],
+        #font=dict(size=14)
+    )
+
+# update layout for overall plot
+fig_compare.update_layout(
+    title_text=f"Average cross-class standard deviation", title_x=0.5,
+    #paper_bgcolor='rgba(0,0,0,0)',
+    #plot_bgcolor='rgba(0,0,0,0)',
+    template="none",  # ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]  # https://plotly.com/python/templates/
+    margin={"l": 200},
+    font=dict(size=16)
+    #height=800,
+)
+fig_compare.show(renderer="browser")
+
+
+
+
+
+
+##### bar chart for displaying average standard deviation
+
+# clean column names
+df_metrics_mean_dic["f1_crossclass_std"].columns = [x.replace("\n", " ") for x in df_metrics_mean_dic["f1_crossclass_std"].columns.to_list()]
+df_metrics_mean_dic["accuracy_crossclass_std"].columns = [x.replace("\n", " ") for x in df_metrics_mean_dic["accuracy_crossclass_std"].columns.to_list()]
+# take mean of data intervals from 100 to 2500
+f1_crossclass_std_avg = df_metrics_mean_dic["f1_crossclass_std"].drop(columns=['0 (8 datasets)', "5000 (4 datasets)", "10000 (3 datasets)"]).mean(axis=1)
+accuracy_crossclass_std_avg = df_metrics_mean_dic["accuracy_crossclass_std"].drop(columns=['0 (8 datasets)', "5000 (4 datasets)", "10000 (3 datasets)"]).mean(axis=1)
+# take lowest classical algo values
+crossclass_std_avg_dict = {}
+crossclass_std_avg_dict.update({"f1_crossclass_std": f1_crossclass_std_avg.drop(["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings"])})
+crossclass_std_avg_dict.update({"accuracy_crossclass_std": accuracy_crossclass_std_avg.drop(["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings"])})
+
+metrics_all_name = ['accuracy_crossclass_std', 'f1_crossclass_std']
+#colors_hex = ["#45a7d9", "#4451c4", "#7EAB55", "#FFC000"]  # order: logistic_tfidf, SVM_tfidf, logistic_embeddings, SVM_embeddings, deberta, deberta-nli   # must have same order as visual_data_dic
+
+subplot_titles_compare = metrics_all_name  #["f1_macro", "accuracy/f1_micro", "accuracy_balanced"]
+# determine max number of rows
+i_row = 0
+i_col = 0
+col_max = 2
+for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "accuracy_balanced"]
+    i_col += 1
+    if i % col_max == 0:
+        i_row += 1
+        if i > 0:
+            i_col = 1
+    #print("row: ", i_row)
+    #print("col: ", i_col)
+print("row max: ", i_row)
+print("col max: ", col_max)
+fig_compare = make_subplots(rows=i_row, cols=col_max, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
+                            subplot_titles=subplot_titles_compare)  #y_title="f1 score", x_title="Number of random training examples"
+
+## create new sub-plot for each metric
+i_row = 0
+i_col = 0
+for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "accuracy_balanced"]
+    # determine row and col position for each sub-figure
+    i_col += 1
+    if i % col_max == 0:
+        i_row += 1
+        if i > 0:
+            i_col = 1
+
+    fig_compare.add_trace(go.Bar(
+        name=metric_i,
+        x=crossclass_std_avg_dict[metric_i].index,
+        y=crossclass_std_avg_dict[metric_i],  #df_metrics_mean_dic[metric_i].loc[algo] if "nli" in algo else [np.nan] + df_metrics_mean_dic[metric_i].loc[algo][1:].tolist(),
+        #mode='lines+markers',
+        #marker_symbol=marker,
+        #marker_size=10,
+        #line=dict(color=hex, width=3),
+        marker_color=colors_hex,
+        #line_dash="solid",  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
+        showlegend=False,
+        #font=dict(size=14),
+        ),
+        row=i_row, col=i_col
+    )
+
+    # update layout for individual subplots  # https://stackoverflow.com/questions/63580313/update-specific-subplot-axes-in-plotly
+    fig_compare['layout'][f'xaxis{i+1}'].update(
+        # title_text=f'N random examples given {visual_data_dic[algo]["n_classes"]} classes',
+        tickangle=-10,
+        type='category',
+        title_font_size=16,
+    )
+    fig_compare['layout'][f'yaxis{i+1}'].update(
+        # range=[0.2, pd.Series(visual_data_dic[algo][f"{metric}_mean"]).iloc[-1] + pd.Series(visual_data_dic[algo][f"{metric}_std"]).iloc[-1] + 0.1]
+        title_text="accuracy/" + metric_i if metric_i == "f1_micro" else metric_i,
+        title_font_size=16,
+        dtick=0.05,
+        range=[0.1, 0.25],
+        #font=dict(size=14)
+    )
+
+# update layout for overall plot
+fig_compare.update_layout(
+    title_text=f"Average cross-class standard deviation", title_x=0.5,
+    #paper_bgcolor='rgba(0,0,0,0)',
+    #plot_bgcolor='rgba(0,0,0,0)',
+    template="none",  # ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]  # https://plotly.com/python/templates/
+    margin={"l": 200},
+    font=dict(size=16)
+    #height=800,
+)
+fig_compare.show(renderer="browser")
+
+
+
 
 
 
 ### visualise performance difference
 """fig_difference = go.Figure()
-algo_names_difference = ["BERT-base vs. classical-best-tfidf", "BERT-base-nli vs. classical-best-tfidf", "BERT-base vs. classical-best-embeddings", "BERT-base-nli vs. classical-best-embeddings", "BERT-base-nli vs. BERT-base"]
+algo_names_difference = ["BERT-base vs. classical-best-tfidf", "BERT-base-nli vs. classical-best-tfidf", "BERT-base vs. classical-best-embed", "BERT-base-nli vs. classical-best-embed", "BERT-base-nli vs. BERT-base"]
 colors_hex_difference = ["#16bfb4", "#168fbf", "#bfa616", "#bf7716", "#bf16bb"]
 
 
