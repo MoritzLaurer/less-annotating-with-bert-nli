@@ -13,7 +13,7 @@ SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
 ## determine metric to use for figure with performance per dataset disaggregated
-METRIC = "accuracy/f1_micro"  # options: ['f1_macro', 'accuracy/f1_micro', 'accuracy_balanced', 'recall_macro', 'recall_micro', 'precision_macro', 'precision_micro',  'cohen_kappa', 'matthews_corrcoef']
+METRIC = "F1 Macro"  # options: ['F1 Macro', 'Accuracy/F1 Micro', 'Balanced Accuracy', 'recall_macro', 'recall_micro', 'precision_macro', 'precision_micro',  'cohen_kappa', 'matthews_corrcoef']
 
 
 
@@ -140,12 +140,12 @@ def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
     recall_crossclass_std = np.std([value_class_metrics["recall"] for key_class, value_class_metrics in class_report.items()])
     precision_crossclass_std = np.std([value_class_metrics["precision"] for key_class, value_class_metrics in class_report.items()])
 
-    metrics = {'f1_macro': f1_macro,
+    metrics = {'F1 Macro': f1_macro,
                f'f1_macro_top{top_xth}th': f1_macro_topshare,
                f'f1_macro_rest': f1_macro_bottomrest,
-               'accuracy/f1_micro': f1_micro,
+               'Accuracy/F1 Micro': f1_micro,
                #'accuracy': acc_not_balanced,
-               'accuracy_balanced': acc_balanced,
+               'Balanced Accuracy': acc_balanced,
                f"accuracy_top{top_xth}th": accuracy_topshare,
                "accuracy_rest": accuracy_bottomrest,
                #'accuracy_balanced_manual': accuracy_balanced_manual,  # confirmed that same as sklearn
@@ -168,8 +168,8 @@ def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
 
     return metrics
 
-metrics_all_name = ['f1_macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",  'accuracy/f1_micro', 'accuracy_balanced',
-                    'recall_macro', 'recall_micro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',   # 'accuracy_balanced_manual',
+metrics_all_name = ['F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",  'Accuracy/F1 Micro', 'Balanced Accuracy',
+                    'recall_macro', 'recall_micro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',   # 'Balanced Accuracy_manual',
                     'precision_macro', 'precision_micro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',
                     f"accuracy_top{top_xth}th", "accuracy_rest",
                     'cohen_kappa', 'matthews_corrcoef',
@@ -224,28 +224,6 @@ for key_dataset_name, experiment_details_dic_all_methods in experiment_details_d
   #if key_dataset_name == "cap-us-court":  # CAP-us-court reaches max dataset with 320 samples per class
   #  x_axis_values = ["0" if n_per_class == 0 else f"{str(n_total)} (all)" if n_per_class >= 320 else f"{str(n_total)}"  for n_per_class, n_total in zip(n_sample_per_class, n_total_samples)]
 
-  ## old deletable code unnesting specific metrics individually for better viz format
-  """
-  visual_data_dic = {}
-  for key_method in experiment_details_dic_all_methods:
-    f1_macro_mean_lst = []
-    f1_micro_mean_lst = []
-    f1_macro_std_lst = []
-    f1_micro_std_lst = []
-    accuracy_balanced_mean_lst = []
-    accuracy_balanced_std_lst = []
-    for key_step in experiment_details_dic_all_methods[key_method]:
-      f1_macro_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_macro_mean"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
-      f1_micro_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_micro_mean"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
-      f1_macro_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_macro_std"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
-      f1_micro_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["f1_micro_std"])  # f1_macro_mean, f1_macro_std, f1_micro_mean, f1_micro_std
-      # added accuracy balanced based on reviewer feedback
-      accuracy_balanced_mean_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["accuracy_balanced_mean"])
-      accuracy_balanced_std_lst.append(experiment_details_dic_all_methods[key_method][key_step]["metrics_mean"]["accuracy_balanced_std"])
-    dic_method = { key_method: {"f1_macro_mean": f1_macro_mean_lst, "f1_micro_mean": f1_micro_mean_lst, "f1_macro_std": f1_macro_std_lst, "f1_micro_std": f1_micro_std_lst,
-                                "accuracy_balanced_mean": accuracy_balanced_mean_lst, "accuracy_balanced_std": accuracy_balanced_std_lst,
-                                "n_classes": n_classes, "x_axis_values": x_axis_values} }  #"n_max_sample": n_sample_per_class, "n_total_samples": n_total_samples,
-    """
   ## unnest metric results in better format for visualisation
   # generalised code for any metric
   visual_data_dic = {}
@@ -317,27 +295,17 @@ for key_dataset_name, value_df_test in df_test_dic.items():
       labels_random = np.random.choice(value_df_test.label_domain_text, len(value_df_test))
       labels_gold = value_df_test.label_domain_text
       metrics_random = compute_metrics(labels_random, labels_gold, label_text_alphabetical=np.sort(value_df_test.label_domain_text.unique()))
-      #f1_macro_random_mean_lst.append(metrics_random["f1_macro"])
-      #f1_micro_random_mean_lst.append(metrics_random["f1_micro"])
-      #accuracy_balanced_random_mean_lst.append(metrics_random["accuracy_balanced"])
-      #
       for metric in metrics_all_name:
           metric_random_dic[metric].append(metrics_random[metric])
     else:
       labels_random = np.random.choice(value_df_test.label_text, len(value_df_test))
       labels_gold = value_df_test.label_text
       metrics_random = compute_metrics(labels_random, labels_gold, label_text_alphabetical=np.sort(value_df_test.label_text.unique()))
-      #f1_macro_random_mean_lst.append(metrics_random["f1_macro"])
-      #f1_micro_random_mean_lst.append(metrics_random["f1_micro"])
-      #accuracy_balanced_random_mean_lst.append(metrics_random["accuracy_balanced"])
       for metric in metrics_all_name:
           metric_random_dic[metric].append(metrics_random[metric])
     ## generalised version for any metric
 
   ## random mean per metric
-  #f1_macro_random_mean = np.mean(f1_macro_random_mean_lst)
-  #f1_micro_random_mean = np.mean(f1_micro_random_mean_lst)
-  #accuracy_balanced_random_mean = np.mean(accuracy_balanced_random_mean_lst)
   metric_random_mean_dic = {}
   for metric in metrics_all_name:
       metric_random_mean_dic.update({f"{metric}_random": np.mean(metric_random_dic[metric])})
@@ -349,26 +317,15 @@ for key_dataset_name, value_df_test in df_test_dic.items():
     labels_majority = [value_df_test.label_domain_text.value_counts().idxmax()] * len(value_df_test)
     labels_gold = value_df_test.label_domain_text
     metrics_majority = compute_metrics(labels_majority, labels_gold, label_text_alphabetical=np.sort(value_df_test.label_domain_text.unique()))
-    #f1_macro_majority = metrics_majority["f1_macro"]
-    #f1_micro_majority = metrics_majority["f1_micro"]
-    #accuracy_balanced_majority = metrics_majority["accuracy_balanced"]
     for metric in metrics_all_name:
         metric_majority_dic.update({f"{metric}_majority": metrics_majority[metric]})
   else:
     labels_majority = [value_df_test.label_text.value_counts().idxmax()] * len(value_df_test)
     labels_gold = value_df_test.label_text
     metrics_majority = compute_metrics(labels_majority, labels_gold, label_text_alphabetical=np.sort(value_df_test.label_text.unique()))
-    #f1_macro_majority = metrics_majority["f1_macro"]
-    #f1_micro_majority = metrics_majority["f1_micro"]
-    #accuracy_balanced_majority = metrics_majority["accuracy_balanced"]
     for metric in metrics_all_name:
         metric_majority_dic.update({f"{metric}_majority": metrics_majority[metric]})
 
-  """metrics_baseline_dic.update({key_dataset_name: {"f1_macro_random": f1_macro_random_mean, "f1_micro_random": f1_micro_random_mean,
-                                                  "f1_macro_majority": f1_macro_majority, "f1_micro_majority": f1_micro_majority,
-                                                  "accuracy_balanced_random": accuracy_balanced_random_mean, "accuracy_balanced_majority": accuracy_balanced_majority,
-                                                  }
-                               })"""
   metrics_baseline_dic.update({key_dataset_name: {**metric_random_mean_dic, **metric_majority_dic}})
 np.random.seed(SEED_GLOBAL)  # rest seed to global seed
 
@@ -679,30 +636,30 @@ for metric in metrics_all_name:
 
 ### create plot
 # for annex - displaying all possible metrics
-metrics_all_name = ['f1_macro', #f"f1_macro_top{top_xth}th", "f1_macro_rest",
-                    'accuracy/f1_micro', 'accuracy_balanced', #f"accuracy_top{top_xth}th", "accuracy_rest",
+metrics_all_name = ['F1 Macro', #f"f1_macro_top{top_xth}th", "f1_macro_rest",
+                    'Accuracy/F1 Micro', 'Balanced Accuracy', #f"accuracy_top{top_xth}th", "accuracy_rest",
                     'recall_macro', 'recall_micro',  #f'recall_macro_top{top_xth}th', 'recall_macro_rest',  #
                     'precision_macro', 'precision_micro',  #f'precision_macro_top{top_xth}th', 'precision_macro_rest',  #
                     'cohen_kappa', 'matthews_corrcoef'
                     ]
 
 # for annex - comparison of metrics by top Xth vs. rest
-metrics_all_name = ['f1_macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
-                    'accuracy/f1_micro', f"accuracy_top{top_xth}th", "accuracy_rest",  #'accuracy_balanced',
+metrics_all_name = ['F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
+                    'Accuracy/F1 Micro', f"accuracy_top{top_xth}th", "accuracy_rest",  #'Balanced Accuracy',
                     #'recall_macro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',  # 'recall_micro',
                     #'precision_macro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',  #'precision_micro',
                     #'cohen_kappa', 'matthews_corrcoef'
                     ]
 # for main text
-metrics_all_name = ['f1_macro', 'accuracy_balanced', 'accuracy/f1_micro']
+metrics_all_name = ['F1 Macro', 'Balanced Accuracy', 'Accuracy/F1 Micro']
 
 
-subplot_titles_compare = metrics_all_name  #["f1_macro", "accuracy/f1_micro", "accuracy_balanced"]
+subplot_titles_compare = metrics_all_name  #["f1_macro", "Accuracy/F1 Micro", "Balanced Accuracy"]
 # determine max number of rows
 i_row = 0
 i_col = 0
 col_max = 3
-for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "accuracy_balanced"]
+for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "Balanced Accuracy"]
     i_col += 1
     if i % col_max == 0:
         i_row += 1
@@ -719,7 +676,7 @@ marker_symbols = ["circle", "circle", "circle", "circle"]  # "triangle-down", "t
 ## create new sub-plot for each metric
 i_row = 0
 i_col = 0
-for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "accuracy_balanced"]
+for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "Balanced Accuracy"]
     # determine row and col position for each sub-figure
     i_col += 1
     if i % col_max == 0:
@@ -805,10 +762,10 @@ for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "acc
     )
     fig_compare['layout'][f'yaxis{i+1}'].update(
         # range=[0.2, pd.Series(visual_data_dic[algo][f"{metric}_mean"]).iloc[-1] + pd.Series(visual_data_dic[algo][f"{metric}_std"]).iloc[-1] + 0.1]
-        title_text="accuracy/" + metric_i if metric_i == "f1_micro" else metric_i,
+        title_text=metric_i,  #"Accuracy/" + metric_i if metric_i == "F1 Micro" else metric_i,
         title_font_size=16,
         dtick=0.1,
-        range=[0, 0.87] #[0.15, 0.8],
+        range=[0.15, 0.8] #[0.15, 0.8],
         #font=dict(size=14)
     )
 
@@ -832,12 +789,12 @@ fig_compare.show(renderer="browser")
 metrics_all_name = ['accuracy_crossclass_std', 'f1_crossclass_std', 'recall_crossclass_std', 'precision_crossclass_std']
 #metrics_all_name = ['accuracy_std', 'f1_std', 'recall_std', 'precision_std']
 
-subplot_titles_compare = metrics_all_name  #["f1_macro", "accuracy/f1_micro", "accuracy_balanced"]
+subplot_titles_compare = metrics_all_name  #["f1_macro", "Accuracy/F1 Micro", "Balanced Accuracy"]
 # determine max number of rows
 i_row = 0
 i_col = 0
 col_max = 2
-for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "accuracy_balanced"]
+for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "Balanced Accuracy"]
     i_col += 1
     if i % col_max == 0:
         i_row += 1
@@ -854,7 +811,7 @@ marker_symbols = ["circle", "circle", "circle", "circle"]  # "triangle-down", "t
 ## create new sub-plot for each metric
 i_row = 0
 i_col = 0
-for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "accuracy_balanced"]
+for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "Balanced Accuracy"]
     # determine row and col position for each sub-figure
     i_col += 1
     if i % col_max == 0:
@@ -877,33 +834,6 @@ for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "acc
             ),
             row=i_row, col=i_col
         )
-        # add standard deviation
-        """upper_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) + pd.Series(df_std_mean_dic[metric_i].loc[algo])
-        fig_compare.add_trace(go.Scatter(
-            name=f'Upper Bound {algo}',
-            x=[0, 100, 500, 1000, 2500],  #visual_data_dic[algo]["x_axis_values"] if "nli" in algo else visual_data_dic[algo]["x_axis_values"][1:],
-            y=upper_bound_y,  #upper_bound_y if "nli" in algo else upper_bound_y[1:],  # pd.Series(metric_mean_nli) + pd.Series(metric_std_nli),
-            mode='lines',
-            marker=dict(color="#444"),
-            line=dict(width=0),
-            showlegend=False
-            ),
-            row=i_row, col=i_col
-        )
-        lower_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) - pd.Series(df_std_mean_dic[metric_i].loc[algo])
-        fig_compare.add_trace(go.Scatter(
-            name=f'Lower Bound {algo}',
-            x=[0, 100, 500, 1000, 2500],  #visual_data_dic[algo]["x_axis_values"] if "nli" in algo else visual_data_dic[algo]["x_axis_values"][1:],
-            y=lower_bound_y,  #lower_bound_y if "nli" in algo else lower_bound_y[1:],  # pd.Series(metric_mean_nli) - pd.Series(metric_std_nli),
-            marker=dict(color="#444"),
-            line=dict(width=0),
-            mode='lines',
-            fillcolor='rgba(68, 68, 68, 0.13)',
-            fill='tonexty',
-            showlegend=False
-            ),
-            row=i_row, col=i_col
-        )"""
     #fig_compare.add_vline(x=4, line_dash="longdash", annotation_text="8 datasets", annotation_position="left", row=1, col=i+1)  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'] https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
     #fig_compare.add_vline(x=4, line_dash="dot", annotation_text="4 datasets", annotation_position="right", row=1, col=i+1)  # annotation=dict(font_size=20, font_family="Times New Roman")  # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
 
@@ -956,12 +886,12 @@ crossclass_std_avg_dict.update({"accuracy_crossclass_std": accuracy_crossclass_s
 metrics_all_name = ['accuracy_crossclass_std', 'f1_crossclass_std']
 #colors_hex = ["#45a7d9", "#4451c4", "#7EAB55", "#FFC000"]  # order: logistic_tfidf, SVM_tfidf, logistic_embeddings, SVM_embeddings, deberta, deberta-nli   # must have same order as visual_data_dic
 
-subplot_titles_compare = metrics_all_name  #["f1_macro", "accuracy/f1_micro", "accuracy_balanced"]
+subplot_titles_compare = metrics_all_name  #["f1_macro", "Accuracy/F1 Micro", "Balanced Accuracy"]
 # determine max number of rows
 i_row = 0
 i_col = 0
 col_max = 2
-for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "accuracy_balanced"]
+for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "Balanced Accuracy"]
     i_col += 1
     if i % col_max == 0:
         i_row += 1
@@ -977,7 +907,7 @@ fig_compare = make_subplots(rows=i_row, cols=col_max, start_cell="top-left", hor
 ## create new sub-plot for each metric
 i_row = 0
 i_col = 0
-for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "accuracy_balanced"]
+for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "Balanced Accuracy"]
     # determine row and col position for each sub-figure
     i_col += 1
     if i % col_max == 0:
@@ -1071,23 +1001,6 @@ fig_difference.update_layout(
 )
 fig_difference.show(renderer="browser")
 
-"""
-
-
-
-### deletable script for renaming file names (when "tfidf" to classical ml files)
-"""import os
-DATASET_NAME_LST = ["sentiment-news-econ", "coronanet", "cap-sotu", "cap-us-court", "manifesto-8",
-                    "manifesto-military", "manifesto-protectionism", "manifesto-morality"]
-
-for dataset_name in DATASET_NAME_LST:
-    path = f"./results/{dataset_name}"
-    files = os.listdir(path)
-    for file_name in files:
-        for method in ["SVM", "logistic"]:
-            if (method in file_name) and ("embedding" not in file_name):
-                file_name_new = file_name.replace(method, f"{method}_tfidf")
-                #os.rename(os.path.join(path, file_name), os.path.join(path, file_name_new))
 """
 
 
