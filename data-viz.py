@@ -346,7 +346,7 @@ from plotly.subplots import make_subplots  # https://plotly.com/python/subplots/
 colors_hex = ["#45a7d9", "#4451c4", "#45a7d9", "#4451c4", "#7EAB55", "#FFC000"]  # order: logistic_tfidf, SVM_tfidf, logistic_embeddings, SVM_embeddings, deberta, deberta-nli   # must have same order as visual_data_dic
 simple_algo_names_dic = {"logistic_tfidf": "logistic_tfidf", "logistic_embeddings": "logistic_embeddings",
                          "SVM_tfidf": "SVM_tfidf", "SVM_embeddings": "SVM_embeddings",
-                         "deberta-v3-base": "BERT-base", "DeBERTa-v3-base-mnli-fever-docnli-ling-2c": "BERT-base-nli",
+                         "deberta-v3-base": "BERT-base", "DeBERTa-v3-base-mnli-fever-docnli-ling-2c": "BERT-NLI",
                          }
 
 ### iterate over all datasets
@@ -552,7 +552,7 @@ for i, metric_name in enumerate(metrics_all_name):
         df_metrics_mean.loc["classical-best-tfidf"] = [min(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_tfidf"], df_metrics_mean.loc["logistic_tfidf"])]
         df_metrics_mean.loc["classical-best-embed"] = [min(svm_metric, lr_metric) for svm_metric, lr_metric in zip(df_metrics_mean.loc["SVM_embeddings"], df_metrics_mean.loc["logistic_embeddings"])]
     # order rows
-    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embed", "BERT-base", "BERT-base-nli"]
+    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embed", "BERT-base", "BERT-NLI"]
     df_metrics_mean = df_metrics_mean.reindex(order_algos)
     df_metrics_mean.index.name = "Sample size /\nAlgorithm"
     df_metrics_mean_dic.update({metric_name: df_metrics_mean})
@@ -577,7 +577,7 @@ for i, metric_name in enumerate(metrics_all_name):
                                                         zip(df_metrics_mean_dic[metric_name].loc["SVM_embeddings"], df_metrics_mean_dic[metric_name].loc["logistic_embeddings"],
                                                             df_std_mean.loc["SVM_embeddings"], df_std_mean.loc["logistic_embeddings"])]
     # order rows
-    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embed", "BERT-base", "BERT-base-nli"]
+    order_algos = ["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "classical-best-tfidf", "classical-best-embed", "BERT-base", "BERT-NLI"]
     df_std_mean = df_std_mean.reindex(order_algos)
     df_std_mean.index.name = "Sample size /\nAlgorithm"
     df_std_mean_dic.update({metric_name: df_std_mean})
@@ -589,9 +589,9 @@ for i, metric_name in enumerate(metrics_all_name):
     df_metrics_difference = pd.DataFrame(data={
         "BERT-base vs. classical-best-tfidf": df_metrics_mean_dic[metric_name].loc["BERT-base"] - df_metrics_mean_dic[metric_name].loc["classical-best-tfidf"],
         "BERT-base vs. classical-best-embed": df_metrics_mean_dic[metric_name].loc["BERT-base"] - df_metrics_mean_dic[metric_name].loc["classical-best-embed"],
-        "BERT-base-nli vs. classical-best-tfidf": df_metrics_mean_dic[metric_name].loc["BERT-base-nli"] - df_metrics_mean_dic[metric_name].loc["classical-best-tfidf"],
-        "BERT-base-nli vs. classical-best-embed": df_metrics_mean_dic[metric_name].loc["BERT-base-nli"] - df_metrics_mean_dic[metric_name].loc["classical-best-embed"],
-        "BERT-base-nli vs. BERT-base": df_metrics_mean_dic[metric_name].loc["BERT-base-nli"] - df_metrics_mean_dic[metric_name].loc["BERT-base"],
+        "BERT-NLI vs. classical-best-tfidf": df_metrics_mean_dic[metric_name].loc["BERT-NLI"] - df_metrics_mean_dic[metric_name].loc["classical-best-tfidf"],
+        "BERT-NLI vs. classical-best-embed": df_metrics_mean_dic[metric_name].loc["BERT-NLI"] - df_metrics_mean_dic[metric_name].loc["classical-best-embed"],
+        "BERT-NLI vs. BERT-base": df_metrics_mean_dic[metric_name].loc["BERT-NLI"] - df_metrics_mean_dic[metric_name].loc["BERT-base"],
        }).transpose()
     #df_metrics_difference = df_metrics_difference.applymap(lambda x: f"+{round(x, 2)}" if x > 0 else round(x, 2))
     #df_metrics_difference = df_metrics_difference.applymap(lambda x: round(x, 2))
@@ -603,7 +603,7 @@ for i, metric_name in enumerate(metrics_all_name):
 
 #### Visualisation of overall average performance
 colors_hex = ["#45a7d9", "#4451c4", "#7EAB55", "#FFC000"]  # order: logistic_tfidf, SVM_tfidf, logistic_embeddings, SVM_embeddings, deberta, deberta-nli   # must have same order as visual_data_dic
-algo_names_comparison = ["classical-best-tfidf", "classical-best-embed", "BERT-base", "BERT-base-nli"]
+algo_names_comparison = ["classical-best-tfidf", "classical-best-embed", "BERT-base", "BERT-NLI"]
 
 ### average random baseline, changes depending on sample size, because less datasets included in higher sample size
 ## majority
@@ -966,7 +966,7 @@ fig_compare.show(renderer="browser")
 
 ### visualise performance difference
 """fig_difference = go.Figure()
-algo_names_difference = ["BERT-base vs. classical-best-tfidf", "BERT-base-nli vs. classical-best-tfidf", "BERT-base vs. classical-best-embed", "BERT-base-nli vs. classical-best-embed", "BERT-base-nli vs. BERT-base"]
+algo_names_difference = ["BERT-base vs. classical-best-tfidf", "BERT-NLI vs. classical-best-tfidf", "BERT-base vs. classical-best-embed", "BERT-NLI vs. classical-best-embed", "BERT-NLI vs. BERT-base"]
 colors_hex_difference = ["#16bfb4", "#168fbf", "#bfa616", "#bf7716", "#bf16bb"]
 
 
