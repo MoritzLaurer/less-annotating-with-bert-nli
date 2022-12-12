@@ -15,7 +15,8 @@ np.random.seed(SEED_GLOBAL)
 # ## Load & prepare data
 
 print(os.getcwd())
-os.chdir("./NLI-experiments")
+if "NLI-experiments" not in os.getcwd().split("/")[-1]:
+    os.chdir("/Users/moritzlaurer/Dropbox/PhD/Papers/nli/snellius/NLI-experiments")
 print(os.getcwd())
 
 
@@ -26,7 +27,7 @@ print(os.getcwd())
 # switch was 2016/2017
 # working with version provided by Manifesto team
 
-df = pd.read_csv("./data_raw/manifesto/all_annotated_manifestos.csv", index_col="Unnamed: 0")
+df = pd.read_csv("./data_raw/manifesto/all_annotated_manifestos.zip", index_col="Unnamed: 0")
 
 print(df.columns)
 print(len(df))
