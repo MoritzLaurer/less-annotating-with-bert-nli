@@ -144,10 +144,10 @@ elif "manifesto-8" in DATASET_NAME:
   df_cl = pd.read_csv("./data_clean/df_manifesto_all.csv", index_col="idx")
   df_train = pd.read_csv("./data_clean/df_manifesto_train.csv", index_col="idx")
   df_test = pd.read_csv("./data_clean/df_manifesto_test.csv", index_col="idx")
-elif DATASET_NAME == "manifesto-complex":
-  df_cl = pd.read_csv("./data_clean/df_manifesto_complex_all.csv", index_col="idx")
-  df_train = pd.read_csv("./data_clean/df_manifesto_complex_train.csv", index_col="idx")
-  df_test = pd.read_csv("./data_clean/df_manifesto_complex_test.csv", index_col="idx")
+#elif DATASET_NAME == "manifesto-complex":
+#  df_cl = pd.read_csv("./data_clean/df_manifesto_complex_all.csv", index_col="idx")
+#  df_train = pd.read_csv("./data_clean/df_manifesto_complex_train.csv", index_col="idx")
+#  df_test = pd.read_csv("./data_clean/df_manifesto_complex_test.csv", index_col="idx")
 elif DATASET_NAME == "coronanet":
   df_cl = pd.read_csv("./data_clean/df_coronanet_20220124_all.csv", index_col="idx")
   df_train = pd.read_csv("./data_clean/df_coronanet_20220124_train.csv", index_col="idx")

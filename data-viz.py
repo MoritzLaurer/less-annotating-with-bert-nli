@@ -257,8 +257,8 @@ for dataset_name in DATASET_NAME_LST:
     df_test = pd.read_csv("./data_clean/df_cap_sotu_test.csv", index_col="idx")
   elif "manifesto-8" in dataset_name:
     df_test = pd.read_csv("./data_clean/df_manifesto_test.csv", index_col="idx")
-  elif dataset_name == "manifesto-complex":
-    df_test = pd.read_csv("./data_clean/df_manifesto_complex_test.csv", index_col="idx")
+  #elif dataset_name == "manifesto-complex":
+  #  df_test = pd.read_csv("./data_clean/df_manifesto_complex_test.csv", index_col="idx")
   elif dataset_name == "coronanet":
     df_test = pd.read_csv("./data_clean/df_coronanet_20220124_test.csv", index_col="idx")
   elif dataset_name == "manifesto-military":
