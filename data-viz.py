@@ -12,11 +12,6 @@ import joblib
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
-## determine metric to use for figure with performance per dataset disaggregated
-METRIC = "F1 Macro"  # options: ['F1 Macro', 'Accuracy/F1 Micro', 'Balanced Accuracy', 'recall_macro', 'recall_micro', 'precision_macro', 'precision_micro',  'cohen_kappa', 'matthews_corrcoef']
-
-
-
 
 # ## Data loading
 #set wd
@@ -335,7 +330,16 @@ metrics_baseline_dic
 
 
 
+
 # ## Visualisation
+# same as above
+metrics_all_name = ['F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",  'Accuracy/F1 Micro', 'Balanced Accuracy',
+                    'recall_macro', 'recall_micro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',   # 'Balanced Accuracy_manual',
+                    'precision_macro', 'precision_micro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',
+                    f"accuracy_top{top_xth}th", "accuracy_rest",
+                    'cohen_kappa', 'matthews_corrcoef',
+                    'accuracy_crossclass_std', 'f1_crossclass_std', 'recall_crossclass_std', 'precision_crossclass_std']
+
 
 ### visualisation   # https://plotly.com/python/continuous-error-bars/
 import plotly
@@ -350,147 +354,160 @@ simple_algo_names_dic = {"logistic_tfidf": "logistic_tfidf", "logistic_embedding
                          }
 
 ### iterate over all datasets
-subplot_titles = ["Sentiment News (2 class)", "CoronaNet (20 class)", "CAP SotU (22 class)", "CAP US Court (20 class)", "Manifesto (8 class)", #"Manifesto Simple (44 class)",
-                  "Manifesto Military (3 class)", "Manifesto Protectionism (3 class)", "Manifesto Morality (3 class)"]
-fig = make_subplots(rows=3, cols=3, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
-                    subplot_titles=subplot_titles,
-                    x_title="* Number of random training examples", y_title="* " + METRIC)
+def plot_per_dataset(metric_func=None):
 
-i = 0
-for key_dataset_name, visual_data_dic in visual_data_dic_datasets.items():
-  ## for one dataset, create one figure
-  # determine position of subplot
-  i += 1
-  if i in [1, 2, 3]:
-    i_row = 1
-  elif i in [4, 5, 6]:
-    i_row = 2
-  elif i in [7, 8, 9]:
-    i_row = 3
-  if i in [1, 4, 7]:
-    i_col = 1
-  elif i in [2, 5, 8]:
-    i_col = 2
-  elif i in [3, 6, 9]:
-    i_col = 3
+    subplot_titles = ["Sentiment News (2 class)", "CoronaNet (20 class)", "CAP SotU (22 class)", "CAP US Court (20 class)", "Manifesto (8 class)", #"Manifesto Simple (44 class)",
+                      "Manifesto Military (3 class)", "Manifesto Protectionism (3 class)", "Manifesto Morality (3 class)"]
+    fig = make_subplots(rows=3, cols=3, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
+                        subplot_titles=subplot_titles,
+                        x_title="* Number of random training examples", y_title="* " + metric_func)
 
-  ## add random and majority baseline data
-  algo_string = list(visual_data_dic.keys())[0]  # get name string for one algo to add standard info (x axis value etc.) to plot
+    i = 0
+    for key_dataset_name, visual_data_dic in visual_data_dic_datasets.items():
+      ## for one dataset, create one figure
+      # determine position of subplot
+      i += 1
+      if i in [1, 2, 3]:
+        i_row = 1
+      elif i in [4, 5, 6]:
+        i_row = 2
+      elif i in [7, 8, 9]:
+        i_row = 3
+      if i in [1, 4, 7]:
+        i_col = 1
+      elif i in [2, 5, 8]:
+        i_col = 2
+      elif i in [3, 6, 9]:
+        i_col = 3
 
-  # attempt to accomodate reviewer's axis harmonisation request. Unfortunately makes figures much harder to read
-  """x_axis_harmonised = visual_data_dic[algo_string]["x_axis_values"]
-  if "5000" not in visual_data_dic[algo_string]["x_axis_values"]:
-      x_axis_harmonised = x_axis_harmonised + ["5000"]
-  if "10000" not in visual_data_dic[algo_string]["x_axis_values"]:
-      x_axis_harmonised = x_axis_harmonised + ["10000"]
-  y_axis_harmonised = [metrics_baseline_dic[key_dataset_name][f"{METRIC}_random"]] * len(visual_data_dic[algo_string]["x_axis_values"])
-  if "5000" not in visual_data_dic[algo_string]["x_axis_values"]:
-      y_axis_harmonised = y_axis_harmonised + [y_axis_harmonised[-1]]
-  if "10000" not in visual_data_dic[algo_string]["x_axis_values"]:
-      y_axis_harmonised = y_axis_harmonised + [y_axis_harmonised[-1]]"""
+      ## add random and majority baseline data
+      algo_string = list(visual_data_dic.keys())[0]  # get name string for one algo to add standard info (x axis value etc.) to plot
 
-  fig.add_trace(go.Scatter(
-        name=f"random baseline ({METRIC})",
-        x=visual_data_dic[algo_string]["x_axis_values"],
-        y=[metrics_baseline_dic[key_dataset_name][f"{METRIC}_random"]] * len(visual_data_dic[algo_string]["x_axis_values"]),
-        mode='lines',
-        #line=dict(color="grey"), 
-        line_dash="dot", line_color="grey",
-        showlegend=False if i != 5 else True
-        ), 
-        row=i_row, col=i_col
-  )
-  fig.add_trace(go.Scatter(
-        name=f"majority baseline ({METRIC})",
-        x=visual_data_dic[algo_string]["x_axis_values"],
-        y=[metrics_baseline_dic[key_dataset_name][f"{METRIC}_majority"]] * len(visual_data_dic[algo_string]["x_axis_values"]),
-        mode='lines',
-        #line=dict(color="grey"), 
-        line_dash="dashdot", line_color="grey",  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
-        showlegend=False if i != 5 else True
-        ), 
-        row=i_row, col=i_col
-  )
-  ## add universal politicsnli markers for indiv data point per dataset  # https://plotly.com/python/marker-style/
-  """fig.add_trace(go.Scatter(
-        name=f"Transformer-Mini-NLI-Politics",
-        # x-axis 0 for held-out data, otherwise equivalent of 320 samp
-        x=[0] if key_dataset_name in ["sentiment-news-econ", "cap-us-court", "manifesto-protectionism"] else [visual_data_dic["xtremedistil-l6-h256-uncased"]["x_axis_values"][5]], 
-        y=visual_data_dic["xtremedistil-l6-h256-mnli-fever-anli-ling-politicsnli"][f"{METRIC}_mean"],
-        mode='markers',
-        marker_symbol="circle-open-dot",
-        marker_line_color=colors_hex[-1], marker_color=colors_hex[-1],
-        marker_line_width=2, marker_size=15,
-        #line=dict(color="grey"), 
-        #line_dash="dashdot", line_color="grey",  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
-        showlegend=False if i != 5 else True
-        ), 
-        row=i_row, col=i_col
-  )"""
+      # attempt to accomodate reviewer's axis harmonisation request. Unfortunately makes figures much harder to read
+      """x_axis_harmonised = visual_data_dic[algo_string]["x_axis_values"]
+      if "5000" not in visual_data_dic[algo_string]["x_axis_values"]:
+          x_axis_harmonised = x_axis_harmonised + ["5000"]
+      if "10000" not in visual_data_dic[algo_string]["x_axis_values"]:
+          x_axis_harmonised = x_axis_harmonised + ["10000"]
+      y_axis_harmonised = [metrics_baseline_dic[key_dataset_name][f"{METRIC}_random"]] * len(visual_data_dic[algo_string]["x_axis_values"])
+      if "5000" not in visual_data_dic[algo_string]["x_axis_values"]:
+          y_axis_harmonised = y_axis_harmonised + [y_axis_harmonised[-1]]
+      if "10000" not in visual_data_dic[algo_string]["x_axis_values"]:
+          y_axis_harmonised = y_axis_harmonised + [y_axis_harmonised[-1]]"""
 
-  ## iterate for each method in dic and add respective line + std
-  for key_algo, hex in zip(visual_data_dic, colors_hex):
-    fig.add_trace(go.Scatter(
-          name=simple_algo_names_dic[key_algo],
-          x=visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
-          y=visual_data_dic[key_algo][f"{METRIC}_mean"] if "nli" in key_algo else visual_data_dic[key_algo][f"{METRIC}_mean"][1:],
-          mode='lines',
-          line=dict(color=hex),
-          line_dash="dash" if key_algo in ["SVM_tfidf", "logistic_tfidf"] else "solid",  #['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
-          showlegend=False if i != 5 else True
-          ), 
-          row=i_row, col=i_col
+      fig.add_trace(go.Scatter(
+            name=f"random baseline ({metric_func})",
+            x=visual_data_dic[algo_string]["x_axis_values"],
+            y=[metrics_baseline_dic[key_dataset_name][f"{metric_func}_random"]] * len(visual_data_dic[algo_string]["x_axis_values"]),
+            mode='lines',
+            #line=dict(color="grey"),
+            line_dash="dot", line_color="grey",
+            showlegend=False if i != 5 else True
+            ),
+            row=i_row, col=i_col
+      )
+      fig.add_trace(go.Scatter(
+            name=f"majority baseline ({metric_func})",
+            x=visual_data_dic[algo_string]["x_axis_values"],
+            y=[metrics_baseline_dic[key_dataset_name][f"{metric_func}_majority"]] * len(visual_data_dic[algo_string]["x_axis_values"]),
+            mode='lines',
+            #line=dict(color="grey"),
+            line_dash="dashdot", line_color="grey",  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
+            showlegend=False if i != 5 else True
+            ),
+            row=i_row, col=i_col
+      )
+      ## add universal politicsnli markers for indiv data point per dataset  # https://plotly.com/python/marker-style/
+      """fig.add_trace(go.Scatter(
+            name=f"Transformer-Mini-NLI-Politics",
+            # x-axis 0 for held-out data, otherwise equivalent of 320 samp
+            x=[0] if key_dataset_name in ["sentiment-news-econ", "cap-us-court", "manifesto-protectionism"] else [visual_data_dic["xtremedistil-l6-h256-uncased"]["x_axis_values"][5]], 
+            y=visual_data_dic["xtremedistil-l6-h256-mnli-fever-anli-ling-politicsnli"][f"{metric_func}_mean"],
+            mode='markers',
+            marker_symbol="circle-open-dot",
+            marker_line_color=colors_hex[-1], marker_color=colors_hex[-1],
+            marker_line_width=2, marker_size=15,
+            #line=dict(color="grey"), 
+            #line_dash="dashdot", line_color="grey",  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
+            showlegend=False if i != 5 else True
+            ), 
+            row=i_row, col=i_col
+      )"""
+
+      ## iterate for each method in dic and add respective line + std
+      for key_algo, hex in zip(visual_data_dic, colors_hex):
+        fig.add_trace(go.Scatter(
+              name=simple_algo_names_dic[key_algo],
+              x=visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
+              y=visual_data_dic[key_algo][f"{metric_func}_mean"] if "nli" in key_algo else visual_data_dic[key_algo][f"{metric_func}_mean"][1:],
+              mode='lines',
+              line=dict(color=hex),
+              line_dash="dash" if key_algo in ["SVM_tfidf", "logistic_tfidf"] else "solid",  #['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
+              showlegend=False if i != 5 else True
+              ),
+              row=i_row, col=i_col
+        )
+        upper_bound_y = pd.Series(visual_data_dic[key_algo][f"{metric_func}_mean"]) + pd.Series(visual_data_dic[key_algo][f"{metric_func}_std"])
+        fig.add_trace(go.Scatter(
+              name=f'Upper Bound {key_algo}',
+              x=visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
+              y=upper_bound_y if "nli" in key_algo else upper_bound_y[1:],  #pd.Series(metric_mean_nli) + pd.Series(metric_std_nli),
+              mode='lines',
+              marker=dict(color="#444"),
+              line=dict(width=0),
+              showlegend=False
+              ),
+              row=i_row, col=i_col
+        )
+        lower_bound_y = pd.Series(visual_data_dic[key_algo][f"{metric_func}_mean"]) - pd.Series(visual_data_dic[key_algo][f"{metric_func}_std"])
+        fig.add_trace(go.Scatter(
+              name=f'Lower Bound {key_algo}',
+              x=visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
+              y=lower_bound_y if "nli" in key_algo else lower_bound_y[1:],  #pd.Series(metric_mean_nli) - pd.Series(metric_std_nli),
+              marker=dict(color="#444"),
+              line=dict(width=0),
+              mode='lines',
+              fillcolor='rgba(68, 68, 68, 0.13)',
+              fill='tonexty',
+              showlegend=False
+              ),
+              row=i_row, col=i_col
+        )
+
+      # update layout for individual subplots  # https://stackoverflow.com/questions/63580313/update-specific-subplot-axes-in-plotly
+      fig['layout'][f'xaxis{i}'].update(
+          #title_text=f'N random examples given {visual_data_dic[key_algo]["n_classes"]} classes',
+          tickangle=-15,
+          type='category',
+      )
+      fig['layout'][f'yaxis{i}'].update(
+          #range=[0.2, pd.Series(visual_data_dic[key_algo][f"{metric_func}_mean"]).iloc[-1] + pd.Series(visual_data_dic[key_algo][f"{metric_func}_std"]).iloc[-1] + 0.1]
+          dtick=0.1
+      )
+
+    # update layout for overall plot
+    fig.update_layout(
+        title_text=f"Performance ({metric_func}) vs. Training Data Size", title_x=0.5,
+        #paper_bgcolor='rgba(0,0,0,0)',
+        #plot_bgcolor='rgba(0,0,0,0)',
+        template="none",  # ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]  # https://plotly.com/python/templates/
+        height=595*1.5, width=842*1.7,
+        font={"family": "verdana"}  # https://plotly.com/python/reference/layout/#layout-font
     )
-    upper_bound_y = pd.Series(visual_data_dic[key_algo][f"{METRIC}_mean"]) + pd.Series(visual_data_dic[key_algo][f"{METRIC}_std"])
-    fig.add_trace(go.Scatter(
-          name=f'Upper Bound {key_algo}',
-          x=visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
-          y=upper_bound_y if "nli" in key_algo else upper_bound_y[1:],  #pd.Series(metric_mean_nli) + pd.Series(metric_std_nli),
-          mode='lines',
-          marker=dict(color="#444"),
-          line=dict(width=0),
-          showlegend=False
-          ), 
-          row=i_row, col=i_col
-    )
-    lower_bound_y = pd.Series(visual_data_dic[key_algo][f"{METRIC}_mean"]) - pd.Series(visual_data_dic[key_algo][f"{METRIC}_std"])
-    fig.add_trace(go.Scatter(
-          name=f'Lower Bound {key_algo}',
-          x=visual_data_dic[key_algo]["x_axis_values"] if "nli" in key_algo else visual_data_dic[key_algo]["x_axis_values"][1:],
-          y=lower_bound_y if "nli" in key_algo else lower_bound_y[1:],  #pd.Series(metric_mean_nli) - pd.Series(metric_std_nli),
-          marker=dict(color="#444"),
-          line=dict(width=0),
-          mode='lines',
-          fillcolor='rgba(68, 68, 68, 0.13)',
-          fill='tonexty',
-          showlegend=False
-          ), 
-          row=i_row, col=i_col
-    )
 
-  # update layout for individual subplots  # https://stackoverflow.com/questions/63580313/update-specific-subplot-axes-in-plotly
-  fig['layout'][f'xaxis{i}'].update(
-      #title_text=f'N random examples given {visual_data_dic[key_algo]["n_classes"]} classes',
-      tickangle=-15,
-      type='category',
-  )
-  fig['layout'][f'yaxis{i}'].update(
-      #range=[0.2, pd.Series(visual_data_dic[key_algo][f"{METRIC}_mean"]).iloc[-1] + pd.Series(visual_data_dic[key_algo][f"{METRIC}_std"]).iloc[-1] + 0.1]
-      dtick=0.1
-  )
+    return fig
 
-# update layout for overall plot
-fig.update_layout(
-    title_text=f"Performance ({METRIC}) vs. Training Data Size", title_x=0.5,
-    #paper_bgcolor='rgba(0,0,0,0)',
-    #plot_bgcolor='rgba(0,0,0,0)',
-    template="none",  # ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]  # https://plotly.com/python/templates/
-    height=800,
-    font={"family": "verdana"}  # https://plotly.com/python/reference/layout/#layout-font
-) 
+fig_per_dataset_macro = plot_per_dataset(metric_func="F1 Macro")
+fig_per_dataset_micro = plot_per_dataset(metric_func="Accuracy/F1 Micro")
 
-fig.show(renderer="browser")
-#fig.write_image("figures/fig1.png")
+fig_per_dataset_macro.show(renderer="browser")
+fig_per_dataset_macro.write_image("./figures/3-figure-performance-per-dataset-f1macro.png")
+
+fig_per_dataset_micro.show(renderer="browser")
+fig_per_dataset_micro.write_image("./figures/appendix-6-figure-performance-per-dataset-f1micro.png")
+
+#fig.show(renderer="browser")
+#fig.write_image("./results/1-figures/3-figure-performance-per-dataset-f1macro.png")
 
 
 
@@ -635,6 +652,136 @@ for metric in metrics_all_name:
 
 
 ### create plot
+
+def plot_aggregate_metrics(metrics_all_name=None, height=None):
+    subplot_titles_compare = metrics_all_name  #["f1_macro", "Accuracy/F1 Micro", "Balanced Accuracy"]
+    # determine max number of rows
+    i_row = 0
+    i_col = 0
+    col_max = 3
+    for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "Balanced Accuracy"]
+        i_col += 1
+        if i % col_max == 0:
+            i_row += 1
+            if i > 0:
+                i_col = 1
+        #print("row: ", i_row)
+        #print("col: ", i_col)
+    print("row max: ", i_row)
+    print("col max: ", col_max)
+    fig_compare = make_subplots(rows=i_row, cols=col_max, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
+                                subplot_titles=subplot_titles_compare, x_title="Number of random training examples")  #y_title="f1 score",
+    marker_symbols = ["circle", "circle", "circle", "circle"]  # "triangle-down", "triangle-up", "star-triangle-up", "star-square"
+
+    ## create new sub-plot for each metric
+    i_row = 0
+    i_col = 0
+    for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "Balanced Accuracy"]
+        # determine row and col position for each sub-figure
+        i_col += 1
+        if i % col_max == 0:
+            i_row += 1
+            if i > 0:
+                i_col = 1
+
+        fig_compare.add_trace(go.Scatter(
+            name=f"majority baseline",
+            x=[0, 100, 500, 1000, 2500],  #["0 (8 datasets)", "100 (8)", "500 (8)", "1000 (8)", "2500 (8)", "5000 (4)", "10000 (3)"],  #[0, 100, 500, 1000, 2500] + list(cols_metrics_dic.keys())[-2:],
+            y=metrics_majority_dic[metric_i],  #[metrics_majority_average[i]] * len(list(cols_metrics_dic.keys())),
+            mode='lines',
+            #line=dict(color="grey"),
+            line_dash="dashdot", line_color="grey", line=dict(width=3),
+            showlegend=True if i == 1 else False,
+            #font=dict(size=14),
+            ),
+            row=i_row, col=i_col
+        )
+        fig_compare.add_trace(go.Scatter(
+            name=f"random baseline",
+            x=[0, 100, 500, 1000, 2500],
+            y=metrics_random_dic[metric_i],  #[metrics_random_average[i]] * len(list(cols_metrics_dic.keys())),
+            mode='lines',
+            #line=dict(color="grey"),
+            line_dash="dot", line_color="grey", line=dict(width=3),
+            showlegend=True if i == 1 else False,
+            #font=dict(size=14),
+            ),
+            row=i_row, col=i_col
+        )
+        for algo, hex, marker in zip(algo_names_comparison, colors_hex, marker_symbols):
+            fig_compare.add_trace(go.Scatter(
+                name=algo,
+                x=[0, 100, 500, 1000, 2500],
+                y=df_metrics_mean_dic[metric_i].loc[algo],  #df_metrics_mean_dic[metric_i].loc[algo] if "nli" in algo else [np.nan] + df_metrics_mean_dic[metric_i].loc[algo][1:].tolist(),
+                mode='lines+markers',
+                marker_symbol=marker,
+                #marker_size=10,
+                line=dict(color=hex, width=3),
+                line_dash="solid",  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
+                showlegend=True if i == 1 else False,
+                #font=dict(size=14),
+                ),
+                row=i_row, col=i_col
+            )
+            # add standard deviation
+            upper_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) + pd.Series(df_std_mean_dic[metric_i].loc[algo])
+            fig_compare.add_trace(go.Scatter(
+                name=f'Upper Bound {algo}',
+                x=[0, 100, 500, 1000, 2500],  #visual_data_dic[algo]["x_axis_values"] if "nli" in algo else visual_data_dic[algo]["x_axis_values"][1:],
+                y=upper_bound_y,  #upper_bound_y if "nli" in algo else upper_bound_y[1:],  # pd.Series(metric_mean_nli) + pd.Series(metric_std_nli),
+                mode='lines',
+                marker=dict(color="#444"),
+                line=dict(width=0),
+                showlegend=False
+                ),
+                row=i_row, col=i_col
+            )
+            lower_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) - pd.Series(df_std_mean_dic[metric_i].loc[algo])
+            fig_compare.add_trace(go.Scatter(
+                name=f'Lower Bound {algo}',
+                x=[0, 100, 500, 1000, 2500],  #visual_data_dic[algo]["x_axis_values"] if "nli" in algo else visual_data_dic[algo]["x_axis_values"][1:],
+                y=lower_bound_y,  #lower_bound_y if "nli" in algo else lower_bound_y[1:],  # pd.Series(metric_mean_nli) - pd.Series(metric_std_nli),
+                marker=dict(color="#444"),
+                line=dict(width=0),
+                mode='lines',
+                fillcolor='rgba(68, 68, 68, 0.13)',
+                fill='tonexty',
+                showlegend=False
+                ),
+                row=i_row, col=i_col
+            )
+        #fig_compare.add_vline(x=4, line_dash="longdash", annotation_text="8 datasets", annotation_position="left", row=1, col=i+1)  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'] https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
+        #fig_compare.add_vline(x=4, line_dash="dot", annotation_text="4 datasets", annotation_position="right", row=1, col=i+1)  # annotation=dict(font_size=20, font_family="Times New Roman")  # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
+
+        # update layout for individual subplots  # https://stackoverflow.com/questions/63580313/update-specific-subplot-axes-in-plotly
+        fig_compare['layout'][f'xaxis{i+1}'].update(
+            # title_text=f'N random examples given {visual_data_dic[algo]["n_classes"]} classes',
+            tickangle=-10,
+            type='category',
+            title_font_size=16,
+        )
+        fig_compare['layout'][f'yaxis{i+1}'].update(
+            # range=[0.2, pd.Series(visual_data_dic[algo][f"{metric}_mean"]).iloc[-1] + pd.Series(visual_data_dic[algo][f"{metric}_std"]).iloc[-1] + 0.1]
+            title_text=metric_i,  #"Accuracy/" + metric_i if metric_i == "F1 Micro" else metric_i,
+            title_font_size=16,
+            dtick=0.1,
+            range=[0.15, 0.8] #[0.15, 0.8],
+            #font=dict(size=14)
+        )
+
+    # update layout for overall plot
+    fig_compare.update_layout(
+        title_text=f"Aggregate Performance vs. Training Data Size", title_x=0.5,
+        #paper_bgcolor='rgba(0,0,0,0)',
+        #plot_bgcolor='rgba(0,0,0,0)',
+        template="none",  # ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]  # https://plotly.com/python/templates/
+        margin={"l": 200}, width=1200, height=height,
+        font=dict(size=16)
+        #height=800,
+    )
+
+    return fig_compare
+
 # for annex - displaying all possible metrics
 metrics_all_name = ['F1 Macro', #f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     'Accuracy/F1 Micro', 'Balanced Accuracy', #f"accuracy_top{top_xth}th", "accuracy_rest",
@@ -643,152 +790,50 @@ metrics_all_name = ['F1 Macro', #f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     'cohen_kappa', 'matthews_corrcoef'
                     ]
 
+fig_compare_all = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
+fig_compare_all.show(renderer="browser")
+fig_compare_all.write_image("./figures/appendix-5-figure-performance-aggregate-many-metrics.png")
+
 # for annex - comparison of metrics by top Xth vs. rest
+# part one (because too long otherwise)
 metrics_all_name = ['F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     'Accuracy/F1 Micro', f"accuracy_top{top_xth}th", "accuracy_rest",  #'Balanced Accuracy',
                     #'recall_macro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',  # 'recall_micro',
                     #'precision_macro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',  #'precision_micro',
                     #'cohen_kappa', 'matthews_corrcoef'
                     ]
+fig_compare_topx = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
+fig_compare_topx.show(renderer="browser")
+fig_compare_topx.write_image("./figures/appendix-4-figure-performance-aggregate-topxth-subplot1.png")
+# part two (because too long otherwise)
+metrics_all_name = [#'F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
+                    #'Accuracy/F1 Micro', f"accuracy_top{top_xth}th", "accuracy_rest",  #'Balanced Accuracy',
+                    'recall_macro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',  # 'recall_micro',
+                    'precision_macro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',  #'precision_micro',
+                    #'cohen_kappa', 'matthews_corrcoef'
+                    ]
+fig_compare_topx = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
+fig_compare_topx.show(renderer="browser")
+fig_compare_topx.write_image("./figures/appendix-4-figure-performance-aggregate-topxth-subplot2.png")
+
+
 # for main text
 metrics_all_name = ['F1 Macro', 'Balanced Accuracy', 'Accuracy/F1 Micro']
 
+fig_compare_main = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
+fig_compare_main.show(renderer="browser")
+fig_compare_main.write_image("./figures/2-figure-performance-aggregate.png")
 
-subplot_titles_compare = metrics_all_name  #["f1_macro", "Accuracy/F1 Micro", "Balanced Accuracy"]
-# determine max number of rows
-i_row = 0
-i_col = 0
-col_max = 3
-for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "Balanced Accuracy"]
-    i_col += 1
-    if i % col_max == 0:
-        i_row += 1
-        if i > 0:
-            i_col = 1
-    #print("row: ", i_row)
-    #print("col: ", i_col)
-print("row max: ", i_row)
-print("col max: ", col_max)
-fig_compare = make_subplots(rows=i_row, cols=col_max, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
-                            subplot_titles=subplot_titles_compare, x_title="Number of random training examples")  #y_title="f1 score",
-marker_symbols = ["circle", "circle", "circle", "circle"]  # "triangle-down", "triangle-up", "star-triangle-up", "star-square"
-
-## create new sub-plot for each metric
-i_row = 0
-i_col = 0
-for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "Balanced Accuracy"]
-    # determine row and col position for each sub-figure
-    i_col += 1
-    if i % col_max == 0:
-        i_row += 1
-        if i > 0:
-            i_col = 1
-
-    fig_compare.add_trace(go.Scatter(
-        name=f"majority baseline",
-        x=[0, 100, 500, 1000, 2500],  #["0 (8 datasets)", "100 (8)", "500 (8)", "1000 (8)", "2500 (8)", "5000 (4)", "10000 (3)"],  #[0, 100, 500, 1000, 2500] + list(cols_metrics_dic.keys())[-2:],
-        y=metrics_majority_dic[metric_i],  #[metrics_majority_average[i]] * len(list(cols_metrics_dic.keys())),
-        mode='lines',
-        #line=dict(color="grey"),
-        line_dash="dashdot", line_color="grey", line=dict(width=3),
-        showlegend=True if i == 1 else False,
-        #font=dict(size=14),
-        ),
-        row=i_row, col=i_col
-    )
-    fig_compare.add_trace(go.Scatter(
-        name=f"random baseline",
-        x=[0, 100, 500, 1000, 2500],
-        y=metrics_random_dic[metric_i],  #[metrics_random_average[i]] * len(list(cols_metrics_dic.keys())),
-        mode='lines',
-        #line=dict(color="grey"),
-        line_dash="dot", line_color="grey", line=dict(width=3),
-        showlegend=True if i == 1 else False,
-        #font=dict(size=14),
-        ),
-        row=i_row, col=i_col
-    )
-    for algo, hex, marker in zip(algo_names_comparison, colors_hex, marker_symbols):
-        fig_compare.add_trace(go.Scatter(
-            name=algo,
-            x=[0, 100, 500, 1000, 2500],
-            y=df_metrics_mean_dic[metric_i].loc[algo],  #df_metrics_mean_dic[metric_i].loc[algo] if "nli" in algo else [np.nan] + df_metrics_mean_dic[metric_i].loc[algo][1:].tolist(),
-            mode='lines+markers',
-            marker_symbol=marker,
-            #marker_size=10,
-            line=dict(color=hex, width=3),
-            line_dash="solid",  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
-            showlegend=True if i == 1 else False,
-            #font=dict(size=14),
-            ),
-            row=i_row, col=i_col
-        )
-        # add standard deviation
-        upper_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) + pd.Series(df_std_mean_dic[metric_i].loc[algo])
-        fig_compare.add_trace(go.Scatter(
-            name=f'Upper Bound {algo}',
-            x=[0, 100, 500, 1000, 2500],  #visual_data_dic[algo]["x_axis_values"] if "nli" in algo else visual_data_dic[algo]["x_axis_values"][1:],
-            y=upper_bound_y,  #upper_bound_y if "nli" in algo else upper_bound_y[1:],  # pd.Series(metric_mean_nli) + pd.Series(metric_std_nli),
-            mode='lines',
-            marker=dict(color="#444"),
-            line=dict(width=0),
-            showlegend=False
-            ),
-            row=i_row, col=i_col
-        )
-        lower_bound_y = pd.Series(df_metrics_mean_dic[metric_i].loc[algo]) - pd.Series(df_std_mean_dic[metric_i].loc[algo])
-        fig_compare.add_trace(go.Scatter(
-            name=f'Lower Bound {algo}',
-            x=[0, 100, 500, 1000, 2500],  #visual_data_dic[algo]["x_axis_values"] if "nli" in algo else visual_data_dic[algo]["x_axis_values"][1:],
-            y=lower_bound_y,  #lower_bound_y if "nli" in algo else lower_bound_y[1:],  # pd.Series(metric_mean_nli) - pd.Series(metric_std_nli),
-            marker=dict(color="#444"),
-            line=dict(width=0),
-            mode='lines',
-            fillcolor='rgba(68, 68, 68, 0.13)',
-            fill='tonexty',
-            showlegend=False
-            ),
-            row=i_row, col=i_col
-        )
-    #fig_compare.add_vline(x=4, line_dash="longdash", annotation_text="8 datasets", annotation_position="left", row=1, col=i+1)  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'] https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
-    #fig_compare.add_vline(x=4, line_dash="dot", annotation_text="4 datasets", annotation_position="right", row=1, col=i+1)  # annotation=dict(font_size=20, font_family="Times New Roman")  # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
-
-    # update layout for individual subplots  # https://stackoverflow.com/questions/63580313/update-specific-subplot-axes-in-plotly
-    fig_compare['layout'][f'xaxis{i+1}'].update(
-        # title_text=f'N random examples given {visual_data_dic[algo]["n_classes"]} classes',
-        tickangle=-10,
-        type='category',
-        title_font_size=16,
-    )
-    fig_compare['layout'][f'yaxis{i+1}'].update(
-        # range=[0.2, pd.Series(visual_data_dic[algo][f"{metric}_mean"]).iloc[-1] + pd.Series(visual_data_dic[algo][f"{metric}_std"]).iloc[-1] + 0.1]
-        title_text=metric_i,  #"Accuracy/" + metric_i if metric_i == "F1 Micro" else metric_i,
-        title_font_size=16,
-        dtick=0.1,
-        range=[0.15, 0.8] #[0.15, 0.8],
-        #font=dict(size=14)
-    )
-
-# update layout for overall plot
-fig_compare.update_layout(
-    title_text=f"Aggregate Performance vs. Training Data Size", title_x=0.5,
-    #paper_bgcolor='rgba(0,0,0,0)',
-    #plot_bgcolor='rgba(0,0,0,0)',
-    template="none",  # ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]  # https://plotly.com/python/templates/
-    margin={"l": 200},
-    font=dict(size=16)
-    #height=800,
-)
-fig_compare.show(renderer="browser")
 
 
 
 
 ### plot for standard cross-class standard deviation
 # standard deviation of main metrics for annex D
+# figure not used in the end
 metrics_all_name = ['accuracy_crossclass_std', 'f1_crossclass_std', 'recall_crossclass_std', 'precision_crossclass_std']
 #metrics_all_name = ['accuracy_std', 'f1_std', 'recall_std', 'precision_std']
-
+"""
 subplot_titles_compare = metrics_all_name  #["f1_macro", "Accuracy/F1 Micro", "Balanced Accuracy"]
 # determine max number of rows
 i_row = 0
@@ -864,14 +909,13 @@ fig_compare.update_layout(
     #height=800,
 )
 fig_compare.show(renderer="browser")
-
-
+"""
 
 
 
 
 ##### bar chart for displaying average standard deviation
-
+# for figure 3 in appendix
 # clean column names
 df_metrics_mean_dic["f1_crossclass_std"].columns = [x.replace("\n", " ") for x in df_metrics_mean_dic["f1_crossclass_std"].columns.to_list()]
 df_metrics_mean_dic["accuracy_crossclass_std"].columns = [x.replace("\n", " ") for x in df_metrics_mean_dic["accuracy_crossclass_std"].columns.to_list()]
@@ -953,11 +997,12 @@ fig_compare.update_layout(
     #paper_bgcolor='rgba(0,0,0,0)',
     #plot_bgcolor='rgba(0,0,0,0)',
     template="none",  # ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]  # https://plotly.com/python/templates/
-    margin={"l": 200},
+    margin={"l": 200}, width=1200, height=800,
     font=dict(size=16)
     #height=800,
 )
 fig_compare.show(renderer="browser")
+fig_compare.write_image("./figures/appendix-3-figure-standard-deviation.png")
 
 
 
