@@ -1049,3 +1049,5 @@ fig_difference.show(renderer="browser")
 """
 
 
+print("Script done.")
+
