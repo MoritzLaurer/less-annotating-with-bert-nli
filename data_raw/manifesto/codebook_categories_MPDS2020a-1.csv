@@ -1,0 +1,860 @@
+type,domain_code,domain_name,code,variable_name,title,description_md,label
+main,0,NA,000,peruncod,No other category applies,"Share of uncoded sentences (quasi-sentences coded with 000)
+For Manifesto Project Dataset: 
+- Missing information for most documents of Sweden 1949-1982 and Norway 1945-1989
+- For all documents that have been coded with version 5 of the Coding Instructions this category is calculated as the sum of 000 codes,
+per202_2, per605_2, and per703_2 to ensure comparability with data produced with version 4 of the coding instructions.
+For Manifesto Project South America Dataset:
+- share of quasi-sentences coded with 000 (without the shares of 202_2, 605_2 and 703_2 codes)",percent of uncoded quasi-sentences (000)
+main,1,External Relations,101,per101,Foreign Special Relationships: Positive,"Favourable mentions of particular countries with which the manifesto
+country has a special relationship; the need for co-operation with
+and/or aid to such countries.",foreign special +
+main,1,External Relations,102,per102,Foreign Special Relationships: Negative,"Negative mentions of particular countries with which the manifesto
+country has a special relationship.",foreign special -
+main,1,External Relations,103,per103,Anti-Imperialism,"Negative references to imperial behaviour and/or negative references to
+one state exerting strong influence (political, military or commercial)
+over other states. May also include:
+
+-   Negative references to controlling other countries as if they were
+    part of an empire;
+
+-   Favourable references to greater self-government and independence
+    for colonies;
+
+-   Favourable mentions of de-colonisation.
+
+*For all documents that have been coded with version 5 of the Coding
+Instructions this category is calculated as the sum of per103\_1, and
+per103\_2.*",anti-imperalism
+main,1,External Relations,104,per104,Military: Positive,"The importance of external security and defence. May include statements
+concerning:
+
+-   The need to maintain or increase military expenditure;
+
+-   The need to secure adequate manpower in the military;
+
+-   The need to modernise armed forces and improve military strength;
+
+-   The need for rearmament and self-defence;
+
+-   The need to keep military treaty obligations.
+
+",military +
+main,1,External Relations,105,per105,Military: Negative,"Negative references to the military or use of military power to solve
+conflicts. References to the ‘evils of war’. May include references to:
+
+-   Decreasing military expenditures;
+
+-   Disarmament;
+
+-   Reduced or abolished conscription.
+
+",military -
+main,1,External Relations,106,per106,Peace,"Any declaration of belief in peace and peaceful means of solving crises
+– absent reference to the military. May include:
+
+-   Peace as a general goal;
+
+-   Desirability of countries joining in negotiations with hostile
+    countries;
+
+-   Ending wars in order to establish peace.
+
+",peace
+main,1,External Relations,107,per107,Internationalism: Positive,"Need for international co-operation, including co-operation with
+specific countries other than those coded in 101. May also include
+references to the:
+
+-   Need for aid to developing countries;
+
+-   Need for world planning of resources;
+
+-   Support for global governance;
+
+-   Need for international courts;
+
+-   Support for UN or other international organisations.
+
+",internationalism +
+main,1,External Relations,108,per108,European Community/Union: Positive,"Favourable mentions of European Community/Union in general. May include
+the:
+
+-   Desirability of the manifesto country joining (or remaining a
+    member);
+
+-   Desirability of expanding the European Community/Union;
+
+-   Desirability of increasing the ECs/EUs competences;
+
+-   Desirability of expanding the competences of the
+    European Parliament.
+
+",europe +
+main,1,External Relations,109,per109,Internationalism: Negative,"Negative references to international co-operation. Favourable mentions
+of national independence and sovereignty with regard to the manifesto
+country’s foreign policy, isolation and/or unilateralism as opposed to
+internationalism.",internationalism -
+main,1,External Relations,110,per110,European Community/Union: Negative,"Negative references to the European Community/Union. May include:
+
+-   Opposition to specific European policies which are preferred by
+    European authorities;
+
+-   Opposition to the net-contribution of the manifesto country to the
+    EU budget.
+
+",europe -
+main,2,Freedom and Democracy,201,per201,Freedom and Human Rights,"Favourable mentions of importance of personal freedom and civil rights
+in the manifesto and other countries. May include mentions of:
+
+-   The right to the freedom of speech, press, assembly etc.;
+
+-   Freedom from state coercion in the political and economic spheres;
+
+-   Freedom from bureaucratic control;
+
+-   The idea of individualism.
+
+*For all documents that have been coded with version 5 of the Coding
+Instructions this category is calculated as the sum of per201\_1, and
+per201\_2.*",freedom & human rights
+main,2,Freedom and Democracy,202,per202,Democracy,"Favourable mentions of democracy as the “only game in town”. General
+support for the manifesto country’s democracy. May also include:
+
+-   Democracy as method or goal in national, international or other
+    organisations (e.g. labour unions, political parties etc.);
+
+-   The need for the involvement of all citizens in political
+    decision-making;
+
+-   Support for either direct or representative democracy;
+
+-   Support for parts of democratic regimes (rule of law, division of
+    powers, independence of courts etc.).
+
+*For all documents that have been coded with version 5 of the Coding
+Instructions this category is calculated as the sum of per202\_1,
+per202\_3, and per202\_4.*",democracy
+main,2,Freedom and Democracy,203,per203,Constitutionalism: Positive,"Support for maintaining the status quo of the constitution. Support for
+specific aspects of the manifesto country’s constitution. The use of
+constitutionalism as an argument for any policy.",constitution +
+main,2,Freedom and Democracy,204,per204,Constitutionalism: Negative,"Opposition to the entirety or specific aspects of the manifesto
+country’s constitution. Calls for constitutional amendments or changes.
+May include calls to abolish or rewrite the current constitution.",constitution -
+main,3,Political System,301,per301,Decentralization,"Support for federalism or decentralisation of political and/or economic
+power. May include:
+
+-   Favourable mentions of the territorial subsidiary principle;
+
+-   More autonomy for any sub-national level in policy making and/or
+    economics, including municipalities;
+
+-   Support for the continuation and importance of local and regional
+    customs and symbols and/or deference to local expertise;
+
+-   Favourable mentions of special consideration for sub-national areas.
+
+",decentralisation
+main,3,Political System,302,per302,Centralisation,"General opposition to political decision-making at lower political
+levels. Support for unitary government and for more centralisation in
+political and administrative procedures.",centralisation
+main,3,Political System,303,per303,Governmental and Administrative Efficiency,"Need for efficiency and economy in government and administration and/or
+the general appeal to make the process of government and administration
+cheaper and more efficient. May include:
+
+-   Restructuring the civil service;
+
+-   Cutting down on the civil service;
+
+-   Improving bureaucratic procedures.
+
+*Note: Specific policy positions overrule this category! If there is no
+specific policy position, however, this category applies.*",gov-admin efficiency
+main,3,Political System,304,per304,Political Corruption,"Need to eliminate political corruption and associated abuses of
+political and/or bureaucratic power. Need to abolish clientelist
+structures and practices.",political corruption
+main,3,Political System,305,per305,Political Authority,"References to the manifesto party’s competence to govern and/or other
+party’s lack of such competence. Also includes favourable mentions of
+the desirability of a strong and/or stable government in general.
+
+*For all documents that have been coded with version 5 of the Coding
+Instructions this category is calculated as the sum of per305\_1,
+per305\_2, per305\_3, per305\_4, per305\_5, and per305\_6.*",political authority
+main,4,Economy,401,per401,Free Market Economy,"Favourable mentions of the free market and free market capitalism as an
+economic model. May include favourable references to:
+
+-   Laissez-faire economy;
+
+-   Superiority of individual enterprise over state and control systems;
+
+-   Private property rights;
+
+-   Personal enterprise and initiative;
+
+-   Need for unhampered individual enterprises.
+
+",free market economy
+main,4,Economy,402,per402,Incentives: Positive,"Favourable mentions of supply side oriented economic policies
+(assistance to businesses rather than consumers). May include:
+
+-   Financial and other incentives such as subsidies, tax breaks etc.;
+
+-   Wage and tax policies to induce enterprise;
+
+-   Encouragement to start enterprises.
+
+",incentives
+main,4,Economy,403,per403,Market Regulation,"Support for policies designed to create a fair and open economic market.
+May include:
+
+-   Calls for increased consumer protection;
+
+-   Increasing economic competition by preventing monopolies and other
+    actions disrupting the functioning of the market;
+
+-   Defence of small businesses against disruptive powers of big
+    businesses;
+
+-   Social market economy.
+
+",market regulation
+main,4,Economy,404,per404,Economic Planning,"Favourable mentions of long-standing economic planning by the
+government. May be:
+
+-   Policy plans, strategies, policy patterns etc.;
+
+-   Of a consultative or indicative nature.
+
+",economic planning
+main,4,Economy,405,per405,Corporatism/Mixed Economy,"Favourable mentions of cooperation of government, employers, and trade
+unions simultaneously. The collaboration of employers and employee
+organisations in overall economic planning supervised by the state.
+
+*Note: This category was not used for Austria up to 1979, for New
+Zealand up to 1981, and for Sweden up to 1988.*",corporatism/mixed economy
+main,4,Economy,406,per406,Protectionism: Positive,"Favourable mentions of extending or maintaining the protection of
+internal markets (by the manifesto or other countries). Measures may
+include:
+
+-   Tariffs;
+
+-   Quota restrictions;
+
+-   Export subsidies.
+
+",protectionism +
+main,4,Economy,407,per407,Protectionism: Negative,"Support for the concept of free trade and open markets. Call for
+abolishing all means of market protection (in the manifesto or any other
+country).",protectionism -
+main,4,Economy,408,per408,Economic Goals,"Broad and general economic goals that are not mentioned in relation to
+any other category. General economic statements that fail to include any
+specific goal.
+
+*Note: Specific policy positions overrule this category! If there is no
+specific policy position, however, this category applies.*",economic goals
+main,4,Economy,409,per409,Keynesian Demand Management,"Favourable mentions of demand side oriented economic policies
+(assistance to consumers rather than businesses). Particularly includes
+increase private demand through
+
+-   Increasing public demand;
+
+-   Increasing social expenditures.
+
+May also include:
+
+-   Stabilisation in the face of depression;
+
+-   Government stimulus plans in the face of economic crises.
+
+",keynesian demand management
+main,4,Economy,410,per410,Economic Growth: Positive,"The paradigm of economic growth. Includes:
+
+-   General need to encourage or facilitate greater production;
+
+-   Need for the government to take measures to aid economic growth.
+
+",economic growth +
+main,4,Economy,411,per411,Technology and Infrastructure: Positive,"Importance of modernisation of industry and updated methods of transport
+and communication. May include:
+
+-   Importance of science and technological developments in industry;
+
+-   Need for training and research within the economy (This does not
+    imply education in general (see category 506);
+
+-   Calls for public spending on infrastructure such as roads and
+    bridges;
+
+-   Support for public spending on technological infrastructure (e.g.:
+    broadband internet, etc.).
+
+",technology & infrastructure
+main,4,Economy,412,per412,Controlled Economy,"Support for direct government control of economy. May include, for
+instance:
+
+-   Control over prices;
+
+-   Introduction of minimum wages.
+
+",controlled economy
+main,4,Economy,413,per413,Nationalisation,"Favourable mentions of government ownership of industries, either
+partial or complete; calls for keeping nationalised industries in state
+hand or nationalising currently private industries. May also include
+favourable mentions of government ownership of land.",nationalisation
+main,4,Economy,414,per414,Economic Orthodoxy,"Need for economically healthy government policy making. May include
+calls for:
+
+-   Reduction of budget deficits;
+
+-   Retrenchment in crisis;
+
+-   Thrift and savings in the face of economic hardship;
+
+-   Support for traditional economic institutions such as stock market
+    and banking system;
+
+-   Support for strong currency.
+
+",economic orthodoxy
+main,4,Economy,415,per415,Marxist Analysis,"Positive references to Marxist-Leninist ideology and specific use of
+Marxist-Leninist terminology by the manifesto party (typically but not
+necessary by communist parties).
+
+*Note: This category was not used for Austria 1945-1979, for Australia,
+Japan and the United States up to 1980; for Belgium, Ireland, The
+Netherlands and New Zealand up to 1981; for Italy and Britain up to
+1983; for Denmark, Luxembourg and Israel up to 1984; for Canada, France
+and Sweden up to 1988.*",marxist analysis +
+main,4,Economy,416,per416,Anti-Growth Economy: Positive,"Favourable mentions of anti-growth politics. Rejection of the idea that
+all growth is good growth. Opposition to growth that causes
+environmental or societal harm. Call for sustainable economic
+development. *For all documents that have been coded with version 5 of
+the Coding Instructions this category is calculated as the sum of
+per416\_1, and per416\_2.*
+
+*Note: This category was not used for Austria 1945-1979, for Australia,
+Japan and the United States up to 1980; for Belgium, Ireland, The
+Netherlands and New Zealand up to 1981; for Italy and Britain up to
+1983; for Denmark, Luxembourg and Israel up to 1984; for Canada, France
+and Sweden up to 1988; and for Norway up to 1989. Test codings, however,
+have shown that parties before the beginning of the 1990s hardly ever
+advocated anti-growth policies.*",anti-growth economy +
+main,5,Welfare and Quality of Life,501,per501,Environmental Protection,"General policies in favour of protecting the environment, fighting
+climate change, and other “green” policies. For instance:
+
+-   General preservation of natural resources;
+
+-   Preservation of countryside, forests, etc.;
+
+-   Protection of national parks;
+
+-   Animal rights.
+
+May include a great variance of policies that have the unified *goal* of
+environmental protection.",environmentalism +
+main,5,Welfare and Quality of Life,502,per502,Culture: Positive,"Need for state funding of cultural and leisure facilities including arts
+and sport. May include:
+
+-   The need to fund museums, art galleries, libraries etc.;
+
+-   The need to encourage cultural mass media and worthwhile leisure
+    activities, such as public sport clubs.
+
+",culture +
+main,5,Welfare and Quality of Life,503,per503,Equality: Positive,"Concept of social justice and the need for fair treatment of all people.
+This may include:
+
+-   Special protection for underprivileged social groups;
+
+-   Removal of class barriers;
+
+-   Need for fair distribution of resources;
+
+-   The end of discrimination (e.g. racial or sexual discrimination).
+
+",equality +
+main,5,Welfare and Quality of Life,504,per504,Welfare State Expansion,"Favourable mentions of need to introduce, maintain or expand any public
+social service or social security scheme. This includes, for example,
+government funding of:
+
+-   Health care
+
+-   Child care
+
+-   Elder care and pensions
+
+-   Social housing
+
+*Note: This category excludes education.*",welfare +
+main,5,Welfare and Quality of Life,505,per505,Welfare State Limitation,"Limiting state expenditures on social services or social security.
+Favourable mentions of the social subsidiary principle (i.e. private
+care before state care);",welfare -
+main,5,Welfare and Quality of Life,506,per506,Education Expansion,"Need to expand and/or improve educational provision at all levels.
+
+*Note: This excludes technical training which is coded under 411.*",education +
+main,5,Welfare and Quality of Life,507,per507,Education Limitation,"Limiting state expenditure on education. May include:
+
+-   The introduction or expansion of study fees at all educational
+    levels
+
+-   Increasing the number of private schools.
+
+",education -
+main,6,Fabric of Society,601,per601,National Way of Life: Positive,"Favourable mentions of the manifesto country’s nation, history, and
+general appeals. May include:
+
+-   Support for established national ideas;
+
+-   General appeals to pride of citizenship;
+
+-   Appeals to patriotism;
+
+-   Appeals to nationalism;
+
+-   Suspension of some freedoms in order to protect the state
+    against subversion.
+
+*For all documents that have been coded with version 5 of the Coding
+Instructions this category is calculated as the sum of per601\_1, and
+per601\_2.*",national way of life +
+main,6,Fabric of Society,602,per602,National Way of Life: Negative,"Unfavourable mentions of the manifesto country’s nation and history. May
+include:
+
+-   Opposition to patriotism;
+
+-   Opposition to nationalism;
+
+-   Opposition to the existing national state, national pride, and
+    national ideas.
+
+*For all documents that have been coded with version 5 of the Coding
+Instructions this category is calculated as the sum of per602\_1, and
+per602\_2.*",national way of life -
+main,6,Fabric of Society,603,per603,Traditional Morality: Positive,"Favourable mentions of traditional and/or religious moral values. May
+include:
+
+-   Prohibition, censorship and suppression of immorality and unseemly
+    behaviour;
+
+-   Maintenance and stability of the traditional family as a value;
+
+-   Support for the role of religious institutions in state and society.
+
+",traditional morality +
+main,6,Fabric of Society,604,per604,Traditional Morality: Negative,"Opposition to traditional and/or religious moral values. May include:
+
+-   Support for divorce, abortion etc.;
+
+-   General support for modern family composition;
+
+-   Calls for the separation of church and state.
+
+",traditional morality -
+main,6,Fabric of Society,605,per605,Law and Order: Positive,"Favourable mentions of strict law enforcement, and tougher actions
+against domestic crime. Only refers to the enforcement of the status quo
+of the manifesto country’s law code. May include:
+
+-   Increasing support and resources for the police;
+
+-   Tougher attitudes in courts;
+
+-   Importance of internal security.
+
+*For all documents that have been coded with version 5 of the Coding
+Instructions this category is equal with per605\_1.*",law and order +
+main,6,Fabric of Society,606,per606,Civic Mindedness: Positive,"Appeals for national solidarity and the need for society to see itself
+as united. Calls for solidarity with and help for fellow people,
+familiar and unfamiliar. May include:
+
+-   Favourable mention of the civil society;
+
+-   Decrying anti-social attitudes in times of crisis;
+
+-   Appeal for public spiritedness;
+
+-   Support for the public interest.
+
+*For all documents that have been coded with version 5 of the Coding
+Instructions this category is calculated as the sum of per606\_1, and
+per606\_2.*",civic mindedness +
+main,6,Fabric of Society,607,per607,Multiculturalism: Positive,"Favourable mentions of cultural diversity and cultural plurality within
+domestic societies. May include the preservation of autonomy of
+religious, linguistic heritages within the country including special
+educational provisions.
+
+*For all documents that have been coded with version 5 of the Coding
+Instructions this category is calculated as the sum of per607\_1,
+per607\_2, and per607\_3.*",multiculturalism +
+main,6,Fabric of Society,608,per608,Multiculturalism: Negative,"The enforcement or encouragement of cultural integration. Appeals for
+cultural homogeneity in society.
+
+*For all documents that have been coded with version 5 of the Coding
+Instructions this category is calculated as the sum of per608\_1,
+per608\_2, and per608\_3.*",multiculturalism -
+main,7,Social Groups,701,per701,Labour Groups: Positive,"Favourable references to all labour groups, the working class, and
+unemployed workers in general. Support for trade unions and calls for
+the good treatment of all employees, including:
+
+-   More jobs;
+
+-   Good working conditions;
+
+-   Fair wages;
+
+-   Pension provisions etc.
+
+",labour groups +
+main,7,Social Groups,702,per702,Labour Groups: Negative,"Negative references to labour groups and trade unions. May focus
+specifically on the danger of unions ‘abusing power’.",labour groups -
+main,7,Social Groups,703,per703,Agriculture and Farmers: Positive,"Specific policies in favour of agriculture and farmers. Includes all
+types of agriculture and farming practises. Only statements that have
+agriculture as the key goal should be included in this category.
+
+*For all documents that have been coded with version 5 of the Coding
+Instructions this category is equal with per703\_1.*",agriculture +
+main,7,Social Groups,704,per704,Middle Class and Professional Groups,"General favourable references to the middle class. Specifically,
+statements may include references to:
+
+-   Professional groups, (e.g.: doctors or lawyers);
+
+-   White collar groups, (e.g.: bankers or office employees),
+
+-   Service sector groups (e.g.: IT industry employees);
+
+-   Old and/or new middle class.
+
+*Note: This is not an economical category but refers to the social
+group(s).*",middle class and prof. groups
+main,7,Social Groups,705,per705,Underprivileged Minority Groups,"Very general favourable references to underprivileged minorities who are
+defined neither in economic nor in demographic terms (e.g. the
+handicapped, homosexuals, immigrants, indigenous). Only includes
+favourable statements that cannot be classified in other categories
+(e.g. 503, 504, 604, 607 etc.)",minority groups
+main,7,Social Groups,706,per706,Non-economic Demographic Groups,"General favourable mentions of demographically defined special interest
+groups of all kinds. They may include:
+
+-   Women;
+
+-   University students;
+
+-   Old, young, or middle aged people.
+
+Might include references to assistance to these groups, but only if
+these do not fall under other categories (e.g. 503 or 504).",non-economic demographic groups
+cee,1,External Relations,1011,per1011,Russia/USSR/CIS: Positive,"Favourable mentions of Russia, the USSR, the CMEA bloc or the Community
+of Independent States.",russia +
+cee,1,External Relations,1012,per1012,Western States: Positive,"Favourable mentions of Western states, including the USA and Germany.",western states +
+cee,1,External Relations,1013,per1013,Eastern European Countries: Positive,Favourable mentions of Eastern European countries in general.,eastern europe +
+cee,1,External Relations,1014,per1014,Baltic States: Positive,"Favourable mentions of the Baltic states, including other states
+bordering the Baltic Sea.",baltic states +
+cee,1,External Relations,1015,per1015,Nordic Council: Positive,Favourable mentions of the Nordic Council.,nordic council +
+cee,1,External Relations,1016,per1016,SFR Yugoslavia: Positive,"Favourable mentions of countries formerly belonging to SFR Yugoslavia
+including special relationships with Montenegro, Macedonia, Slovenia,
+Croatia and Bosnia-Hercegovina.",yugoslavia +
+cee,1,External Relations,1021,per1021,Russia/USSR/CIS: Negative,"Negative mentions of Russia, the USSR or the Community of Independent
+States.",russia -
+cee,1,External Relations,1022,per1022,Western States: Negative,"Negative mentions of Western states, including the USA and Germany.",western states -
+cee,1,External Relations,1023,per1023,East European Countries: Negative,Negative mentions of Eastern European countries in general.,eastern europe -
+cee,1,External Relations,1024,per1024,Baltic States: Negative,Negative references to the Baltic states.,baltic states -
+cee,1,External Relations,1025,per1025,Nordic Council: Negative,Negative references to the Nordic Council.,nordic council -
+cee,1,External Relations,1026,per1026,SFR Yugoslavia: Negative,"Negative mentions of countries formerly belonging to SFR Yugoslavia
+including negative references to Montenegro, Macedonia, Slovenia,
+Croatia and Bosnia-Hercegovina.",yugoslavia -
+cee,1,External Relations,1031,per1031,Russian Army: Negative,"Need to withdraw the Russian army from the territory of the manifesto
+country; need to receive reparations for the damage caused by the
+Russian army or other Soviet institutions.",russian army -
+cee,1,External Relations,1032,per1032,Independence: Positive,"Favourable mentions of the independence and sovereignty of the manifesto
+country.",independence +
+cee,1,External Relations,1033,per1033,Rights of Nations: Positive,"Favourable mentions of freedom, rights and interests of nations.",rights of nations +
+cee,2,Freedom and Democracy,2021,per2021,Transition to Democracy,"General references to the transition process of one-party states to
+pluralist democracy.",transition to democracy
+cee,2,Freedom and Democracy,2022,per2022,Restrictive Citizenship: Positive,"Favourable mentions of restrictions in citizenship; restrictions in
+enfranchisement with respect to (ethnic) groups.",restrict citizenship +
+cee,2,Freedom and Democracy,2023,per2023,Lax Citizenship: Positive,"Favourable mentions of lax citizenship and election laws; no or few
+restrictions in enfranchisement.",lax citizenship +
+cee,2,Freedom and Democracy,2031,per2031,Presidential Regime: Positive,"Support for current presidential regime; statements in favour of a
+powerful presidency.",presidential regime +
+cee,2,Freedom and Democracy,2032,per2032,Republic: Positive,Support for the republican form of government as opposed to monarchy.,republic +
+cee,2,Freedom and Democracy,2033,per2033,Checks and Balances: Positive,"Support for checks and balances and separation of powers, and
+specifically for limiting the powers of the presidency by increasing
+legislative/judicial powers, or transferring some executive powers to
+the legislature or judiciary.",checks and balances +
+cee,2,Freedom and Democracy,2041,per2041,Monarchy: Positive,"Support for a monarchy, including conceptions of constitutional
+monarchy.",monarchy +
+cee,3,Political System,3011,per3011,Republican Powers: Positive,Favourable mentions of stronger republican powers.,republican powers +
+cee,3,Political System,3051,per3051,Public Situation: Negative,"Negative references to the situation in public life after the founding
+elections.",public situation -
+cee,3,Political System,3052,per3052,Communist: Positive,"Co-operation with former authorities/communists in the transition
+period; pro-communist involvement in the transition process; and ‘let
+sleeping dogs lie’ in dealing with the nomenclature.",communist +
+cee,3,Political System,3053,per3053,Communist: Negative,"Against communist involvement in democratic government; weeding out the
+collaborators from governmental service; need for political coalition
+except communist parties.",communist -
+cee,3,Political System,3054,per3054,Rehabilitation and Compensation: Positive,"References to civic rehabilitation of politically persecuted people in
+the communist era; references to juridical compensation concerning
+communist expropriations; moral compensation.",rehabilitation +
+cee,3,Political System,3055,per3055,Political Coalitions: Positive,"Positive references to the need of broader political coalition; need for
+co-operation at the political level; necessity of collaboration among
+all political forces.",coalitions +
+cee,4,Economy,4011,per4011,Privatisation: Positive,Favourable references to privatisation.,privatization +
+cee,4,Economy,4012,per4012,Control of Economy: Negative,"Negative references to the general need for direct governmental control
+of the economy.",control economy -
+cee,4,Economy,4013,per4013,Property-Restitution: Positive,"Favourable references to the physical restitution of property to
+previous owners.",restitution +
+cee,4,Economy,4014,per4014,Privatisation Vouchers: Positive,Favourable references to privatisation vouchers.,private vouchers +
+cee,4,Economy,4121,per4121,Social Ownership: Positive,"Favourable references to the creation or preservation of co-operative or
+non-state social ownership within a market economy.",social ownership +
+cee,4,Economy,4122,per4122,Mixed Economy: Positive,Favourable references to mixed ownership within a market economy.,mixed economy +
+cee,4,Economy,4123,per4123,Publicly-Owned Industry: Positive,Positive references to the concept of publicly-owned industries.,publicly owned industry +
+cee,4,Economy,4124,per4124,Socialist Property: Positive,"Positive references to socialist property, including public and
+co-operative property; negative references to privatisation.",socialist property +
+cee,4,Economy,4131,per4131,Property-Restitution: Negative,"Negative references to the physical restitution of property to previous
+owners.",property restitution -
+cee,4,Economy,4132,per4132,Privatisation: Negative,"Negative references to the privatisation system; need to change the
+privatisation system.",privatization -
+cee,5,Welfare and Quality of Life,5021,per5021,Private-Public Mix in Culture: Positive,"Necessity of private provisions due to economic constraints; private
+funding in addition to public activity.",priv-pub mix culture +
+cee,5,Welfare and Quality of Life,5031,per5031,Private-Public Mix in Social Justice: Positive,Necessity of private initiatives due to economic constraints.,priv-pub mix social justice +
+cee,5,Welfare and Quality of Life,5041,per5041,Private-Public Mix in Welfare: Positive,"Necessity of private welfare provisions due to economic constraints;
+desirability of competition in welfare service provisions; private
+funding in addition to public activity.",priv-pub mix welfare +
+cee,5,Welfare and Quality of Life,5061,per5061,Private-Public Mix in Education: Positive,"Necessity of private education due to economic constraints; desirability
+of competition in education.",priv-pub mix education +
+cee,6,Fabric of Society,6011,per6011,The Karabakh Issue: Positive,"Positive references to the unity of Karabakh and Armenia or the
+recognition of the independent Republic of Karabakh; rendering
+assistance to Karabakh.",karabakh issue +
+cee,6,Fabric of Society,6012,per6012,Rebuilding the USSR: Positive,"Favourable mentions of the reunification of all republics and nations
+living on the former territory of the USSR into a new common
+(democratic) state or into a common economic space whereby the new union
+would be the guarantor of the manifesto country’s sovereignty; negative
+references to the dissolution of the USSR and the respective treaties.",rebuilding USSR +
+cee,6,Fabric of Society,6013,per6013,National Security: Positive,"Support for or need to maintain national security in all spheres of
+social life; policies devoted to this goal.",national security +
+cee,6,Fabric of Society,6014,per6014,Cyprus Issue,"All references concerning the division of Cyprus in a Greek and a
+Turkish part.",cyprus issue
+cee,6,Fabric of Society,6061,per6061,General Crisis,Identification of a general crisis in the country.,general crisis
+cee,6,Fabric of Society,6071,per6071,Cultural Autonomy: Positive,Favourable mentions of cultural autonomy.,cultural autonomy +
+cee,6,Fabric of Society,6072,per6072,Multiculturalism pro Roma: Positive,Favourable mentions of cultural autonomy of Roma.,multiculturalism roma +
+cee,6,Fabric of Society,6081,per6081,Multiculturalism pro Roma: Negative,Negative mentions of cultural autonomy of Roma.,multiculturalism roma -
+cee,7,Social Groups,7051,per7051,Minorities Inland:  Positive,"References to manifesto country minorities in foreign countries;
+positive references to manifesto country minorities.",minorities inland +
+cee,7,Social Groups,7052,per7052,Minorities Abroad: Positive,"References to ethnic minorities living in the manifesto country such as
+Latvians living in Estonia.",minorities abroad -
+cee,7,Social Groups,7061,per7061,War Participants: Positive,"Favourable mentions of, or need for, assistance to people taking part in
+the war on the territory of ex-Yugoslavia.",war participants +
+cee,7,Social Groups,7062,per7062,Refugees: Positive,"Favourable mentions of, or need for, assistance to people who left their
+homes because of the war (for instance, on the territory of
+ex-Yugoslavia) or were forcibly displaced.",refugees +
+hb5,1,External Relations,103.1,per103_1,Anti-Imperialism: State Centred Anti-Imperialism,"Negative references to imperial behaviour and/or negative references to
+one state exerting strong influence (political, military or commercial)
+over other states. May also include:
+
+-   Negative references to controlling other countries as if they were
+    part of an empire;
+
+-   Favourable references to greater self-government and independence
+    for colonies;
+
+-   Favourable mentions of de-colonisation.
+
+",state centred anti-imperalism
+hb5,1,External Relations,103.2,per103_2,Anti-Imperialism: Foreign Financial Influence,"Negative references and statements against international financial
+organisations or states using monetary means to assert strong influence
+over the manifesto country or other states. May include:
+
+-   Statements against the World Bank, IMF etc.;
+
+-   Statements against the Washington Consensus;
+
+-   Statements against foreign debt circumscribing state actions.
+
+",foreign financial influence -
+hb5,2,Freedom and Democracy,201.1,per201_1,Freedom,"Favourable mentions of importance of personal freedom in the manifesto
+and other countries. May include mentions of:
+
+-   Freedom from state coercion in the political and economic spheres;
+
+-   Freedom from bureaucratic control;
+
+-   The idea of individualism
+
+",freedom
+hb5,2,Freedom and Democracy,201.2,per201_2,Human Rights,"Favourable mentions of importance of human and civil rights in the
+manifesto and other countries, including the right to freedom of speech,
+press, assembly etc.; supportive refugee policies.",human rights
+hb5,2,Freedom and Democracy,202.1,per202_1,Democracy General: Positive,"Favourable mentions of democracy as the “only game in town”. General
+support for the manifesto country’s democracy. May also include:
+
+-   Democracy as method or goal in national, international or other
+    organisations (e.g. labour unions, political parties etc.);
+
+-   The need for the involvement of all citizens in political
+    decision-making;
+
+-   Support for parts of democratic regimes (rule of law, division of
+    powers, independence of courts etc.).
+
+",democracy: general +
+hb5,2,Freedom and Democracy,202.2,per202_2,Democracy General: Negative,"Statements against the idea of democracy, in general or in the manifesto
+country. Calls for reducing or withholding democratic rights from all or
+certain groups of people. Calls for the introduction or maintaining of a
+non-democratic regime, e.g. monarchy or rule of the military.",democracy: general -
+hb5,2,Freedom and Democracy,202.3,per202_3,Representative Democracy: Positive,"Favourable mentions of the system of representative democracy, in
+particular in contrast to direct democracy. This includes the protection
+of representative institutions and actors against direct democratic
+elements.",representative democracy +
+hb5,2,Freedom and Democracy,202.4,per202_4,Direct Democracy: Positive,"Favourable mentions of the system of direct democracy, in particular in
+contrast to representative democracy. This includes the call for the
+introduction and/or extension of referenda, participatory budgets and
+other forms of direct democracy.",direct democracy +
+hb5,3,Political System,305.1,per305_1,Political Authority: Party Competence,"References to the manifesto party’s competence to govern and/or other
+party’s lack of such competence.",political authority: party competence
+hb5,3,Political System,305.2,per305_2,Political Authority: Personal Competence,"Reference to the presidential candidate’s or party leader’s personal
+competence to govern and/or other candidate’s or leader’s lack of such
+competence.",political authority: personal competence
+hb5,3,Political System,305.3,per305_3,Political Authority: Strong government,"Favourable mentions of the desirability of a strong and/or stable
+government in general.",political authority: strong government
+hb5,3,Political System,305.4,per305_4,Transition: Pre-Democratic Elites: Positive,"Co-operation with pre-democratic authorities in the transition period;
+amnesty for former, non-Democratic elites; and ’let sleeping dogs lie’
+in dealing with the nomenclature of the former, non-Democratic regime.",transition: pre-democratic elites +
+hb5,3,Political System,305.5,per305_5,Transition: Pre-Democratic Elites: Negative,"Against pre-democratic elite’s involvement in democratic government;
+weeding out the collaborators of former, non-Democratic regime from
+governmental service; for truth commissions and other institutions
+illuminating recent history.",transition: pre-democratic elites -
+hb5,3,Political System,305.6,per305_6,Transition: Rehabilitation and Compensation,"References to civic rehabilitation of politically persecuted people in
+the authoritarian era; references to juridical compensation concerning
+authoritarian expropriations; moral compensation.
+
+*Note: Specific policy positions overrule all subcategories of 305! If
+there is no specific policy position, however, these subcategories may
+apply.*",transition: rehabilitation and compensation
+hb5,4,Economy,416.1,per416_1,Anti-Growth Economy: Positive,"Favourable mentions of anti-growth politics. Rejection of the idea that
+growth is good.",anti-growth economy +
+hb5,4,Economy,416.2,per416_2,Sustainability: Positive,"Call for sustainable economic development. Opposition to growth that
+causes environmental or societal harm.",sustainability +
+hb5,6,Fabric of Society,601.1,per601_1,National Way of Life General: Positive,"Favourable mentions of the manifesto country’s nation, history, and
+general appeals. May include:
+
+-   Support for established national ideas;
+
+-   General appeals to pride of citizenship;
+
+-   Appeals to patriotism;
+
+-   Appeals to nationalism;
+
+-   Suspension of some freedoms in order to protect the state
+    against subversion.
+
+",national way of life: general +
+hb5,6,Fabric of Society,601.2,per601_2,National Way of Life: Immigration: Negative,"Statement advocating the restriction of the process of immigration, i.e.
+accepting new immigrants. Might include statements regarding:
+
+-   Immigration being a threat to national character of the manifesto
+    country;
+
+-   ‘the boat is full’ argument;
+
+-   The introduction of migration quotas, including restricting
+    immigration from specific countries or regions etc.
+
+*Only concerned with the possibility of new immigrants. For negative
+statements regarding immigrants already in the manifesto country, please
+see 608\_1.*",national way of life: immigration -
+hb5,6,Fabric of Society,602.1,per602_1,National Way of Life General: Negative,"Unfavourable mentions of the manifesto country’s nation and history. May
+include:
+
+-   Opposition to patriotism;
+
+-   Opposition to nationalism;
+
+-   Opposition to the existing national state, national pride, and
+    national ideas.
+
+",national way of life: general -
+hb5,6,Fabric of Society,602.2,per602_2,National Way of Life: Immigration: Positive,"Statements favouring new immigrants; against restrictions and quotas;
+rejection of the ‘boat is full’ argument. Includes allowing new
+immigrants for the benefit of the manifesto country’s economy. *Only
+concerned with the possibility of new immigrants. For positive
+statements regarding immigrants already in the manifesto country, please
+see 607\_1.*",national way of life: immigration +
+hb5,6,Fabric of Society,605.1,per605_1,Law and Order: Positive,"Favourable mentions of strict law enforcement, and tougher actions
+against domestic crime. Only refers to the enforcement of the status quo
+of the manifesto country’s law code. May include:
+
+-   Increasing support and resources for the police;
+
+-   Tougher attitudes in courts;
+
+-   Importance of internal security.
+
+",law and order +
+hb5,6,Fabric of Society,605.2,per605_2,Law and Order: Negative,"Favourable mentions of less law enforcement or rejection of plans for
+stronger law enforcement. Only refers to the enforcement of the status
+quo of the manifesto country’s law code. May include:
+
+-   Less resources for police;
+
+-   Reducing penalties;
+
+-   Calls for abolishing the death penalty;
+
+-   Decriminalisation of drugs, prostitution etc.
+
+",law and order -
+hb5,6,Fabric of Society,606.1,per606_1,Civic Mindedness General: Positive,"General appeals for national solidarity and the need for society to see
+itself as united. Calls for solidarity with and help for fellow people,
+familiar and unfamiliar. May include:
+
+-   Favourable mention of the civil society and volunteering;
+
+-   Decrying anti-social attitudes in times of crisis;
+
+-   Appeal for public spiritedness;
+
+-   Support for the public interest.
+
+",civic mindedness: general +
+hb5,6,Fabric of Society,606.2,per606_2,Civic Mindedness: Bottom-Up Activism,"Appeals to grassroots movements of social change; banding all sections
+of society together to overcome common adversity and hardship; appeals
+to the people as a united actor.",bottom-up activism
+hb5,6,Fabric of Society,607.1,per607_1,Multiculturalism General: Positive,"Favourable mentions of cultural diversity and cultural plurality within
+domestic societies. May include the preservation of autonomy of
+religious, linguistic heritages within the country including special
+educational provisions.",multiculturalism: general +
+hb5,6,Fabric of Society,607.2,per607_2,Multiculturalism: Immigrants Diversity,"Statements favouring the idea that immigrants keep their cultural
+traits; voluntary integration; state providing opportunities to
+integrate.
+
+*Only concerned with immigrants already in the manifesto country. For
+positive statements regarding the possibility of new immigrants, please
+see 602\_2.*",multiculturalism: immigrants diversity
+hb5,6,Fabric of Society,607.3,per607_3,Multiculturalism: Indigenous rights: Positive,"Calls for the protection of indigenous people, strengthening their
+rights, may include:
+
+-   Protection of their lands;
+
+-   Introduction of special provisions in the democratic or bureaucratic
+    process;
+
+-   Compensation for past grief.
+
+",multiculturalism: indigenous rights +
+hb5,6,Fabric of Society,608.1,per608_1,Multiculturalism General: Negative,"The enforcement or encouragement of cultural integration. Appeals for
+cultural homogeneity in society.",multiculturalism: general -
+hb5,6,Fabric of Society,608.2,per608_2,Multiculturalism: Immigrants Assimilation,"Calls for immigrants that are in the country to adopt the manifesto
+country’s culture and fully assimilate. Reinforce integration.
+
+*Only concerned with immigrants already in the manifesto country. For
+negative statements regarding the possibility of new immigrants, please
+see 601\_2*",multiculturalism: immigrants assimilation
+hb5,6,Fabric of Society,608.3,per608_3,Multiculturalism: Indigenous rights: Negative,Rejection of idea of special protection for indigenous people.,multiculturalism: indigenous rights -
+hb5,7,Social Groups,703.1,per703_1,Agriculture and Farmers: Positive,"Specific policies in favour of agriculture and farmers. Includes all
+types of agriculture and farming practises. Only statements that have
+agriculture as the key goal should be included in this category.",agriculture and farmers +
+hb5,7,Social Groups,703.2,per703_2,Agriculture and Farmers: Negative,"Rejection of policies favouring agriculture and farmers. May include:
+
+-   Cap or abolish subsidies;
+
+-   Reject special welfare provisions for farmers.
+
+",agriculture and farmers -
