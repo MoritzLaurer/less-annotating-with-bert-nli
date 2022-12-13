@@ -12,10 +12,10 @@ np.random.seed(SEED_GLOBAL)
 
 ### Load & prepare data
 
-#set wd
-print(os.getcwd())
+#set working directory for local runs
+"""print(os.getcwd())
 os.chdir("./NLI-experiments")
-print(os.getcwd())
+print(os.getcwd())"""
 
 
 ## load data

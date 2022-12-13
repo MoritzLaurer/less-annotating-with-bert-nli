@@ -11,11 +11,11 @@ np.random.seed(SEED_GLOBAL)
 
 
 ### Load & prepare data
-#set wd
-print(os.getcwd())
+#set working directory for local runs
+"""print(os.getcwd())
 if "NLI-experiments" not in os.getcwd().split("/")[-1]:
     os.chdir("./NLI-experiments")  #os.chdir("/Users/moritzlaurer/Dropbox/PhD/Papers/nli/snellius/NLI-experiments")
-print(os.getcwd())
+print(os.getcwd())"""
 
 
 
