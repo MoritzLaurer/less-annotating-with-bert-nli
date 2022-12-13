@@ -1,12 +1,16 @@
 
-## seems like I need to import all libraries here too even though the entire script is never run
+### This script contains functions used by the analysis scripts
+
+# import relevant packages
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig, AutoModelForNextSentencePrediction
+from sklearn.metrics import balanced_accuracy_score, precision_recall_fscore_support, accuracy_score, classification_report
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig, AutoModelForNextSentencePrediction, Trainer, TrainingArguments
 import torch
 import datasets
 import copy
 import numpy as np
+import gc
 
 np.random.seed(42)
 
@@ -153,11 +157,8 @@ def tokenize_datasets(df_train_samp=None, df_test=None, tokenizer=None, method=N
 
 
 
-## load metrics from sklearn
+### load metrics from sklearn
 # good literature review on best metrics for multiclass classification: https://arxiv.org/pdf/2008.05756.pdf
-from sklearn.metrics import balanced_accuracy_score, precision_recall_fscore_support, accuracy_score, classification_report
-import numpy as np
-
 def compute_metrics_standard(eval_pred, label_text_alphabetical=None):
     labels = eval_pred.label_ids
     pred_logits = eval_pred.predictions
@@ -255,7 +256,6 @@ def compute_metrics_nli_binary(eval_pred, label_text_alphabetical=None):
     return metrics
 
 
-
 def compute_metrics_classical_ml(label_pred, label_gold, label_text_alphabetical=None):
     ## metrics
     precision_macro, recall_macro, f1_macro, _ = precision_recall_fscore_support(label_gold, label_pred, average='macro')  # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_fscore_support.html
@@ -282,14 +282,14 @@ def compute_metrics_classical_ml(label_pred, label_gold, label_text_alphabetical
 
 
 ### Define trainer and hyperparameters
-from transformers import TrainingArguments
-
 def set_train_args(hyperparams_dic=None, training_directory=None, disable_tqdm=False, **kwargs):
     # https://huggingface.co/transformers/main_classes/trainer.html#transformers.TrainingArguments
     
     train_args = TrainingArguments(
-        output_dir=f'./results/{training_directory}',
-        logging_dir=f'./logs/{training_directory}',
+        #output_dir=f'./results/{training_directory}',
+        #logging_dir=f'./logs/{training_directory}',
+        output_dir=f'./{training_directory}',
+        logging_dir=f'./{training_directory}',
         **hyperparams_dic,
         **kwargs,
         # num_train_epochs=4,
@@ -321,8 +321,6 @@ def set_train_args(hyperparams_dic=None, training_directory=None, disable_tqdm=F
     return train_args
 
 
-from transformers import Trainer
-
 def create_trainer(model=None, tokenizer=None, encoded_dataset=None, train_args=None, label_text_alphabetical=None, method=None):
   if method == "nli" or method == "nsp":
     compute_metrics = compute_metrics_nli_binary
@@ -343,9 +341,6 @@ def create_trainer(model=None, tokenizer=None, encoded_dataset=None, train_args=
 
 
 ## cleaning memory in case of memory overload
-import torch
-import gc
-
 def clean_memory():
   #del(model)
   if torch.cuda.is_available():

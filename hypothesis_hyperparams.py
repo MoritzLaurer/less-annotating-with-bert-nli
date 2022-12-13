@@ -5,8 +5,7 @@
 # for each dataset, texts need to be formatted differently depending on the hypotheses, whether context sentences are available
 # and other properties of datasets like column names
 
-
-## imports
+# import relevant packages
 from collections import OrderedDict
 import pandas as pd
 import numpy as np

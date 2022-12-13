@@ -1,19 +1,22 @@
-#!/usr/bin/env python
-# coding: utf-8
 
-# ## Install and load packages
+### This script has two purposes:
+# 1. It re-calculates all the metrics based on the raw output from the analysis scripts
+# 2. It creates visualisations based on these metrics
+
+# import relevant packages
 import pandas as pd
 import numpy as np
 import os
 from os import listdir
 from os.path import isfile, join
 import joblib
+from sklearn.metrics import balanced_accuracy_score, precision_recall_fscore_support, accuracy_score, classification_report, cohen_kappa_score, matthews_corrcoef
 
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
 
-# ## Data loading
+### Data loading
 #set wd
 print(os.getcwd())
 if "NLI-experiments" not in os.getcwd():
@@ -23,6 +26,7 @@ print(os.getcwd())
 DATASET_NAME_LST = ["sentiment-news-econ", "coronanet", "cap-sotu", "cap-us-court", "manifesto-8",
                     "manifesto-military", "manifesto-protectionism", "manifesto-morality"]
 
+## load raw results
 def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
   # get latest experiment for each method for the respective dataset - experiments take a long time and many were conducted
   path_dataset = f"./results/{dataset_name}"
@@ -44,7 +48,6 @@ def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
     return None
 
 
-## load results
 experiment_details_dic_all_methods_dataset = {}
 for dataset_name in DATASET_NAME_LST:
   experiment_details_dic_all_methods = {dataset_name: {}}
@@ -64,12 +67,10 @@ for key_dataset in experiment_details_dic_all_methods_dataset:
   for key_method in experiment_details_dic_all_methods_dataset[key_dataset]:
     print("  ", key_method)
   print("")
-#experiment_details_dic_all_methods_dataset["manifesto-military"]["xtremedistil-l6-h256-uncased"]
 
 
-# testing different metrics from sklearn https://scikit-learn.org/stable/modules/model_evaluation.html#classification-metrics
-from sklearn.metrics import balanced_accuracy_score, precision_recall_fscore_support, accuracy_score, classification_report, cohen_kappa_score, matthews_corrcoef, roc_auc_score
-top_xth = 4
+# calculating different metrics from sklearn https://scikit-learn.org/stable/modules/model_evaluation.html#classification-metrics
+top_xth = 4  # defines share of classes for which to calculate additional metrics. e.g. with a value of 4, additional metrics are calculated for the largest 4th of classes
 def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
     ## metrics
     precision_macro, recall_macro, f1_macro, _ = precision_recall_fscore_support(label_gold, label_pred, average='macro')  # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_fscore_support.html
@@ -99,12 +100,12 @@ def compute_metrics(label_pred, label_gold, label_text_alphabetical=None):
     # calculate non-balanced accuracy for top 3rd and bottom two 3rd
     n_class_topshare = int(len(np.unique(eval_gold_df)) / top_xth)
     if n_class_topshare == 0: n_class_topshare = 1  # if only two classes, then n_class_topshare is 0. then set it to 1
-    # top 3rd
+    # top xth
     labels_topshare = [weird_tuple[0] for weird_tuple in eval_gold_df.value_counts()[:n_class_topshare].index.values.tolist()]
     eval_gold_df_topshare = eval_gold_df[eval_gold_df.labels.isin(labels_topshare)]
     eval_pred_df_topshare = eval_pred_df[eval_pred_df.index.isin(eval_gold_df_topshare.index)]
     accuracy_topshare = accuracy_score(eval_gold_df_topshare, eval_pred_df_topshare)
-    # bottom two thirds
+    # bottom xth
     labels_bottomrest = [weird_tuple[0] for weird_tuple in eval_gold_df.value_counts()[n_class_topshare:].index.values.tolist()]
     eval_gold_df_bottomrest = eval_gold_df[eval_gold_df.labels.isin(labels_bottomrest)]
     eval_pred_df_bottomrest = eval_pred_df[eval_pred_df.index.isin(eval_gold_df_bottomrest.index)]
@@ -177,13 +178,6 @@ for key_dataset_name, experiment_details_dic_all_methods in experiment_details_d
     for method in experiment_details_dic_all_methods.keys():
         for sample_size in experiment_details_dic_all_methods[method].keys():
             results_per_seed_dic = {key: value for key, value in experiment_details_dic_all_methods[method][sample_size].items() if "metrics_seed" in key}
-
-            # balanced accuracy
-            #accuracy_balanced_per_seed = [value_metrics["eval_accuracy_balanced"] if "eval_accuracy_balanced" in value_metrics.keys() else value_metrics["accuracy_balanced"] for key_metrics_seed, value_metrics in results_per_seed_dic.items()]  # if else, because zero-shot dicts use word "accuracy_balanced", while full runs use word "eval_accuracy_balanced"
-            #accuracy_balanced_mean = np.mean(accuracy_balanced_per_seed)
-            #accuracy_balanced_std = np.std(accuracy_balanced_per_seed)
-            #experiment_details_dic_all_methods[method][sample_size]["metrics_mean"].update({"accuracy_balanced_mean": accuracy_balanced_mean, "accuracy_balanced_std": accuracy_balanced_std})
-
             ## recalculate several additional metrics based on reviewer feedback
             for metric in metrics_all_name:  #['f1_macro', 'f1_micro', 'accuracy_balanced', 'accuracy_not_b', 'precision_macro', 'recall_macro', 'precision_micro', 'recall_micro', 'cohen_kappa']:
                 metric_per_seed = [compute_metrics(value_metrics["eval_label_predicted_raw"], value_metrics["eval_label_gold_raw"])[metric] if len(value_metrics.keys()) >= 8 else 0 for key_metrics_seed, value_metrics in results_per_seed_dic.items()]  # if else to distinguish between 0-shot runs for non-NLI algos and actual runs for all algos
@@ -195,7 +189,7 @@ for key_dataset_name, experiment_details_dic_all_methods in experiment_details_d
 
 
 
-# ## Data preparation
+### Data preparation
 dataset_n_class_dic = {"sentiment-news-econ": 2, "coronanet": 20, "cap-sotu": 22, "cap-us-court": 20, "manifesto-8": 8, "manifesto-44": 44,
                         "manifesto-military": 3, "manifesto-protectionism": 3, "manifesto-morality": 3}
 
@@ -241,7 +235,7 @@ for key_dataset_name, experiment_details_dic_all_methods in experiment_details_d
 
 
 
-#### add random and majority baseline
+### add random and majority baseline
 df_test_dic = {}
 for dataset_name in DATASET_NAME_LST:
   if dataset_name == "cap-us-court":
@@ -268,20 +262,12 @@ for dataset_name in DATASET_NAME_LST:
 
 
 
-### create metrics for random and majority base-line
-# unnecessarily complicated way of getting all names for all metrics
-#import re
-#metrics_all_name = experiment_details_dic_all_methods[key_method][name_second_step]["metrics_mean"].keys()
-#metrics_all_name = pd.unique([re.sub("_mean|_std", "",  metric_name) for metric_name in metrics_all_name]).tolist()
-
+## create metrics for random and majority base-line
 metrics_baseline_dic = {}
 for key_dataset_name, value_df_test in df_test_dic.items():
   np.random.seed(SEED_GLOBAL)
 
   ## get random metrics averaged over several seeds
-  #f1_macro_random_mean_lst = []
-  #f1_micro_random_mean_lst = []
-  #accuracy_balanced_random_mean_lst = []
   metric_random_dic = {metric_name: [] for metric_name in metrics_all_name}
   for seed in np.random.choice(range(1000), 10):
     np.random.seed(seed)  # to mix up the labels_random
@@ -298,7 +284,6 @@ for key_dataset_name, value_df_test in df_test_dic.items():
       metrics_random = compute_metrics(labels_random, labels_gold, label_text_alphabetical=np.sort(value_df_test.label_text.unique()))
       for metric in metrics_all_name:
           metric_random_dic[metric].append(metrics_random[metric])
-    ## generalised version for any metric
 
   ## random mean per metric
   metric_random_mean_dic = {}
@@ -322,17 +307,22 @@ for key_dataset_name, value_df_test in df_test_dic.items():
         metric_majority_dic.update({f"{metric}_majority": metrics_majority[metric]})
 
   metrics_baseline_dic.update({key_dataset_name: {**metric_random_mean_dic, **metric_majority_dic}})
+
 np.random.seed(SEED_GLOBAL)  # rest seed to global seed
 
 
-metrics_baseline_dic
 
 
 
 
 
-# ## Visualisation
-# same as above
+
+##### Visualisation
+# visualisation   # https://plotly.com/python/continuous-error-bars/
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots  # https://plotly.com/python/subplots/
+
+# same as above (only copied here to avoid re-run bugs)
 metrics_all_name = ['F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",  'Accuracy/F1 Micro', 'Balanced Accuracy',
                     'recall_macro', 'recall_micro', f'recall_macro_top{top_xth}th', 'recall_macro_rest',   # 'Balanced Accuracy_manual',
                     'precision_macro', 'precision_micro', f'precision_macro_top{top_xth}th', 'precision_macro_rest',
@@ -341,12 +331,8 @@ metrics_all_name = ['F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",  'A
                     'accuracy_crossclass_std', 'f1_crossclass_std', 'recall_crossclass_std', 'precision_crossclass_std']
 
 
-### visualisation   # https://plotly.com/python/continuous-error-bars/
-import plotly
-import plotly.graph_objs as go
-from plotly.subplots import make_subplots  # https://plotly.com/python/subplots/
 
-#metric = "f1_macro" #"f1_macro"  #"f1_micro", 
+#### disaggregate visualisation for all datasets
 colors_hex = ["#45a7d9", "#4451c4", "#45a7d9", "#4451c4", "#7EAB55", "#FFC000"]  # order: logistic_tfidf, SVM_tfidf, logistic_embeddings, SVM_embeddings, deberta, deberta-nli   # must have same order as visual_data_dic
 simple_algo_names_dic = {"logistic_tfidf": "logistic_tfidf", "logistic_embeddings": "logistic_embeddings",
                          "SVM_tfidf": "SVM_tfidf", "SVM_embeddings": "SVM_embeddings",
@@ -361,7 +347,6 @@ def plot_per_dataset(metric_func=None):
     fig = make_subplots(rows=3, cols=3, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
                         subplot_titles=subplot_titles,
                         x_title="* Number of random training examples", y_title="* " + metric_func)
-
     i = 0
     for key_dataset_name, visual_data_dic in visual_data_dic_datasets.items():
       ## for one dataset, create one figure
@@ -417,22 +402,6 @@ def plot_per_dataset(metric_func=None):
             ),
             row=i_row, col=i_col
       )
-      ## add universal politicsnli markers for indiv data point per dataset  # https://plotly.com/python/marker-style/
-      """fig.add_trace(go.Scatter(
-            name=f"Transformer-Mini-NLI-Politics",
-            # x-axis 0 for held-out data, otherwise equivalent of 320 samp
-            x=[0] if key_dataset_name in ["sentiment-news-econ", "cap-us-court", "manifesto-protectionism"] else [visual_data_dic["xtremedistil-l6-h256-uncased"]["x_axis_values"][5]], 
-            y=visual_data_dic["xtremedistil-l6-h256-mnli-fever-anli-ling-politicsnli"][f"{metric_func}_mean"],
-            mode='markers',
-            marker_symbol="circle-open-dot",
-            marker_line_color=colors_hex[-1], marker_color=colors_hex[-1],
-            marker_line_width=2, marker_size=15,
-            #line=dict(color="grey"), 
-            #line_dash="dashdot", line_color="grey",  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
-            showlegend=False if i != 5 else True
-            ), 
-            row=i_row, col=i_col
-      )"""
 
       ## iterate for each method in dic and add respective line + std
       for key_algo, hex in zip(visual_data_dic, colors_hex):
@@ -497,6 +466,7 @@ def plot_per_dataset(metric_func=None):
 
     return fig
 
+
 fig_per_dataset_macro = plot_per_dataset(metric_func="F1 Macro")
 fig_per_dataset_micro = plot_per_dataset(metric_func="Accuracy/F1 Micro")
 
@@ -506,19 +476,15 @@ fig_per_dataset_macro.write_image("./figures/3-figure-performance-per-dataset-f1
 fig_per_dataset_micro.show(renderer="browser")
 fig_per_dataset_micro.write_image("./figures/appendix-6-figure-performance-per-dataset-f1micro.png")
 
-#fig.show(renderer="browser")
-#fig.write_image("./results/1-figures/3-figure-performance-per-dataset-f1macro.png")
 
 
 
 
 
-
-# ### Aggregate performance difference
+#### Aggregate performance difference
 
 ## extract metrics to create df comparing performance per dataset per algo
 # ! careful: not all datasets have 2500 data points, so if it says 2500, this includes 2116 for protectionism (and less full samples for higher intervals)
-
 df_metrics_dic = {}
 df_std_dic = {}
 for metric_name in metrics_all_name:  #["f1_macro", "f1_micro", "accuracy_balanced"]:
@@ -651,8 +617,7 @@ for metric in metrics_all_name:
 
 
 
-### create plot
-
+## create plot
 def plot_aggregate_metrics(metrics_all_name=None, height=None):
     subplot_titles_compare = metrics_all_name  #["f1_macro", "Accuracy/F1 Micro", "Balanced Accuracy"]
     # determine max number of rows
@@ -782,6 +747,13 @@ def plot_aggregate_metrics(metrics_all_name=None, height=None):
 
     return fig_compare
 
+
+# for main text
+metrics_all_name = ['F1 Macro', 'Balanced Accuracy', 'Accuracy/F1 Micro']
+fig_compare_main = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
+fig_compare_main.show(renderer="browser")
+fig_compare_main.write_image("./figures/2-figure-performance-aggregate.png")
+
 # for annex - displaying all possible metrics
 metrics_all_name = ['F1 Macro', #f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     'Accuracy/F1 Micro', 'Balanced Accuracy', #f"accuracy_top{top_xth}th", "accuracy_rest",
@@ -789,7 +761,6 @@ metrics_all_name = ['F1 Macro', #f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     'precision_macro', 'precision_micro',  #f'precision_macro_top{top_xth}th', 'precision_macro_rest',  #
                     'cohen_kappa', 'matthews_corrcoef'
                     ]
-
 fig_compare_all = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
 fig_compare_all.show(renderer="browser")
 fig_compare_all.write_image("./figures/appendix-5-figure-performance-aggregate-many-metrics.png")
@@ -817,105 +788,11 @@ fig_compare_topx.show(renderer="browser")
 fig_compare_topx.write_image("./figures/appendix-4-figure-performance-aggregate-topxth-subplot2.png")
 
 
-# for main text
-metrics_all_name = ['F1 Macro', 'Balanced Accuracy', 'Accuracy/F1 Micro']
-
-fig_compare_main = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
-fig_compare_main.show(renderer="browser")
-fig_compare_main.write_image("./figures/2-figure-performance-aggregate.png")
 
 
-
-
-
-### plot for standard cross-class standard deviation
-# standard deviation of main metrics for annex D
-# figure not used in the end
-metrics_all_name = ['accuracy_crossclass_std', 'f1_crossclass_std', 'recall_crossclass_std', 'precision_crossclass_std']
-#metrics_all_name = ['accuracy_std', 'f1_std', 'recall_std', 'precision_std']
-"""
-subplot_titles_compare = metrics_all_name  #["f1_macro", "Accuracy/F1 Micro", "Balanced Accuracy"]
-# determine max number of rows
-i_row = 0
-i_col = 0
-col_max = 2
-for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "Balanced Accuracy"]
-    i_col += 1
-    if i % col_max == 0:
-        i_row += 1
-        if i > 0:
-            i_col = 1
-    #print("row: ", i_row)
-    #print("col: ", i_col)
-print("row max: ", i_row)
-print("col max: ", col_max)
-fig_compare = make_subplots(rows=i_row, cols=col_max, start_cell="top-left", horizontal_spacing=0.1, vertical_spacing=0.2,
-                            subplot_titles=subplot_titles_compare, x_title="Number of random training examples")  #y_title="f1 score",
-marker_symbols = ["circle", "circle", "circle", "circle"]  # "triangle-down", "triangle-up", "star-triangle-up", "star-square"
-
-## create new sub-plot for each metric
-i_row = 0
-i_col = 0
-for i, metric_i in enumerate(metrics_all_name):   #["f1_macro", "f1_micro", "Balanced Accuracy"]
-    # determine row and col position for each sub-figure
-    i_col += 1
-    if i % col_max == 0:
-        i_row += 1
-        if i > 0:
-            i_col = 1
-
-    for algo, hex, marker in zip(algo_names_comparison, colors_hex, marker_symbols):
-        fig_compare.add_trace(go.Scatter(
-            name=algo,
-            x=[100, 500, 1000, 2500],
-            y=df_metrics_mean_dic[metric_i].loc[algo][1:],  #df_metrics_mean_dic[metric_i].loc[algo] if "nli" in algo else [np.nan] + df_metrics_mean_dic[metric_i].loc[algo][1:].tolist(),
-            mode='lines+markers',
-            marker_symbol=marker,
-            #marker_size=10,
-            line=dict(color=hex, width=3),
-            line_dash="solid",  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
-            showlegend=True if i == 1 else False,
-            #font=dict(size=14),
-            ),
-            row=i_row, col=i_col
-        )
-    #fig_compare.add_vline(x=4, line_dash="longdash", annotation_text="8 datasets", annotation_position="left", row=1, col=i+1)  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'] https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
-    #fig_compare.add_vline(x=4, line_dash="dot", annotation_text="4 datasets", annotation_position="right", row=1, col=i+1)  # annotation=dict(font_size=20, font_family="Times New Roman")  # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_vline
-
-    # update layout for individual subplots  # https://stackoverflow.com/questions/63580313/update-specific-subplot-axes-in-plotly
-    fig_compare['layout'][f'xaxis{i+1}'].update(
-        # title_text=f'N random examples given {visual_data_dic[algo]["n_classes"]} classes',
-        tickangle=-10,
-        type='category',
-        title_font_size=16,
-    )
-    fig_compare['layout'][f'yaxis{i+1}'].update(
-        # range=[0.2, pd.Series(visual_data_dic[algo][f"{metric}_mean"]).iloc[-1] + pd.Series(visual_data_dic[algo][f"{metric}_std"]).iloc[-1] + 0.1]
-        title_text="accuracy/" + metric_i if metric_i == "f1_micro" else metric_i,
-        title_font_size=16,
-        dtick=0.05,
-        range=[0.1, 0.3],
-        #font=dict(size=14)
-    )
-
-# update layout for overall plot
-fig_compare.update_layout(
-    title_text=f"Average cross-class standard deviation", title_x=0.5,
-    #paper_bgcolor='rgba(0,0,0,0)',
-    #plot_bgcolor='rgba(0,0,0,0)',
-    template="none",  # ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]  # https://plotly.com/python/templates/
-    margin={"l": 200},
-    font=dict(size=16)
-    #height=800,
-)
-fig_compare.show(renderer="browser")
-"""
-
-
-
-
-##### bar chart for displaying average standard deviation
+### bar chart for displaying average standard deviation
 # for figure 3 in appendix
+
 # clean column names
 df_metrics_mean_dic["f1_crossclass_std"].columns = [x.replace("\n", " ") for x in df_metrics_mean_dic["f1_crossclass_std"].columns.to_list()]
 df_metrics_mean_dic["accuracy_crossclass_std"].columns = [x.replace("\n", " ") for x in df_metrics_mean_dic["accuracy_crossclass_std"].columns.to_list()]
@@ -1005,48 +882,6 @@ fig_compare.show(renderer="browser")
 fig_compare.write_image("./figures/appendix-3-figure-standard-deviation.png")
 
 
-
-
-
-
-### visualise performance difference
-"""fig_difference = go.Figure()
-algo_names_difference = ["BERT-base vs. classical-best-tfidf", "BERT-NLI vs. classical-best-tfidf", "BERT-base vs. classical-best-embed", "BERT-NLI vs. classical-best-embed", "BERT-NLI vs. BERT-base"]
-colors_hex_difference = ["#16bfb4", "#168fbf", "#bfa616", "#bf7716", "#bf16bb"]
-
-
-for algo, hex in zip(algo_names_difference, colors_hex_difference):
-    fig_difference.add_trace(go.Scatter(
-        name=algo,
-        x=list(cols_metrics_dic.keys()),
-        y=df_metrics_difference.loc[algo],
-        mode='lines',
-        line=dict(color=hex),
-        line_dash="solid",  # ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot']
-        showlegend=True
-        )
-    )
-# update layout for individual subplots  # https://stackoverflow.com/questions/63580313/update-specific-subplot-axes-in-plotly
-fig_difference['layout'][f'xaxis'].update(
-    # title_text=f'N random examples given {visual_data_dic[key_algo]["n_classes"]} classes',
-    tickangle=-15,
-    type='category',
-)
-fig_difference['layout'][f'yaxis'].update(
-    # range=[0.2, pd.Series(visual_data_dic[key_algo][f"{metric}_mean"]).iloc[-1] + pd.Series(visual_data_dic[key_algo][f"{metric}_std"]).iloc[-1] + 0.1]
-    dtick=0.1
-)
-# update layout for overall plot
-fig_difference.update_layout(
-    title_text=f"Performance difference ({metric}) of different algorithms", title_x=0.5,
-    #paper_bgcolor='rgba(0,0,0,0)',
-    #plot_bgcolor='rgba(0,0,0,0)',
-    template="none",  # ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]  # https://plotly.com/python/templates/
-    #height=800,
-)
-fig_difference.show(renderer="browser")
-
-"""
 
 
 print("Script done.")
