@@ -752,9 +752,9 @@ for metric in metrics_all_name:
         metric_path = "f1_micro"
     else:
         metric_path = metric
-    df_metrics_mean_dic[metric].to_excel(f"./results/appendix/D4_appendix_mean_{metric_path}.xlsx")
-    df_metrics_mean_4ds_dic[metric].to_excel(f"./results/appendix/D4_appendix_mean_4ds_{metric_path}.xlsx")
-    df_metrics_difference_dic[metric].to_excel(f"./results/appendix/D4_appendix_mean_difference_{metric_path}.xlsx")
+    df_metrics_mean_dic[metric].to_excel(f"./results/appendix/D3_appendix_mean_{metric_path}.xlsx")
+    df_metrics_mean_4ds_dic[metric].to_excel(f"./results/appendix/D3_appendix_mean_4ds_{metric_path}.xlsx")
+    df_metrics_difference_dic[metric].to_excel(f"./results/appendix/D3_appendix_mean_difference_{metric_path}.xlsx")
 
 
 
