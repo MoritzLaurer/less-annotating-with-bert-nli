@@ -1,5 +1,6 @@
-#!/usr/bin/env python
-# coding: utf-8
+
+#### This script execites the training and testing for classical algorithms
+## the script is executed via the batch files in the batch-scripts folder
 
 EXECUTION_TERMINAL = True
 
@@ -34,6 +35,7 @@ import spacy
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
+# setting working directory for local runs
 print(os.getcwd())
 if (EXECUTION_TERMINAL==False) and ("NLI-experiments" not in os.getcwd()):
     os.chdir("./NLI-experiments")

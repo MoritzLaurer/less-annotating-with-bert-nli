@@ -17,11 +17,13 @@ np.random.seed(SEED_GLOBAL)
 
 
 ### Data loading
-#set wd
+# setting working directory for local runs
+"""
 print(os.getcwd())
-if "NLI-experiments" not in os.getcwd():
+if "snellius" in os.getcwd():
     os.chdir("./NLI-experiments")
 print(os.getcwd())
+"""
 
 DATASET_NAME_LST = ["sentiment-news-econ", "coronanet", "cap-sotu", "cap-us-court", "manifesto-8",
                     "manifesto-military", "manifesto-protectionism", "manifesto-morality"]
