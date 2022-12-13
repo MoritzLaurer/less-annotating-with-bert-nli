@@ -13,5 +13,8 @@ plotly==5.5.0
 tqdm==4.64.0
 joblib==1.1.0
 
+kaleido
+openpyxl
+
 # Snellius HPC A100 has CUDA 11.4
 #torch==1.11.0  # torch installation on Snellius HPC only seems to work via terminal/batch script. It is therefore installed via the batch scripts.
