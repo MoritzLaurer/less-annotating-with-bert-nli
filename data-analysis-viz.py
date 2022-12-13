@@ -11,12 +11,11 @@ from os import listdir
 from os.path import isfile, join
 import joblib
 from sklearn.metrics import balanced_accuracy_score, precision_recall_fscore_support, accuracy_score, classification_report, cohen_kappa_score, matthews_corrcoef
+from pathlib import Path
 
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
-
-### Data loading
 # setting working directory for local runs
 """
 print(os.getcwd())
@@ -25,13 +24,22 @@ if "snellius" in os.getcwd():
 print(os.getcwd())
 """
 
+# create the results/figures and results/appendix directory if it does not already exist - for code ocean
+Path("./results/figures/").mkdir(parents=True, exist_ok=True)
+Path("./results/appendix/").mkdir(parents=True, exist_ok=True)
+
+
+
+
+### Data loading
+
 DATASET_NAME_LST = ["sentiment-news-econ", "coronanet", "cap-sotu", "cap-us-court", "manifesto-8",
                     "manifesto-military", "manifesto-protectionism", "manifesto-morality"]
 
 ## load raw results
 def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
   # get latest experiment for each method for the respective dataset - experiments take a long time and many were conducted
-  path_dataset = f"./results/{dataset_name}"
+  path_dataset = f"./results-raw/{dataset_name}"
   file_names_lst = [f for f in listdir(path_dataset) if isfile(join(path_dataset, f))]
 
   experiment_dates = [int(file_name.split("_")[-1].replace(".pkl", "")) for file_name in file_names_lst if (method_name in file_name) and ("experiment" in file_name)]
@@ -44,7 +52,7 @@ def load_latest_experiment_dic(method_name="SVM_tfidf", dataset_name=None):
     file_names = np.sort([file_name for file_name in file_names_lst if all(x in file_name for x in [str(latest_experiment_date), "experiment", method_name])])
     # create compile sample experiments into single dic
     experiment_dic = {}
-    [experiment_dic.update(joblib.load(f"./results/{dataset_name}/{file_name}")) for file_name in file_names]
+    [experiment_dic.update(joblib.load(f"./results-raw/{dataset_name}/{file_name}")) for file_name in file_names]
     return experiment_dic
   else: 
     return None
@@ -473,10 +481,10 @@ fig_per_dataset_macro = plot_per_dataset(metric_func="F1 Macro")
 fig_per_dataset_micro = plot_per_dataset(metric_func="Accuracy/F1 Micro")
 
 fig_per_dataset_macro.show(renderer="browser")
-fig_per_dataset_macro.write_image("./figures/3-figure-performance-per-dataset-f1macro.png")
+fig_per_dataset_macro.write_image("./results/figures/3-figure-performance-per-dataset-f1macro.png")
 
 fig_per_dataset_micro.show(renderer="browser")
-fig_per_dataset_micro.write_image("./figures/appendix-6-figure-performance-per-dataset-f1micro.png")
+fig_per_dataset_micro.write_image("./results/appendix/6-figure-performance-per-dataset-f1micro.png")
 
 
 
@@ -754,7 +762,7 @@ def plot_aggregate_metrics(metrics_all_name=None, height=None):
 metrics_all_name = ['F1 Macro', 'Balanced Accuracy', 'Accuracy/F1 Micro']
 fig_compare_main = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
 fig_compare_main.show(renderer="browser")
-fig_compare_main.write_image("./figures/2-figure-performance-aggregate.png")
+fig_compare_main.write_image("./results/figures/2-figure-performance-aggregate.png")
 
 # for annex - displaying all possible metrics
 metrics_all_name = ['F1 Macro', #f"f1_macro_top{top_xth}th", "f1_macro_rest",
@@ -765,7 +773,7 @@ metrics_all_name = ['F1 Macro', #f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     ]
 fig_compare_all = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
 fig_compare_all.show(renderer="browser")
-fig_compare_all.write_image("./figures/appendix-5-figure-performance-aggregate-many-metrics.png")
+fig_compare_all.write_image("./results/appendix/5-figure-performance-aggregate-many-metrics.png")
 
 # for annex - comparison of metrics by top Xth vs. rest
 # part one (because too long otherwise)
@@ -777,7 +785,7 @@ metrics_all_name = ['F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     ]
 fig_compare_topx = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
 fig_compare_topx.show(renderer="browser")
-fig_compare_topx.write_image("./figures/appendix-4-figure-performance-aggregate-topxth-subplot1.png")
+fig_compare_topx.write_image("./results/appendix/4-figure-performance-aggregate-topxth-subplot1.png")
 # part two (because too long otherwise)
 metrics_all_name = [#'F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     #'Accuracy/F1 Micro', f"accuracy_top{top_xth}th", "accuracy_rest",  #'Balanced Accuracy',
@@ -787,7 +795,7 @@ metrics_all_name = [#'F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     ]
 fig_compare_topx = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
 fig_compare_topx.show(renderer="browser")
-fig_compare_topx.write_image("./figures/appendix-4-figure-performance-aggregate-topxth-subplot2.png")
+fig_compare_topx.write_image("./results/appendix/4-figure-performance-aggregate-topxth-subplot2.png")
 
 
 
@@ -881,7 +889,7 @@ fig_compare.update_layout(
     #height=800,
 )
 fig_compare.show(renderer="browser")
-fig_compare.write_image("./figures/appendix-3-figure-standard-deviation.png")
+fig_compare.write_image("./results/appendix/3-figure-standard-deviation.png")
 
 
 

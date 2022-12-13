@@ -199,7 +199,7 @@ print("Final sample size intervals: ", N_SAMPLE_DEV)
 
 
 LABEL_TEXT_ALPHABETICAL = np.sort(df_cl.label_text.unique())
-TRAINING_DIRECTORY = f"results/{DATASET_NAME}"
+TRAINING_DIRECTORY = f"results-raw/{DATASET_NAME}"
 
 
 ## data checks
