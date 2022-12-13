@@ -480,11 +480,15 @@ def plot_per_dataset(metric_func=None):
 fig_per_dataset_macro = plot_per_dataset(metric_func="F1 Macro")
 fig_per_dataset_micro = plot_per_dataset(metric_func="Accuracy/F1 Micro")
 
-fig_per_dataset_macro.show(renderer="browser")
-fig_per_dataset_macro.write_image("./results/figures/3-figure-performance-per-dataset-f1macro.png")
+#fig_per_dataset_macro.show(renderer="browser")
+fig_per_dataset_macro.write_image("./results/figures/3-figure-performance-per-dataset-f1macro.svg")
+fig_per_dataset_macro.write_image("./results/figures/3-figure-performance-per-dataset-f1macro.pdf")
 
-fig_per_dataset_micro.show(renderer="browser")
-fig_per_dataset_micro.write_image("./results/appendix/6-figure-performance-per-dataset-f1micro.png")
+
+#fig_per_dataset_micro.show(renderer="browser")
+fig_per_dataset_micro.write_image("./results/appendix/6-figure-performance-per-dataset-f1micro.svg")
+fig_per_dataset_micro.write_image("./results/appendix/6-figure-performance-per-dataset-f1micro.pdf")
+
 
 
 
@@ -761,8 +765,10 @@ def plot_aggregate_metrics(metrics_all_name=None, height=None):
 # for main text
 metrics_all_name = ['F1 Macro', 'Balanced Accuracy', 'Accuracy/F1 Micro']
 fig_compare_main = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
-fig_compare_main.show(renderer="browser")
-fig_compare_main.write_image("./results/figures/2-figure-performance-aggregate.png")
+#fig_compare_main.show(renderer="browser")
+fig_compare_main.write_image("./results/figures/2-figure-performance-aggregate.svg")
+fig_compare_main.write_image("./results/figures/2-figure-performance-aggregate.pdf")
+
 
 # for annex - displaying all possible metrics
 metrics_all_name = ['F1 Macro', #f"f1_macro_top{top_xth}th", "f1_macro_rest",
@@ -772,8 +778,10 @@ metrics_all_name = ['F1 Macro', #f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     'cohen_kappa', 'matthews_corrcoef'
                     ]
 fig_compare_all = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
-fig_compare_all.show(renderer="browser")
-fig_compare_all.write_image("./results/appendix/5-figure-performance-aggregate-many-metrics.png")
+#fig_compare_all.show(renderer="browser")
+fig_compare_all.write_image("./results/appendix/5-figure-performance-aggregate-many-metrics.svg")
+fig_compare_all.write_image("./results/appendix/5-figure-performance-aggregate-many-metrics.pdf")
+
 
 # for annex - comparison of metrics by top Xth vs. rest
 # part one (because too long otherwise)
@@ -784,8 +792,9 @@ metrics_all_name = ['F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     #'cohen_kappa', 'matthews_corrcoef'
                     ]
 fig_compare_topx = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
-fig_compare_topx.show(renderer="browser")
-fig_compare_topx.write_image("./results/appendix/4-figure-performance-aggregate-topxth-subplot1.png")
+#fig_compare_topx.show(renderer="browser")
+fig_compare_topx.write_image("./results/appendix/4-figure-performance-aggregate-topxth-subplot1.svg")
+fig_compare_topx.write_image("./results/appendix/4-figure-performance-aggregate-topxth-subplot1.pdf")
 # part two (because too long otherwise)
 metrics_all_name = [#'F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     #'Accuracy/F1 Micro', f"accuracy_top{top_xth}th", "accuracy_rest",  #'Balanced Accuracy',
@@ -794,8 +803,9 @@ metrics_all_name = [#'F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     #'cohen_kappa', 'matthews_corrcoef'
                     ]
 fig_compare_topx = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
-fig_compare_topx.show(renderer="browser")
-fig_compare_topx.write_image("./results/appendix/4-figure-performance-aggregate-topxth-subplot2.png")
+#fig_compare_topx.show(renderer="browser")
+fig_compare_topx.write_image("./results/appendix/4-figure-performance-aggregate-topxth-subplot2.svg")
+fig_compare_topx.write_image("./results/appendix/4-figure-performance-aggregate-topxth-subplot2.pdf")
 
 
 
@@ -888,8 +898,9 @@ fig_compare.update_layout(
     font=dict(size=16)
     #height=800,
 )
-fig_compare.show(renderer="browser")
-fig_compare.write_image("./results/appendix/3-figure-standard-deviation.png")
+#fig_compare.show(renderer="browser")
+fig_compare.write_image("./results/appendix/3-figure-standard-deviation.svg")
+fig_compare.write_image("./results/appendix/3-figure-standard-deviation.pdf")
 
 
 
