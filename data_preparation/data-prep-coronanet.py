@@ -1,24 +1,22 @@
-#!/usr/bin/env python
-# coding: utf-8
 
-# ## Install and load packages
+### This scripts downloads and cleans the data for the CoronaNet dataset
+
+# load packages
 import pandas as pd
 import numpy as np
 import random
 import os
 
-
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
 
-# ## Load & prepare data
+### Load & prepare data
 
 #set wd
 print(os.getcwd())
 os.chdir("./NLI-experiments")
 print(os.getcwd())
-
 
 ## load data
 # Overview of CoronaNet - https://www.coronanet-project.org/
@@ -124,7 +122,7 @@ df_train_test_distribution = pd.DataFrame([df_train.label_text.value_counts().re
 df_train_test_distribution
 
 
-# ## Save data
+### Save data
 
 # dataset statistics
 text_length = [len(text) for text in df_cl.text]

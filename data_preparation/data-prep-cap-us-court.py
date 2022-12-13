@@ -1,11 +1,9 @@
-#!/usr/bin/env python
-# coding: utf-8
 
-# ## Install and load packages
+### This scripts downloads and cleans the data for the CAP-US-Court dataset
 
+# load packages
 import pandas as pd
 import numpy as np
-import random
 import os
 
 
@@ -28,7 +26,7 @@ print(df.columns)
 print(len(df))
 
 
-# ### Data Cleaning
+#### Data Cleaning
 
 ### data cleaning
 
@@ -136,7 +134,7 @@ print("Average number of characters in text: ", int(np.mean(text_length)), "\n")
 pd.Series(text_length).value_counts(bins=10).plot.bar()
 
 
-# ### Train-Test-Split
+#### Train-Test-Split
 
 ### simplified dataset
 from sklearn.model_selection import train_test_split
@@ -154,7 +152,7 @@ df_train_test_distribution = pd.DataFrame([df_train.label_text.value_counts().re
 df_train_test_distribution
 
 
-# ## Save data
+### Save data
 
 # dataset statistics
 text_length = [len(text) for text in df_cl.text]

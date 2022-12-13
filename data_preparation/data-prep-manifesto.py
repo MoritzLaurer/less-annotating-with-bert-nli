@@ -1,19 +1,16 @@
-#!/usr/bin/env python
-# coding: utf-8
 
-# ## Install and load packages
+### This scripts loads and cleans the data for the Manifesto dataset
 
+# load packages
 import pandas as pd
 import numpy as np
-import random
 import os
 
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
 
-# ## Load & prepare data
-
+### Load & prepare data
 print(os.getcwd())
 if "NLI-experiments" not in os.getcwd().split("/")[-1]:
     os.chdir("./NLI-experiments")  #os.chdir("/Users/moritzlaurer/Dropbox/PhD/Papers/nli/snellius/NLI-experiments")
@@ -348,7 +345,7 @@ df_train_test_distribution_complex"""
 
 
 
-# ### Small complex tasks
+#### Small complex tasks
 
 ### Military positive vs. negative
 
@@ -491,7 +488,7 @@ df_train_test_distribution_nationalway
 
 
 
-# ## Save data
+#### Save data
 
 # dataset statistics
 text_length = [len(text) for text in df_cl.text_original]

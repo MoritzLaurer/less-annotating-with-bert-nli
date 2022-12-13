@@ -1,18 +1,16 @@
-#!/usr/bin/env python
-# coding: utf-8
 
-# ## Install and load packages
+### This scripts downloads and cleans the data for the CAP- SotU dataset
 
+# load packages
 import pandas as pd
 import numpy as np
-import random
 import os
 
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
 
-# ## Load & prepare data
+### Load & prepare data
 
 #set wd
 print(os.getcwd())
@@ -30,7 +28,8 @@ print(df.columns)
 print(len(df))
 
 
-# ### Data Cleaning
+
+#### Data Cleaning
 
 ## data cleaning
 
@@ -184,7 +183,7 @@ print(pd.Series(test_lst_after).value_counts(normalize=True), "\n")
 # Manifesto: 56 % of sentenes have same type as preceding sentence. # including preceding sentence should not provide illegitimate advantage to classifier
 
 
-# ### Train-Test-Split
+#### Train-Test-Split
 
 ### simplified dataset
 from sklearn.model_selection import train_test_split

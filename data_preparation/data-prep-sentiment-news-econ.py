@@ -1,18 +1,16 @@
-#!/usr/bin/env python
-# coding: utf-8
 
-# ## Install and load packages
+### This scripts downloads and cleans the data for the Sentiment-News-Econ dataset
+
+# Install and load packages
 import pandas as pd
 import numpy as np
-import random
 import os
 
 SEED_GLOBAL = 42
 np.random.seed(SEED_GLOBAL)
 
 
-# ## Load & prepare data
-
+### Load & prepare data
 #set wd
 print(os.getcwd())
 if "NLI-experiments" not in os.getcwd().split("/")[-1]:
@@ -36,7 +34,7 @@ print(f"Numers of rows in df_test which have same text as df_train: {len(df_over
 print(f"This is {round((len(df_overlap) / len(df_test_raw)) * 100, 1)}% of the entire test set (lenght: {len(df_test_raw)})")
 
 
-# ### Data Cleaning
+#### Data Cleaning
 ### data cleaning
 
 ## initial cleaning
@@ -93,7 +91,7 @@ df_train_test_leakage.drop_duplicates(subset=["text", "split"], keep="first")
 print("df_cl before removing leaked texts", len(df_cl))
 df_cl = df_cl.groupby(by="text", group_keys=False, as_index=False, sort=False).filter(lambda x: all(isinstance(label, type(x.positivity.iloc[0])) for label in x.positivity))  # for df_test positivity is a string, for df_train positivity is int
 print("df_cl after removing leaked texts", len(df_cl))
-# I've removed the overlapping texts in both train and test. Probably better solution could have been to only remove in train.
+# I've removed the overlapping texts in both train and test. Possibly better solution could have been to only remove in train.
 
 
 
@@ -145,7 +143,7 @@ text_length = [len(text) for text in df_cl.text]
 pd.Series(text_length).value_counts(bins=10).plot.bar()
 
 
-# ### Train-Test-Split
+#### Train-Test-Split
 
 ### separate train and test here
 
@@ -159,7 +157,7 @@ df_train_test_dist = pd.DataFrame([df_train.label_text.value_counts().rename("tr
 df_train_test_dist
 
 
-# ## Save Data
+### Save Data
 
 # dataset statistics
 text_length = [len(text) for text in df_cl.text]
