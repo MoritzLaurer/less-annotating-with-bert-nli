@@ -26,7 +26,6 @@ Path("./results/appendix/").mkdir(parents=True, exist_ok=True)
 
 
 ##### 1. appendix
-# ! careful: always remove multiple results from different dates from results folder
 
 ### Manifesto
 
@@ -635,8 +634,13 @@ for key_dataset, value_dataset in visual_data_dic_datasets_cl.items():
     df_metrics_all_dataset = df_metrics_all_dataset.rename(columns={'DeBERTa-v3-base-mnli-fever-docnli-ling-2c': 'deberta-v3-nli'})
     metrics_all_dic.update({key_dataset: df_metrics_all_dataset})
 
+# map table numbers from appendix PDF to dataset names to automatically create correct numbering
+appendix_d4_table_map = {
+"sentiment-news-econ": 31, "coronanet": 34, "cap-sotu": 32, "cap-us-court": 33, "manifesto-8": 27,
+                    "manifesto-military": 28, "manifesto-protectionism": 29, "manifesto-morality": 30,
+}
 for dataset in metrics_all_dic:
-    metrics_all_dic[dataset].to_excel(f"./results/appendix/D4_appendix_metrics_disaggregated_{dataset}.xlsx")
+    metrics_all_dic[dataset].to_excel(f"./results/appendix/{appendix_d4_table_map[dataset]}-table_D4_appendix_metrics_disaggregated_{dataset}.xlsx")
 
 
 
@@ -747,14 +751,42 @@ for i, metric in enumerate(metrics_all_name):
     df_metrics_difference_dic.update({metric: df_metrics_difference.round(3)})
 
 ## write to disk
+map_d3_appendix_metrics_mean = {
+    'f1_macro': "18-table-D3", f"f1_macro_top{top_xth}th": "D3_supplement", "f1_macro_rest": "D3_supplement",  'accuracy/f1_micro': "19-table-D3",
+    'accuracy_balanced': "20-table-D3",
+    'recall_macro': "D3_supplement", 'recall_micro': "D3_supplement", f'recall_macro_top{top_xth}th': "D3_supplement", 'recall_macro_rest': "D3_supplement",   # 'accuracy_balanced_manual',
+    'precision_macro': "D3_supplement", 'precision_micro': "D3_supplement", f'precision_macro_top{top_xth}th': "D3_supplement", 'precision_macro_rest': "D3_supplement",
+    f"accuracy_top{top_xth}th": "D3_supplement", "accuracy_rest": "D3_supplement",
+    'cohen_kappa': "D3_supplement", 'matthews_corrcoef': "D3_supplement",
+    'accuracy_crossclass_std': "D3_supplement", 'f1_crossclass_std': "D3_supplement", 'recall_crossclass_std': "D3_supplement", 'precision_crossclass_std': "D3_supplement"
+}
+map_d3_appendix_metrics_difference = {
+    'f1_macro': "21-table-D3", f"f1_macro_top{top_xth}th": "D3_supplement", "f1_macro_rest": "D3_supplement",  'accuracy/f1_micro': "22-table-D3",
+    'accuracy_balanced': "23-table-D3",
+    'recall_macro': "D3_supplement", 'recall_micro': "D3_supplement", f'recall_macro_top{top_xth}th': "D3_supplement", 'recall_macro_rest': "D3_supplement",   # 'accuracy_balanced_manual',
+    'precision_macro': "D3_supplement", 'precision_micro': "D3_supplement", f'precision_macro_top{top_xth}th': "D3_supplement", 'precision_macro_rest': "D3_supplement",
+    f"accuracy_top{top_xth}th": "D3_supplement", "accuracy_rest": "D3_supplement",
+    'cohen_kappa': "D3_supplement", 'matthews_corrcoef': "D3_supplement",
+    'accuracy_crossclass_std': "D3_supplement", 'f1_crossclass_std': "D3_supplement", 'recall_crossclass_std': "D3_supplement", 'precision_crossclass_std': "D3_supplement"
+}
+map_d3_appendix_metrics_4_datasets = {
+    'f1_macro': "24-table-D3", f"f1_macro_top{top_xth}th": "D3_supplement", "f1_macro_rest": "D3_supplement",  'accuracy/f1_micro': "25-table-D3",
+    'accuracy_balanced': "26-table-D3",
+    'recall_macro': "D3_supplement", 'recall_micro': "D3_supplement", f'recall_macro_top{top_xth}th': "D3_supplement", 'recall_macro_rest': "D3_supplement",   # 'accuracy_balanced_manual',
+    'precision_macro': "D3_supplement", 'precision_micro': "D3_supplement", f'precision_macro_top{top_xth}th': "D3_supplement", 'precision_macro_rest': "D3_supplement",
+    f"accuracy_top{top_xth}th": "D3_supplement", "accuracy_rest": "D3_supplement",
+    'cohen_kappa': "D3_supplement", 'matthews_corrcoef': "D3_supplement",
+    'accuracy_crossclass_std': "D3_supplement", 'f1_crossclass_std': "D3_supplement", 'recall_crossclass_std': "D3_supplement", 'precision_crossclass_std': "D3_supplement"
+}
+
 for metric in metrics_all_name:
     if metric == "accuracy/f1_micro":
         metric_path = "f1_micro"
     else:
         metric_path = metric
-    df_metrics_mean_dic[metric].to_excel(f"./results/appendix/D3_appendix_mean_{metric_path}.xlsx")
-    df_metrics_mean_4ds_dic[metric].to_excel(f"./results/appendix/D3_appendix_mean_4ds_{metric_path}.xlsx")
-    df_metrics_difference_dic[metric].to_excel(f"./results/appendix/D3_appendix_mean_difference_{metric_path}.xlsx")
+    df_metrics_mean_dic[metric].to_excel(f"./results/appendix/{map_d3_appendix_metrics_mean[metric]}_appendix_mean_{metric_path}.xlsx")
+    df_metrics_difference_dic[metric].to_excel(f"./results/appendix/{map_d3_appendix_metrics_difference[metric]}_appendix_mean_difference_{metric_path}.xlsx")
+    df_metrics_mean_4ds_dic[metric].to_excel(f"./results/appendix/{map_d3_appendix_metrics_4_datasets[metric]}_appendix_mean_4ds_{metric_path}.xlsx")
 
 
 
@@ -834,7 +866,7 @@ df_hypo_short_manifesto_8 = pd.DataFrame(data={"label": hypo_short_dic.keys(), "
 df_hypo_long_manifesto_8 = pd.DataFrame(data={"label": hypo_long_dic.keys(), "hypotheses_long": hypo_long_dic.values()})
 df_hypo_manifesto_8 = pd.merge(df_hypo_short_manifesto_8, df_hypo_long_manifesto_8, on="label")
 
-df_hypo_manifesto_8.to_csv("./results/appendix/B6-appendix-hypotheses-manifesto-8.csv")
+df_hypo_manifesto_8.to_csv("./results/appendix/10-table-B6-appendix-hypotheses-manifesto-8.csv")
 
 
 ### manifest-military
@@ -853,7 +885,7 @@ df_hypo_short_manifesto_military = pd.DataFrame(data={"label": hypothesis_hyperp
 df_hypo_long_manifesto_military = pd.DataFrame(data={"label": hypothesis_hyperparams_dic["template_quote_2"].keys(), "hypotheses_long": hypothesis_hyperparams_dic["template_quote_2"].values()})
 df_hypo_manifesto_military = pd.merge(df_hypo_short_manifesto_military, df_hypo_long_manifesto_military, on="label")
 
-df_hypo_manifesto_military.to_csv("./results/appendix/B6-appendix-hypotheses-manifesto-military.csv")
+df_hypo_manifesto_military.to_csv("./results/appendix/11-table-B6-appendix-hypotheses-manifesto-military.csv")
 
 
 ### manifesto-protectionism
@@ -873,7 +905,7 @@ df_hypo_short_manifesto_protectionism = pd.DataFrame(data={"label": hypothesis_h
 df_hypo_long_manifesto_protectionism = pd.DataFrame(data={"label": hypothesis_hyperparams_dic["template_quote_2"].keys(), "hypotheses_long": hypothesis_hyperparams_dic["template_quote_2"].values()})
 df_hypo_manifesto_protectionism = pd.merge(df_hypo_short_manifesto_protectionism, df_hypo_long_manifesto_protectionism, on="label")
 
-df_hypo_manifesto_protectionism.to_csv("./results/appendix/B6-appendix-hypotheses-manifesto-protectionism.csv")
+df_hypo_manifesto_protectionism.to_csv("./results/appendix/12-table-B6-appendix-hypotheses-manifesto-protectionism.csv")
 
 
 ### manifesto-morality
@@ -894,7 +926,7 @@ df_hypo_short_manifesto_morality = pd.DataFrame(data={"label": hypothesis_hyperp
 df_hypo_long_manifesto_morality = pd.DataFrame(data={"label": hypothesis_hyperparams_dic["template_quote_2"].keys(), "hypotheses_long": hypothesis_hyperparams_dic["template_quote_2"].values()})
 df_hypo_manifesto_morality = pd.merge(df_hypo_short_manifesto_morality, df_hypo_long_manifesto_morality, on="label")
 
-df_hypo_manifesto_morality.to_csv("./results/appendix/B6-appendix-hypotheses-manifesto-morality.csv")
+df_hypo_manifesto_morality.to_csv("./results/appendix/13-table-B6-appendix-hypotheses-manifesto-morality.csv")
 
 
 
@@ -913,7 +945,7 @@ df_hypo_quote_senti = pd.DataFrame(data={"label": hypothesis_hyperparams_dic["te
 df_hypo_complex_senti = pd.DataFrame(data={"label": hypothesis_hyperparams_dic["template_complex"].keys(), "hypotheses_complex": hypothesis_hyperparams_dic["template_complex"].values()})
 df_hypo_senti = pd.merge(df_hypo_quote_senti, df_hypo_complex_senti, on="label")
 
-df_hypo_senti.to_csv("./results/appendix/B6-appendix-hypotheses-sentiment.csv")
+df_hypo_senti.to_csv("./results/appendix/14-table-B6-appendix-hypotheses-sentiment.csv")
 
 
 
@@ -977,7 +1009,7 @@ df_hypo_long_cap_sotu = pd.DataFrame(data={"label": hypo_long_dic.keys(), "hypot
 
 df_hypo_cap_sotu = pd.merge(df_hypo_short_cap_sotu, df_hypo_long_cap_sotu, on="label")
 
-df_hypo_cap_sotu.to_csv("./results/appendix/B6-appendix-hypotheses-cap-sotu.csv")
+df_hypo_cap_sotu.to_csv("./results/appendix/15-table-B6-appendix-hypotheses-cap-sotu.csv")
 
 
 
@@ -1042,7 +1074,7 @@ df_hypo_short_cap_court = pd.DataFrame(data={"label": hypo_short_dic.keys(), "hy
 df_hypo_long_cap_court = pd.DataFrame(data={"label": hypo_long_dic.keys(), "hypotheses_long": hypo_long_dic.values()})
 df_hypo_cap_court = pd.merge(df_hypo_short_cap_court, df_hypo_long_cap_court, on="label")
 
-df_hypo_long_cap_court.to_csv("./results/appendix/B6-appendix-hypotheses-cap-us-court.csv")
+df_hypo_long_cap_court.to_csv("./results/appendix/16-table-B6-appendix-hypotheses-cap-us-court.csv")
 
 
 
@@ -1103,7 +1135,7 @@ df_hypo_short_coronanet = pd.DataFrame(data={"label": hypo_short_dic.keys(), "hy
 df_hypo_long_coronanet = pd.DataFrame(data={"label": hypo_long_dic.keys(), "hypotheses_long": hypo_long_dic.values()})
 df_hypo_coronanet = pd.merge(df_hypo_short_coronanet, df_hypo_long_coronanet, on="label")
 
-df_hypo_coronanet.to_csv("./results/appendix/B6-appendix-hypotheses-coronanet.csv")
+df_hypo_coronanet.to_csv("./results/appendix/17-table-B6-appendix-hypotheses-coronanet.csv")
 
 
 print("Script done.")
