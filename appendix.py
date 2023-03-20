@@ -21,7 +21,7 @@ if os.getcwd() != "/Users/moritzlaurer/Dropbox/PhD/Papers/nli/snellius/NLI-exper
 """
 
 # create the results/appendix directory if it does not already exist - for code ocean
-Path("./results/appendix/").mkdir(parents=True, exist_ok=True)
+Path("../results/appendix/").mkdir(parents=True, exist_ok=True)
 
 
 
@@ -36,7 +36,7 @@ df_test_manifesto = pd.read_csv("./data_clean/df_manifesto_test.csv", index_col=
 df_train_test_distribution_manifesto = pd.DataFrame([df_train_manifesto.label_domain_text.value_counts().rename("train"), df_test_manifesto.label_domain_text.value_counts().rename("test"),
                                            df_cl_manifesto.label_domain_text.value_counts().rename("all")]).transpose()
 df_train_test_distribution_manifesto.index.name = "labels"
-df_train_test_distribution_manifesto.to_csv("./results/appendix/1-table-data-distribution-manifesto-8.csv")
+df_train_test_distribution_manifesto.to_csv("../results/appendix/1-table-data-distribution-manifesto-8.csv")
 
 ## Manifesto-military data distribution
 df_cl_military = pd.read_csv("./data_clean/df_manifesto_military_cl.csv", index_col="idx")
@@ -45,7 +45,7 @@ df_test_military = pd.read_csv("./data_clean/df_manifesto_military_test.csv", in
 df_train_test_distribution_military = pd.DataFrame([df_train_military.label_text.value_counts().rename("train"), df_test_military.label_text.value_counts().rename("test"),
                                                    df_cl_military.label_text.value_counts().rename("all")]).transpose()
 df_train_test_distribution_military.index.name = "labels"
-df_train_test_distribution_military.to_csv("./results/appendix/2-table-data-distribution-manifesto-military.csv")
+df_train_test_distribution_military.to_csv("../results/appendix/2-table-data-distribution-manifesto-military.csv")
 
 ## Manifesto-protectionism data distribution
 df_cl_protectionism = pd.read_csv("./data_clean/df_manifesto_protectionism_cl.csv", index_col="idx")
@@ -54,7 +54,7 @@ df_test_protectionism = pd.read_csv("./data_clean/df_manifesto_protectionism_tes
 df_train_test_distribution_protectionism = pd.DataFrame([df_train_protectionism.label_text.value_counts().rename("train"), df_test_protectionism.label_text.value_counts().rename("test"),
                                                    df_cl_protectionism.label_text.value_counts().rename("all")]).transpose()
 df_train_test_distribution_protectionism.index.name = "labels"
-df_train_test_distribution_protectionism.to_csv("./results/appendix/3-table-data-distribution-manifesto-protectionism.csv")
+df_train_test_distribution_protectionism.to_csv("../results/appendix/3-table-data-distribution-manifesto-protectionism.csv")
 
 ## Manifesto-morality data distribution
 df_cl_morality = pd.read_csv("./data_clean/df_manifesto_morality_cl.csv", index_col="idx")
@@ -63,7 +63,7 @@ df_test_morality = pd.read_csv("./data_clean/df_manifesto_morality_test.csv", in
 df_train_test_distribution_morality = pd.DataFrame([df_train_morality.label_text.value_counts().rename("train"), df_test_morality.label_text.value_counts().rename("test"),
                                                    df_cl_morality.label_text.value_counts().rename("all")]).transpose()
 df_train_test_distribution_morality.index.name = "labels"
-df_train_test_distribution_morality.to_csv("./results/appendix/4-table-data-distribution-manifesto-morality.csv")
+df_train_test_distribution_morality.to_csv("../results/appendix/4-table-data-distribution-manifesto-morality.csv")
 
 
 ### Sentiment Economy
@@ -73,7 +73,7 @@ df_test_senti = pd.read_csv("./data_clean/df_sentiment_news_econ_test.csv", inde
 df_train_test_distribution_senti = pd.DataFrame([df_train_senti.label_text.value_counts().rename("train"), df_test_senti.label_text.value_counts().rename("test"),
                                                  df_cl_senti.label_text.value_counts().rename("all")]).transpose()
 df_train_test_distribution_senti.index.name = "labels"
-df_train_test_distribution_senti.to_csv("./results/appendix/5-table-data-distribution-sentiment.csv")
+df_train_test_distribution_senti.to_csv("../results/appendix/5-table-data-distribution-sentiment.csv")
 
 
 ### Comparative Agendas Project (CAP) - US State of the Union Speeches (SotU)
@@ -83,7 +83,7 @@ df_test_cap_sotu = pd.read_csv("./data_clean/df_cap_sotu_test.csv", index_col="i
 df_train_test_distribution_cap_sotu = pd.DataFrame([df_train_cap_sotu.label_text.value_counts().rename("train"), df_test_cap_sotu.label_text.value_counts().rename("test"),
                                                  df_cl_cap_sotu.label_text.value_counts().rename("all")]).transpose()
 df_train_test_distribution_cap_sotu.index.name = "labels"
-df_train_test_distribution_cap_sotu.to_csv("./results/appendix/6-table-data-distribution-cap-sotu.csv")
+df_train_test_distribution_cap_sotu.to_csv("../results/appendix/6-table-data-distribution-cap-sotu.csv")
 
 
 ### Comparative Agendas Project (CAP) - US Court Cases
@@ -93,7 +93,7 @@ df_test_cap_uscourt = pd.read_csv("./data_clean/df_cap_us_court_test.csv", index
 df_train_test_distribution_cap_uscourt = pd.DataFrame([df_train_cap_uscourt.label_text.value_counts().rename("train"), df_test_cap_uscourt.label_text.value_counts().rename("test"),
                                                  df_cl_cap_uscourt.label_text.value_counts().rename("all")]).transpose()
 df_train_test_distribution_cap_uscourt.index.name = "labels"
-df_train_test_distribution_cap_uscourt.to_csv("./results/appendix/7-table-data-distribution-cap-us-court.csv")
+df_train_test_distribution_cap_uscourt.to_csv("../results/appendix/7-table-data-distribution-cap-us-court.csv")
 
 
 ### CoronaNet
@@ -103,7 +103,7 @@ df_test_coronanet = pd.read_csv("./data_clean/df_coronanet_20220124_test.csv", i
 df_train_test_distribution_coronanet = pd.DataFrame([df_train_coronanet.label_text.value_counts().rename("train"), df_test_coronanet.label_text.value_counts().rename("test"),
                                                      df_cl_coronanet.label_text.value_counts().rename("all")]).transpose()
 df_train_test_distribution_coronanet.index.name = "labels"
-df_train_test_distribution_coronanet.to_csv("./results/appendix/8-table-data-distribution-coronanet.csv")
+df_train_test_distribution_coronanet.to_csv("../results/appendix/8-table-data-distribution-coronanet.csv")
 
 
 
@@ -214,8 +214,8 @@ df_hp.lr_warmup_ratio_importance = df_hp.lr_warmup_ratio_importance.round(2)
 df_hp_deberta_base = df_hp[df_hp.algorithm == "DeBERTa-v3-base"].drop(columns=["algorithm", "lr_warmup_ratio", "lr_warmup_ratio_importance"])
 df_hp_deberta_nli = df_hp[df_hp.algorithm == "DeBERTa-v3-nli"].drop(columns=["algorithm"])
 
-df_hp_deberta_base.to_csv("./results/appendix/36-table-hyperparams-deberta-base.csv")
-df_hp_deberta_nli.to_csv("./results/appendix/37-table-hyperparams-deberta-nli.csv")
+df_hp_deberta_base.to_csv("../results/appendix/36-table-hyperparams-deberta-base.csv")
+df_hp_deberta_nli.to_csv("../results/appendix/37-table-hyperparams-deberta-nli.csv")
 
 
 
@@ -297,7 +297,7 @@ df_hp_svm.C = df_hp_svm.C.round(2)
 df_hp_svm.coef0 = df_hp_svm.coef0.round(2)
 df_hp_svm.context = ["yes" if "context" in str(string) else np.nan if pd.isna(string) else "no" for string in df_hp_svm.context]
 
-df_hp_svm.to_csv("./results/appendix/38-table-hyperparams-svm-tfidf.csv")
+df_hp_svm.to_csv("../results/appendix/38-table-hyperparams-svm-tfidf.csv")
 
 
 
@@ -373,7 +373,7 @@ df_hp_lr = df_hp_lr.drop(columns=["method", "f1_macro_mean", "f1_micro_mean", "f
 df_hp_lr.context = ["yes" if "context" in str(string) else np.nan if pd.isna(string) else "no" for string in df_hp_lr.context]
 df_hp_lr.C = df_hp_lr.C.round(2)
 
-df_hp_lr.to_csv("./results/appendix/39-table-hyperparams-logistic-tfidf.csv")
+df_hp_lr.to_csv("../results/appendix/39-table-hyperparams-logistic-tfidf.csv")
 
 
 
@@ -640,7 +640,7 @@ appendix_d4_table_map = {
                     "manifesto-military": 28, "manifesto-protectionism": 29, "manifesto-morality": 30,
 }
 for dataset in metrics_all_dic:
-    metrics_all_dic[dataset].to_excel(f"./results/appendix/{appendix_d4_table_map[dataset]}-table_D4_appendix_metrics_disaggregated_{dataset}.xlsx")
+    metrics_all_dic[dataset][metrics_all_dic[dataset].index.isin(["f1_macro_mean", "accuracy/f1_micro_mean"])].to_excel(f"../results/appendix/{appendix_d4_table_map[dataset]}-table_D4_appendix_metrics_detailed_{dataset}.xlsx")
 
 
 
@@ -784,9 +784,9 @@ for metric in metrics_all_name:
         metric_path = "f1_micro"
     else:
         metric_path = metric
-    df_metrics_mean_dic[metric].to_excel(f"./results/appendix/{map_d3_appendix_metrics_mean[metric]}_appendix_mean_{metric_path}.xlsx")
-    df_metrics_difference_dic[metric].to_excel(f"./results/appendix/{map_d3_appendix_metrics_difference[metric]}_appendix_mean_difference_{metric_path}.xlsx")
-    df_metrics_mean_4ds_dic[metric].to_excel(f"./results/appendix/{map_d3_appendix_metrics_4_datasets[metric]}_appendix_mean_4ds_{metric_path}.xlsx")
+    df_metrics_mean_dic[metric].to_excel(f"../results/appendix/{map_d3_appendix_metrics_mean[metric]}_appendix_mean_{metric_path}.xlsx")
+    df_metrics_difference_dic[metric].to_excel(f"../results/appendix/{map_d3_appendix_metrics_difference[metric]}_appendix_mean_difference_{metric_path}.xlsx")
+    df_metrics_mean_4ds_dic[metric].to_excel(f"../results/appendix/{map_d3_appendix_metrics_4_datasets[metric]}_appendix_mean_4ds_{metric_path}.xlsx")
 
 
 
@@ -822,7 +822,7 @@ df_speed_mean["hardware"] = ["CPU (AMD Rome 7H12)" if algo in ["SVM_tfidf", "log
 df_speed_mean.algorithm = pd.Categorical(df_speed_mean.algorithm, categories=["SVM_tfidf", "logistic_tfidf", "SVM_embeddings", "logistic_embeddings", "BERT-base-nli", "BERT-base"])
 df_speed_mean = df_speed_mean.sort_values(["algorithm", "sample size"])
 
-df_speed_mean.to_csv("./results/appendix/40-table-training-time.csv")
+df_speed_mean.to_csv("../results/appendix/40-table-training-time.csv")
 
 
 
@@ -866,7 +866,7 @@ df_hypo_short_manifesto_8 = pd.DataFrame(data={"label": hypo_short_dic.keys(), "
 df_hypo_long_manifesto_8 = pd.DataFrame(data={"label": hypo_long_dic.keys(), "hypotheses_long": hypo_long_dic.values()})
 df_hypo_manifesto_8 = pd.merge(df_hypo_short_manifesto_8, df_hypo_long_manifesto_8, on="label")
 
-df_hypo_manifesto_8.to_csv("./results/appendix/10-table-B6-appendix-hypotheses-manifesto-8.csv")
+df_hypo_manifesto_8.to_csv("../results/appendix/10-table-B6-appendix-hypotheses-manifesto-8.csv")
 
 
 ### manifest-military
@@ -885,7 +885,7 @@ df_hypo_short_manifesto_military = pd.DataFrame(data={"label": hypothesis_hyperp
 df_hypo_long_manifesto_military = pd.DataFrame(data={"label": hypothesis_hyperparams_dic["template_quote_2"].keys(), "hypotheses_long": hypothesis_hyperparams_dic["template_quote_2"].values()})
 df_hypo_manifesto_military = pd.merge(df_hypo_short_manifesto_military, df_hypo_long_manifesto_military, on="label")
 
-df_hypo_manifesto_military.to_csv("./results/appendix/11-table-B6-appendix-hypotheses-manifesto-military.csv")
+df_hypo_manifesto_military.to_csv("../results/appendix/11-table-B6-appendix-hypotheses-manifesto-military.csv")
 
 
 ### manifesto-protectionism
@@ -905,7 +905,7 @@ df_hypo_short_manifesto_protectionism = pd.DataFrame(data={"label": hypothesis_h
 df_hypo_long_manifesto_protectionism = pd.DataFrame(data={"label": hypothesis_hyperparams_dic["template_quote_2"].keys(), "hypotheses_long": hypothesis_hyperparams_dic["template_quote_2"].values()})
 df_hypo_manifesto_protectionism = pd.merge(df_hypo_short_manifesto_protectionism, df_hypo_long_manifesto_protectionism, on="label")
 
-df_hypo_manifesto_protectionism.to_csv("./results/appendix/12-table-B6-appendix-hypotheses-manifesto-protectionism.csv")
+df_hypo_manifesto_protectionism.to_csv("../results/appendix/12-table-B6-appendix-hypotheses-manifesto-protectionism.csv")
 
 
 ### manifesto-morality
@@ -926,7 +926,7 @@ df_hypo_short_manifesto_morality = pd.DataFrame(data={"label": hypothesis_hyperp
 df_hypo_long_manifesto_morality = pd.DataFrame(data={"label": hypothesis_hyperparams_dic["template_quote_2"].keys(), "hypotheses_long": hypothesis_hyperparams_dic["template_quote_2"].values()})
 df_hypo_manifesto_morality = pd.merge(df_hypo_short_manifesto_morality, df_hypo_long_manifesto_morality, on="label")
 
-df_hypo_manifesto_morality.to_csv("./results/appendix/13-table-B6-appendix-hypotheses-manifesto-morality.csv")
+df_hypo_manifesto_morality.to_csv("../results/appendix/13-table-B6-appendix-hypotheses-manifesto-morality.csv")
 
 
 
@@ -945,7 +945,7 @@ df_hypo_quote_senti = pd.DataFrame(data={"label": hypothesis_hyperparams_dic["te
 df_hypo_complex_senti = pd.DataFrame(data={"label": hypothesis_hyperparams_dic["template_complex"].keys(), "hypotheses_complex": hypothesis_hyperparams_dic["template_complex"].values()})
 df_hypo_senti = pd.merge(df_hypo_quote_senti, df_hypo_complex_senti, on="label")
 
-df_hypo_senti.to_csv("./results/appendix/14-table-B6-appendix-hypotheses-sentiment.csv")
+df_hypo_senti.to_csv("../results/appendix/14-table-B6-appendix-hypotheses-sentiment.csv")
 
 
 
@@ -1009,7 +1009,7 @@ df_hypo_long_cap_sotu = pd.DataFrame(data={"label": hypo_long_dic.keys(), "hypot
 
 df_hypo_cap_sotu = pd.merge(df_hypo_short_cap_sotu, df_hypo_long_cap_sotu, on="label")
 
-df_hypo_cap_sotu.to_csv("./results/appendix/15-table-B6-appendix-hypotheses-cap-sotu.csv")
+df_hypo_cap_sotu.to_csv("../results/appendix/15-table-B6-appendix-hypotheses-cap-sotu.csv")
 
 
 
@@ -1074,7 +1074,7 @@ df_hypo_short_cap_court = pd.DataFrame(data={"label": hypo_short_dic.keys(), "hy
 df_hypo_long_cap_court = pd.DataFrame(data={"label": hypo_long_dic.keys(), "hypotheses_long": hypo_long_dic.values()})
 df_hypo_cap_court = pd.merge(df_hypo_short_cap_court, df_hypo_long_cap_court, on="label")
 
-df_hypo_long_cap_court.to_csv("./results/appendix/16-table-B6-appendix-hypotheses-cap-us-court.csv")
+df_hypo_long_cap_court.to_csv("../results/appendix/16-table-B6-appendix-hypotheses-cap-us-court.csv")
 
 
 
@@ -1135,7 +1135,7 @@ df_hypo_short_coronanet = pd.DataFrame(data={"label": hypo_short_dic.keys(), "hy
 df_hypo_long_coronanet = pd.DataFrame(data={"label": hypo_long_dic.keys(), "hypotheses_long": hypo_long_dic.values()})
 df_hypo_coronanet = pd.merge(df_hypo_short_coronanet, df_hypo_long_coronanet, on="label")
 
-df_hypo_coronanet.to_csv("./results/appendix/17-table-B6-appendix-hypotheses-coronanet.csv")
+df_hypo_coronanet.to_csv("../results/appendix/17-table-B6-appendix-hypotheses-coronanet.csv")
 
 
 print("Script done.")

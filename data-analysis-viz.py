@@ -25,8 +25,8 @@ print(os.getcwd())
 """
 
 # create the results/figures and results/appendix directory if it does not already exist - for code ocean
-Path("./results/figures/").mkdir(parents=True, exist_ok=True)
-Path("./results/appendix/").mkdir(parents=True, exist_ok=True)
+Path("../results/figures/").mkdir(parents=True, exist_ok=True)
+Path("../results/appendix/").mkdir(parents=True, exist_ok=True)
 
 
 
@@ -481,13 +481,13 @@ fig_per_dataset_macro = plot_per_dataset(metric_func="F1 Macro")
 fig_per_dataset_micro = plot_per_dataset(metric_func="Accuracy/F1 Micro")
 
 #fig_per_dataset_macro.show(renderer="browser")
-fig_per_dataset_macro.write_image("./results/figures/3-figure-performance-per-dataset-f1macro.svg")
-fig_per_dataset_macro.write_image("./results/figures/3-figure-performance-per-dataset-f1macro.pdf")
+fig_per_dataset_macro.write_image("../results/figures/3-figure-performance-per-dataset-f1macro.svg")
+fig_per_dataset_macro.write_image("../results/figures/3-figure-performance-per-dataset-f1macro.pdf")
 
 
 #fig_per_dataset_micro.show(renderer="browser")
-fig_per_dataset_micro.write_image("./results/appendix/6-figure-performance-per-dataset-f1micro.svg")
-fig_per_dataset_micro.write_image("./results/appendix/6-figure-performance-per-dataset-f1micro.pdf")
+fig_per_dataset_micro.write_image("../results/appendix/6-figure-performance-per-dataset-f1micro.svg")
+fig_per_dataset_micro.write_image("../results/appendix/6-figure-performance-per-dataset-f1micro.pdf")
 
 
 
@@ -744,7 +744,7 @@ def plot_aggregate_metrics(metrics_all_name=None, height=None):
             title_text=metric_i,  #"Accuracy/" + metric_i if metric_i == "F1 Micro" else metric_i,
             title_font_size=16,
             dtick=0.1,
-            range=[0.15, 0.8] #[0.15, 0.8],
+            range=[0.10, 0.88] #[0.15, 0.8],
             #font=dict(size=14)
         )
 
@@ -766,8 +766,8 @@ def plot_aggregate_metrics(metrics_all_name=None, height=None):
 metrics_all_name = ['F1 Macro', 'Balanced Accuracy', 'Accuracy/F1 Micro']
 fig_compare_main = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
 #fig_compare_main.show(renderer="browser")
-fig_compare_main.write_image("./results/figures/2-figure-performance-aggregate.svg")
-fig_compare_main.write_image("./results/figures/2-figure-performance-aggregate.pdf")
+fig_compare_main.write_image("../results/figures/2-figure-performance-aggregate.svg")
+fig_compare_main.write_image("../results/figures/2-figure-performance-aggregate.pdf")
 
 
 # for annex - displaying all possible metrics
@@ -779,8 +779,8 @@ metrics_all_name = ['F1 Macro', #f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     ]
 fig_compare_all = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
 #fig_compare_all.show(renderer="browser")
-fig_compare_all.write_image("./results/appendix/5-figure-performance-aggregate-many-metrics.svg")
-fig_compare_all.write_image("./results/appendix/5-figure-performance-aggregate-many-metrics.pdf")
+fig_compare_all.write_image("../results/appendix/5-figure-performance-aggregate-many-metrics.svg")
+fig_compare_all.write_image("../results/appendix/5-figure-performance-aggregate-many-metrics.pdf")
 
 
 # for annex - comparison of metrics by top Xth vs. rest
@@ -793,8 +793,8 @@ metrics_all_name = ['F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     ]
 fig_compare_topx = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
 #fig_compare_topx.show(renderer="browser")
-fig_compare_topx.write_image("./results/appendix/4-figure-performance-aggregate-topxth-subplot1.svg")
-fig_compare_topx.write_image("./results/appendix/4-figure-performance-aggregate-topxth-subplot1.pdf")
+fig_compare_topx.write_image("../results/appendix/4-figure-performance-aggregate-topxth-subplot1.svg")
+fig_compare_topx.write_image("../results/appendix/4-figure-performance-aggregate-topxth-subplot1.pdf")
 # part two (because too long otherwise)
 metrics_all_name = [#'F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     #'Accuracy/F1 Micro', f"accuracy_top{top_xth}th", "accuracy_rest",  #'Balanced Accuracy',
@@ -804,8 +804,8 @@ metrics_all_name = [#'F1 Macro', f"f1_macro_top{top_xth}th", "f1_macro_rest",
                     ]
 fig_compare_topx = plot_aggregate_metrics(metrics_all_name=metrics_all_name, height=800)
 #fig_compare_topx.show(renderer="browser")
-fig_compare_topx.write_image("./results/appendix/4-figure-performance-aggregate-topxth-subplot2.svg")
-fig_compare_topx.write_image("./results/appendix/4-figure-performance-aggregate-topxth-subplot2.pdf")
+fig_compare_topx.write_image("../results/appendix/4-figure-performance-aggregate-topxth-subplot2.svg")
+fig_compare_topx.write_image("../results/appendix/4-figure-performance-aggregate-topxth-subplot2.pdf")
 
 
 
@@ -899,8 +899,8 @@ fig_compare.update_layout(
     #height=800,
 )
 #fig_compare.show(renderer="browser")
-fig_compare.write_image("./results/appendix/3-figure-standard-deviation.svg")
-fig_compare.write_image("./results/appendix/3-figure-standard-deviation.pdf")
+fig_compare.write_image("../results/appendix/3-figure-standard-deviation.svg")
+fig_compare.write_image("../results/appendix/3-figure-standard-deviation.pdf")
 
 
 
