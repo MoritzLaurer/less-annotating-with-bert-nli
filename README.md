@@ -1,16 +1,16 @@
 ## Paper Repository: "Less Annotating, More Classifying"
 
 This is the replication code for the paper "Less Annotating, More Classifying:
-Addressing the Data Scarcity Issue of Supervised Machine Learning with Deep Transfer Learning and BERT-NLI"
+Addressing the Data Scarcity Issue of Supervised Machine Learning with Deep Transfer Learning and BERT-NLI".
 
 This repository contains the full code and data for reproducing the paper. 
 An earlier pre-print version of the paper is available [here](https://osf.io/wqc86/) 
-and an improved version is currently under review. 
-The repository will be updated upon final acceptance. 
+and an improved version has been accepted in the journal [Political Analysis](https://www.cambridge.org/core/journals/political-analysis).
+The final paper will be linked as soon as it is available on the journal website.
 
 We also provide an easy-to-use Google Colab notebook for testing BERT-NLI with free access to a GPU. 
 We invite anyone to run and copy this notebook and to train their own BERT-NLI model 
-on their own data: https://colab.research.google.com/drive/1-y7o-QRWp-OwGMe64CxQwQk2-o2jZFm3?usp=sharing 
+on their own data: <a href="https://colab.research.google.com/github/MoritzLaurer/less-annotating-with-bert-nli/blob/master/BERT_NLI_demo.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 
 ### Description of programs/code
