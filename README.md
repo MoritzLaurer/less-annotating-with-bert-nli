@@ -3,10 +3,9 @@
 This is the replication code for the paper "Less Annotating, More Classifying:
 Addressing the Data Scarcity Issue of Supervised Machine Learning with Deep Transfer Learning and BERT-NLI".
 
-This repository contains the full code and data for reproducing the paper. 
-An earlier pre-print version of the paper is available [here](https://osf.io/wqc86/) 
-and an improved version has been accepted in the journal [Political Analysis](https://www.cambridge.org/core/journals/political-analysis).
-The final paper will be linked as soon as it is available on the journal website.
+This repository contains the full code and data for reproducing the paper.
+The paper was published in the journal Political Analysis
+and the final version is available on the journal website [here](https://www.cambridge.org/core/journals/political-analysis/article/less-annotating-more-classifying-addressing-the-data-scarcity-issue-of-supervised-machine-learning-with-deep-transfer-learning-and-bertnli/05BB05555241762889825B080E097C27).
 
 We also provide an easy-to-use Google Colab notebook for testing BERT-NLI with free access to a GPU. 
 We invite anyone to run and copy this notebook and to train their own BERT-NLI model 
@@ -125,6 +124,27 @@ initialised with the value 42 is used to create new random seeds.
 
 MIT
 
+
+### Citation
+
+Laurer, M., Van Atteveldt, W., Casas, A., & Welbers, K. (2023). Less Annotating, More Classifying: Addressing the Data Scarcity Issue of Supervised Machine Learning with Deep Transfer Learning and BERT-NLI. Political Analysis, 1–33. https://doi.org/10.1017/pan.2023.20
+
+```bibtex
+@article{laurer_less_2023,
+	title = {Less {Annotating}, {More} {Classifying}: {Addressing} the {Data} {Scarcity} {Issue} of {Supervised} {Machine} {Learning} with {Deep} {Transfer} {Learning} and {BERT}-{NLI}},
+	issn = {1047-1987, 1476-4989},
+	shorttitle = {Less {Annotating}, {More} {Classifying}},
+	url = {https://www.cambridge.org/core/product/identifier/S1047198723000207/type/journal_article},
+	doi = {10.1017/pan.2023.20},
+	language = {en},
+	urldate = {2023-06-20},
+	journal = {Political Analysis},
+	author = {Laurer, Moritz and Van Atteveldt, Wouter and Casas, Andreu and Welbers, Kasper},
+	month = jun,
+	year = {2023},
+	pages = {1--33},
+}
+```
 
 ### Acknowledgements
 
