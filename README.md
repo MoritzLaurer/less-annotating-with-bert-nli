@@ -146,6 +146,8 @@ Laurer, M., Van Atteveldt, W., Casas, A., & Welbers, K. (2023). Less Annotating,
 }
 ```
 
+DOI specifically for this code repository (not the paper): [![DOI](https://zenodo.org/badge/512212490.svg)](https://zenodo.org/doi/10.5281/zenodo.10839411)
+
 ### Acknowledgements
 
 This README file is partly based on the [Social Science Data Editors template](https://social-science-data-editors.github.io/template_README/template-README.html). 
